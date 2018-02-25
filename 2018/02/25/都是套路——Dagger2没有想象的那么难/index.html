@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Dagger," />
 
 
 
@@ -79,13 +79,21 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="本文的分析基于dagger2的2.7版本。  谷歌开发维护的Dagger2出来有很长时间了，目前在很多开源项目上也能看到它的身影。看了一些文章和项目，发现Dagger2的入门虽然有些难，但还是有一些规律可循的。 对于开源的第三方项目，我认为都是有套路可循的，找到这个套路，入门就不会难了，难的是如何更好的在实际开发项目中灵活运用。而灵活运用必然是建立在对这些开源框架深刻理解的基础之上。 关于Dag">
+<meta name="keywords" content="Dagger">
+<meta property="og:type" content="article">
+<meta property="og:title" content="都是套路——Dagger2没有想象的那么难">
+<meta property="og:url" content="http://yoursite.com/2018/02/25/都是套路——Dagger2没有想象的那么难/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文的分析基于dagger2的2.7版本。  谷歌开发维护的Dagger2出来有很长时间了，目前在很多开源项目上也能看到它的身影。看了一些文章和项目，发现Dagger2的入门虽然有些难，但还是有一些规律可循的。 对于开源的第三方项目，我认为都是有套路可循的，找到这个套路，入门就不会难了，难的是如何更好的在实际开发项目中灵活运用。而灵活运用必然是建立在对这些开源框架深刻理解的基础之上。 关于Dag">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-33f9ffeb9c6436a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-049a5487c6769ba9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-02-25T15:16:55.362Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="都是套路——Dagger2没有想象的那么难">
+<meta name="twitter:description" content="本文的分析基于dagger2的2.7版本。  谷歌开发维护的Dagger2出来有很长时间了，目前在很多开源项目上也能看到它的身影。看了一些文章和项目，发现Dagger2的入门虽然有些难，但还是有一些规律可循的。 对于开源的第三方项目，我认为都是有套路可循的，找到这个套路，入门就不会难了，难的是如何更好的在实际开发项目中灵活运用。而灵活运用必然是建立在对这些开源框架深刻理解的基础之上。 关于Dag">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/2083810-33f9ffeb9c6436a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 
 
 
@@ -115,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/02/25/都是套路——Dagger2没有想象的那么难/"/>
 
 
 
 
 
-  <title>Hexo</title>
+  <title>都是套路——Dagger2没有想象的那么难 | Hexo</title>
   
 
 
@@ -140,8 +148,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -244,9 +251,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -276,9 +283,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/02/25/都是套路——Dagger2没有想象的那么难/" itemprop="url">都是套路——Dagger2没有想象的那么难</a></h1>
+          <h1 class="post-title" itemprop="name headline">都是套路——Dagger2没有想象的那么难</h1>
         
 
         <div class="post-meta">
@@ -328,9 +333,7 @@
       
 
       
-        
-          
-            <blockquote>
+        <blockquote>
 <p>本文的分析基于<a href="https://github.com/google/dagger" target="_blank" rel="noopener">dagger2的2.7版本</a>。</p>
 </blockquote>
 <p>谷歌开发维护的Dagger2出来有很长时间了，目前在很多开源项目上也能看到它的身影。看了一些文章和项目，发现Dagger2的入门虽然有些难，但还是有一些规律可循的。</p>
@@ -536,8 +539,6 @@
 <li><a href="http://blog.csdn.net/u012943767/article/details/51954939" target="_blank" rel="noopener">Dagger2 彻底了解如何构建依赖关系</a></li>
 </ul>
 
-          
-        
       
     </div>
     
@@ -552,142 +553,36 @@
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/29/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/01/29/hello-world/" itemprop="url">Hello World</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-29T21:20:17+08:00">
-                2018-01-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-
+            <a href="/tags/Dagger/" rel="tag"># Dagger</a>
           
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
       
 
       
       
-        <div class="post-eof"></div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/29/hello-world/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
       
     </footer>
   </div>
@@ -697,10 +592,11 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -708,6 +604,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -728,8 +628,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -780,6 +689,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-Dagger2的注解"><span class="nav-number">1.</span> <span class="nav-text">1 Dagger2的注解</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-Dagger2的套路"><span class="nav-number">2.</span> <span class="nav-text">2 Dagger2的套路</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-最简单的运用"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 最简单的运用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-采用-Module提供依赖"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 采用@Module提供依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-Module和-Inject的优先级问题"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 @Module和@Inject的优先级问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-初始化依赖实例的步骤"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 初始化依赖实例的步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-Qualifier限定符有什么神奇的作用"><span class="nav-number">2.5.</span> <span class="nav-text">2.5 @Qualifier限定符有什么神奇的作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-6-Scope作用域怎么用"><span class="nav-number">2.6.</span> <span class="nav-text">2.6 @Scope作用域怎么用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-7-重点和难点——组织Component"><span class="nav-number">2.7.</span> <span class="nav-text">2.7 重点和难点——组织Component</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-7-1-依赖"><span class="nav-number">2.7.1.</span> <span class="nav-text">2.7.1 依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-7-2-包含"><span class="nav-number">2.7.2.</span> <span class="nav-text">2.7.2 包含</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-7-3-继承"><span class="nav-number">2.7.3.</span> <span class="nav-text">2.7.3 继承</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-总结"><span class="nav-number">3.</span> <span class="nav-text">3 总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -913,6 +838,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
