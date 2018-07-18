@@ -259,183 +259,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/18/网络协议相关知识介绍/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/18/网络协议相关知识介绍/" itemprop="url">未命名</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-18T10:59:13+08:00">
-                2018-07-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <hr>
-<p>title: 网络协议相关知识介绍</p>
-<h2 id="date-2018-06-03-18-36-00"><a href="#date-2018-06-03-18-36-00" class="headerlink" title="date: 2018-06-03 18:36:00"></a>date: 2018-06-03 18:36:00</h2><h1 id="网络的五层划分"><a href="#网络的五层划分" class="headerlink" title="网络的五层划分"></a>网络的五层划分</h1><p>网络层次的划分有OSI（Open System Interconnect，开放式系统互联）七层模型和TCP/IP模型。<br>OSI模型按照从顶层到底层划分7层，分别是：应用层、表示层、会话层、传输层、网络层、数据链路层和物理层。<br>由于OSI模型划分的层数太多、模型比较复杂，实现起来比较困难，因此当前网络模型使用的是TCP/IP模型。<br>TCP/IP是一组用于实现网络互连的通信协议。Internet网络体系结构以TCP/IP为核心。基于TCP/IP的参考模型将网络分成四个层次，每一层都有对应的协议：</p>
-<ul>
-<li>应用层，支持网络应用，应用协议仅仅是网络应用的一个组成部分，运行在不同主机上的进程则使用应用层协议进行通信，包含的协议有HTTP、STMP、FTP</li>
-<li>传输层，负责为信源和信宿提供应用程序进程间的数据传输服务，包含的协议有TCP、UDP</li>
-<li>网络层，负责将数据报独立地从信源发送到信宿，主要解决路由选择、拥塞控制和网络互联等问题，对应的是协议有IP协议、ARP协议等</li>
-<li>网络接口层，该层也可细分为数据链路层和物理层，网络层负责将数据报独立地从信源发送到信宿，主要解决路由选择、拥塞控制和网络互联等问题。数据链路层负责将IP数据报封装成合适在物理网络上传输的帧格式并传输，或将从物理网络接收到的帧解封，取出IP数据报交给网络层。协议有以太网、Wi-Fi、MPLS等。</li>
-</ul>
-<p><img src="https://upload-images.jianshu.io/upload_images/2083810-9a2e7bb68df59264.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="网络各层连接示意图"></p>
-<h1 id="TCP和UDP的区别"><a href="#TCP和UDP的区别" class="headerlink" title="TCP和UDP的区别"></a>TCP和UDP的区别</h1><p>先说UDP吧，UDP的全称是User Datagram Protocol，又称为<strong>用户数据报文协议</strong>，UDP只提供数据的不可靠传递，它一旦把应用程序发给网络层的数据发送出去，就不保留数据备份（所以UDP有时候也被认为是不可靠的数据报协议），而且不保证接收端可以收到。在一些即时通讯领域会采用UDP。</p>
-<p>TCP的全程是Transmission Control Protocol，又称为<strong>传输控制协议</strong>，是一种面向连接的、可靠的、基于字节流的传输层通信协议。</p>
-<p>那么TCP是如何保证可靠性的呢？</p>
-<p>TCP保证可靠性的手段有：停止等待协议、滑动窗口协议、流量控制、拥塞控制等。</p>
-<ul>
-<li>应用数据被分割成TCP认为最适合发送的数据块。</li>
-<li>超时重传：当TCP发出一个段后，它启动一个定时器，等待目的端确认收到这个报文段。如果不能及时收到一个确认，将重发这个报文段。<ul>
-<li>TCP给发送的每一个包进行编号，接收方对数据包进行排序，把有序数据传送给应用层。 </li>
-</ul>
-</li>
-<li>校验和：TCP将保持它首部和数据的检验和。这是一个端到端的检验和，目的是检测数据在传输过程中的任何变化。如果收到段的检验和有差错，TCP将丢弃这个报文段和不确认收到此报文段。<ul>
-<li>TCP的接收端会丢弃重复的数据。 </li>
-</ul>
-</li>
-<li>流量控制：TCP连接的每一方都有固定大小的缓冲空间，TCP的接收端只允许发送端发送接收端缓冲区能接纳的我数据。当接收方来不及处理发送方的数据，能提示发送方降低发送的速率，防止包丢失。TCP使用的流量控制协议是可变大小的滑动窗口协议。 </li>
-<li>拥塞控制：当网络拥塞时，减少数据的发送。</li>
-</ul>
-<h1 id="TCP的三次握手"><a href="#TCP的三次握手" class="headerlink" title="TCP的三次握手"></a>TCP的三次握手</h1><p>三次握手（Three-Way Handshake）即建立TCP连接，指的是在建立TCP连接的过程中，需要客户端和服务端总共发送3个包以确认连接的建立。</p>
-<ul>
-<li>第一次握手：Client将标志位SYN置为1，随机产生一个值seq=J，并将该数据包发送给Server，Client进入SYN_SENT状态，等待Server确认。</li>
-<li>第二次握手：Server收到数据包后由标志位SYN=1知道Client请求建立连接，Server将标志位SYN和ACK都置为1，ack=J+1，随机产生一个值seq=K，并将该数据包发送给Client以确认连接请求，Server进入SYN_RCVD状态。</li>
-<li>第三次握手：Client收到确认后，检查ack是否为J+1，ACK是否为1，如果正确则将标志位ACK置为1，ack=K+1，并将该数据包发送给Server，Server检查ack是否为K+1，ACK是否为1，如果正确则连接建立成功，Client和Server进入ESTABLISHED状态，完成三次握手，随后Client与Server之间可以开始传输数据了。</li>
-</ul>
-<p><img src="https://upload-images.jianshu.io/upload_images/2083810-32dbd1e7141ab98a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="3次握手"></p>
-<p>那么为什么需要3次握手呢？</p>
-<p>我们先来分析一下如果只有2次握手会怎么样，客户端发送一个请求，服务端发出一个响应，此时的情况下连接有可能根本就没有建立起来，因为网络传输是要花费时间的，服务端处理一个客户端连接也可以需要时间，客户端有可能在发送一个连接请求之后马上就关闭了，而此时服务端只是向客户端发送了一个确认的包，紧接着就开始处理网络请求了，这种情况下是不可能成功的。而且既然不需要等待客户端再次发出一个确认数据包，2次握手等同于1次握手，连接不可靠。</p>
-<p>如果超过3次握手也没这个必要，毕竟3次就已经可以保证连接建立了。</p>
-<h1 id="TCP的四次挥手"><a href="#TCP的四次挥手" class="headerlink" title="TCP的四次挥手"></a>TCP的四次挥手</h1><p>四次挥手（Four-Way Wavehand）即终止TCP连接，也就是说断开连接的时候需要客户端和服务端总共发送4个包来确认连接的断开。这个断开连接的过程可以由客户端和服务端任意一方来发起。</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/2083810-460ddbfd1b392381.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="四次挥手——客户端主动关闭"></p>
-<ul>
-<li>第一次挥手：Client发送一个FIN，用来关闭Client到Server的数据传送，Client进入FIN_WAIT_1状态。</li>
-<li>第二次挥手：Server收到FIN后，发送一个ACK给Client，确认序号为收到序号+1（与SYN相同，一个FIN占用一个序号），Server进入CLOSE_WAIT状态。 </li>
-<li>第三次挥手：Server发送一个FIN，用来关闭Server到Client的数据传送，Server进入LAST_ACK状态。</li>
-<li>第四次挥手：Client收到FIN后，Client进入TIME_WAIT状态，接着发送一个ACK给Server，确认序号为收到序号+1，Server进入CLOSED状态，完成四次挥手。 </li>
-</ul>
-<p>4次挥手还存在着两端同时发起主动关闭的情况，流程图如下：</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/2083810-f88a83c1b0f3175f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="四次挥手——双方同时主动关闭.png"></p>
-<p>那么为什么需要4次挥手才能保证连接的断开呢？<br>这是因为客户端和服务端的读写是双向的，客户端和服务端都要分别发出两个包：</p>
-<ul>
-<li>一个数据包用来表示不再发送数据了</li>
-<li>一个数据包用来表示不再接收数据了 </li>
-</ul>
-<h1 id="相关阅读"><a href="#相关阅读" class="headerlink" title="相关阅读"></a>相关阅读</h1><ul>
-<li><a href="https://zh.wikipedia.org/wiki/TCP/IP%E5%8D%8F%E8%AE%AE%E6%97%8F#%E5%9B%A0%E7%89%B9%E7%BD%91%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%AD%E7%9A%84%E5%B1%82" target="_blank" rel="noopener">因特网协议栈中的层</a></li>
-<li><a href="https://blog.csdn.net/cmm0401/article/details/77878998" target="_blank" rel="noopener">我是如何讲清楚TCP协议是如何保证可靠传输的</a></li>
-<li><a href="https://www.cnblogs.com/yangbodong/p/4964698.html" target="_blank" rel="noopener">停止等待协议,连续ARQ协议,滑动窗口协议</a></li>
-<li><a href="https://blog.csdn.net/renzhenhuai/article/details/12105457" target="_blank" rel="noopener">TCP/IP协议 三次握手与四次挥手</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/12/Android Gradle Plugin打包Apk过程中的Transform API/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1168,6 +991,181 @@
 <li><a href="https://blog.csdn.net/jiangwei0910410003/article/details/50402000" target="_blank" rel="noopener">Android签名机制之—签名过程详解</a></li>
 <li><a href="https://developer.android.google.cn/studio/command-line/zipalign" target="_blank" rel="noopener">https://developer.android.google.cn/studio/command-line/zipalign</a></li>
 <li><a href="https://www.jianshu.com/p/53923d8f241c" target="_blank" rel="noopener">加快apk的构建速度，如何把编译时间从130秒降到17秒</a> </li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/03/网络协议相关知识介绍/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/03/网络协议相关知识介绍/" itemprop="url">网络协议相关知识介绍</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-03T18:36:00+08:00">
+                2018-06-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="网络的五层划分"><a href="#网络的五层划分" class="headerlink" title="网络的五层划分"></a>网络的五层划分</h1><p>网络层次的划分有OSI（Open System Interconnect，开放式系统互联）七层模型和TCP/IP模型。<br>OSI模型按照从顶层到底层划分7层，分别是：应用层、表示层、会话层、传输层、网络层、数据链路层和物理层。<br>由于OSI模型划分的层数太多、模型比较复杂，实现起来比较困难，因此当前网络模型使用的是TCP/IP模型。<br>TCP/IP是一组用于实现网络互连的通信协议。Internet网络体系结构以TCP/IP为核心。基于TCP/IP的参考模型将网络分成四个层次，每一层都有对应的协议：</p>
+<ul>
+<li>应用层，支持网络应用，应用协议仅仅是网络应用的一个组成部分，运行在不同主机上的进程则使用应用层协议进行通信，包含的协议有HTTP、STMP、FTP</li>
+<li>传输层，负责为信源和信宿提供应用程序进程间的数据传输服务，包含的协议有TCP、UDP</li>
+<li>网络层，负责将数据报独立地从信源发送到信宿，主要解决路由选择、拥塞控制和网络互联等问题，对应的是协议有IP协议、ARP协议等</li>
+<li>网络接口层，该层也可细分为数据链路层和物理层，网络层负责将数据报独立地从信源发送到信宿，主要解决路由选择、拥塞控制和网络互联等问题。数据链路层负责将IP数据报封装成合适在物理网络上传输的帧格式并传输，或将从物理网络接收到的帧解封，取出IP数据报交给网络层。协议有以太网、Wi-Fi、MPLS等。</li>
+</ul>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-9a2e7bb68df59264.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="网络各层连接示意图"></p>
+<h1 id="TCP和UDP的区别"><a href="#TCP和UDP的区别" class="headerlink" title="TCP和UDP的区别"></a>TCP和UDP的区别</h1><p>先说UDP吧，UDP的全称是User Datagram Protocol，又称为<strong>用户数据报文协议</strong>，UDP只提供数据的不可靠传递，它一旦把应用程序发给网络层的数据发送出去，就不保留数据备份（所以UDP有时候也被认为是不可靠的数据报协议），而且不保证接收端可以收到。在一些即时通讯领域会采用UDP。</p>
+<p>TCP的全程是Transmission Control Protocol，又称为<strong>传输控制协议</strong>，是一种面向连接的、可靠的、基于字节流的传输层通信协议。</p>
+<p>那么TCP是如何保证可靠性的呢？</p>
+<p>TCP保证可靠性的手段有：停止等待协议、滑动窗口协议、流量控制、拥塞控制等。</p>
+<ul>
+<li>应用数据被分割成TCP认为最适合发送的数据块。</li>
+<li>超时重传：当TCP发出一个段后，它启动一个定时器，等待目的端确认收到这个报文段。如果不能及时收到一个确认，将重发这个报文段。<ul>
+<li>TCP给发送的每一个包进行编号，接收方对数据包进行排序，把有序数据传送给应用层。 </li>
+</ul>
+</li>
+<li>校验和：TCP将保持它首部和数据的检验和。这是一个端到端的检验和，目的是检测数据在传输过程中的任何变化。如果收到段的检验和有差错，TCP将丢弃这个报文段和不确认收到此报文段。<ul>
+<li>TCP的接收端会丢弃重复的数据。 </li>
+</ul>
+</li>
+<li>流量控制：TCP连接的每一方都有固定大小的缓冲空间，TCP的接收端只允许发送端发送接收端缓冲区能接纳的我数据。当接收方来不及处理发送方的数据，能提示发送方降低发送的速率，防止包丢失。TCP使用的流量控制协议是可变大小的滑动窗口协议。 </li>
+<li>拥塞控制：当网络拥塞时，减少数据的发送。</li>
+</ul>
+<h1 id="TCP的三次握手"><a href="#TCP的三次握手" class="headerlink" title="TCP的三次握手"></a>TCP的三次握手</h1><p>三次握手（Three-Way Handshake）即建立TCP连接，指的是在建立TCP连接的过程中，需要客户端和服务端总共发送3个包以确认连接的建立。</p>
+<ul>
+<li>第一次握手：Client将标志位SYN置为1，随机产生一个值seq=J，并将该数据包发送给Server，Client进入SYN_SENT状态，等待Server确认。</li>
+<li>第二次握手：Server收到数据包后由标志位SYN=1知道Client请求建立连接，Server将标志位SYN和ACK都置为1，ack=J+1，随机产生一个值seq=K，并将该数据包发送给Client以确认连接请求，Server进入SYN_RCVD状态。</li>
+<li>第三次握手：Client收到确认后，检查ack是否为J+1，ACK是否为1，如果正确则将标志位ACK置为1，ack=K+1，并将该数据包发送给Server，Server检查ack是否为K+1，ACK是否为1，如果正确则连接建立成功，Client和Server进入ESTABLISHED状态，完成三次握手，随后Client与Server之间可以开始传输数据了。</li>
+</ul>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-32dbd1e7141ab98a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="3次握手"></p>
+<p>那么为什么需要3次握手呢？</p>
+<p>我们先来分析一下如果只有2次握手会怎么样，客户端发送一个请求，服务端发出一个响应，此时的情况下连接有可能根本就没有建立起来，因为网络传输是要花费时间的，服务端处理一个客户端连接也可以需要时间，客户端有可能在发送一个连接请求之后马上就关闭了，而此时服务端只是向客户端发送了一个确认的包，紧接着就开始处理网络请求了，这种情况下是不可能成功的。而且既然不需要等待客户端再次发出一个确认数据包，2次握手等同于1次握手，连接不可靠。</p>
+<p>如果超过3次握手也没这个必要，毕竟3次就已经可以保证连接建立了。</p>
+<h1 id="TCP的四次挥手"><a href="#TCP的四次挥手" class="headerlink" title="TCP的四次挥手"></a>TCP的四次挥手</h1><p>四次挥手（Four-Way Wavehand）即终止TCP连接，也就是说断开连接的时候需要客户端和服务端总共发送4个包来确认连接的断开。这个断开连接的过程可以由客户端和服务端任意一方来发起。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-460ddbfd1b392381.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="四次挥手——客户端主动关闭"></p>
+<ul>
+<li>第一次挥手：Client发送一个FIN，用来关闭Client到Server的数据传送，Client进入FIN_WAIT_1状态。</li>
+<li>第二次挥手：Server收到FIN后，发送一个ACK给Client，确认序号为收到序号+1（与SYN相同，一个FIN占用一个序号），Server进入CLOSE_WAIT状态。 </li>
+<li>第三次挥手：Server发送一个FIN，用来关闭Server到Client的数据传送，Server进入LAST_ACK状态。</li>
+<li>第四次挥手：Client收到FIN后，Client进入TIME_WAIT状态，接着发送一个ACK给Server，确认序号为收到序号+1，Server进入CLOSED状态，完成四次挥手。 </li>
+</ul>
+<p>4次挥手还存在着两端同时发起主动关闭的情况，流程图如下：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-f88a83c1b0f3175f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="四次挥手——双方同时主动关闭.png"></p>
+<p>那么为什么需要4次挥手才能保证连接的断开呢？<br>这是因为客户端和服务端的读写是双向的，客户端和服务端都要分别发出两个包：</p>
+<ul>
+<li>一个数据包用来表示不再发送数据了</li>
+<li>一个数据包用来表示不再接收数据了 </li>
+</ul>
+<h1 id="相关阅读"><a href="#相关阅读" class="headerlink" title="相关阅读"></a>相关阅读</h1><ul>
+<li><a href="https://zh.wikipedia.org/wiki/TCP/IP%E5%8D%8F%E8%AE%AE%E6%97%8F#%E5%9B%A0%E7%89%B9%E7%BD%91%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%AD%E7%9A%84%E5%B1%82" target="_blank" rel="noopener">因特网协议栈中的层</a></li>
+<li><a href="https://blog.csdn.net/cmm0401/article/details/77878998" target="_blank" rel="noopener">我是如何讲清楚TCP协议是如何保证可靠传输的</a></li>
+<li><a href="https://www.cnblogs.com/yangbodong/p/4964698.html" target="_blank" rel="noopener">停止等待协议,连续ARQ协议,滑动窗口协议</a></li>
+<li><a href="https://blog.csdn.net/renzhenhuai/article/details/12105457" target="_blank" rel="noopener">TCP/IP协议 三次握手与四次挥手</a></li>
 </ul>
 
           
