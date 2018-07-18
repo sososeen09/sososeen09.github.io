@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  为了提高可维护性和防止紧密耦合，可以基于特定的功能和逻辑将代码写在不同的模块中。模块通常具有层次结构而且可以定义为相互依赖。Gradle对构建多模块项目提供了强大的支持，Gradle中的每一模块都是一个项目，我们称之为多项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gradle学习9——多项目构建">
+<meta property="og:url" content="http://yoursite.com/2017/10/14/Gradle学习9——多项目构建/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  为了提高可维护性和防止紧密耦合，可以基于特定的功能和逻辑将代码写在不同的模块中。模块通常具有层次结构而且可以定义为相互依赖。Gradle对构建多模块项目提供了强大的支持，Gradle中的每一模块都是一个项目，我们称之为多项目">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-18T02:43:39.105Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gradle学习9——多项目构建">
+<meta name="twitter:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  为了提高可维护性和防止紧密耦合，可以基于特定的功能和逻辑将代码写在不同的模块中。模块通常具有层次结构而且可以定义为相互依赖。Gradle对构建多模块项目提供了强大的支持，Gradle中的每一模块都是一个项目，我们称之为多项目">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/14/Gradle学习9——多项目构建/"/>
+
+
+
+
+
+  <title>Gradle学习9——多项目构建 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/14/Gradle学习9——多项目构建/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Gradle学习9——多项目构建</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-14T16:52:09+08:00">
+                2017-10-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>学习本系列前可以下载相关的github项目<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">gradleLearnDemo</a>。<br>地址：<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">https://github.com/sososeen09/gradleLearnDemo</a></p>
+</blockquote>
+<p>为了提高可维护性和防止紧密耦合，可以基于特定的功能和逻辑将代码写在不同的模块中。模块通常具有层次结构而且可以定义为相互依赖。Gradle对构建多模块项目提供了强大的支持，Gradle中的每一模块都是一个项目，我们称之为多项目构建。</p>
+<blockquote>
+<p>注意：在Android Studio中，一个模块和一个项目是有区别的。一个项目包含多个模块module。而Android Studio中的每一个module对应的是Gradle多项目构建中的一个项目</p>
+</blockquote>
+<p>在多项目构建中，settings文件声明了所需的配置来实例化项目的层次结构。在默认情况下，这个文件被命名为settings.gradle，并且和根项目的build.gradle 文件放在一起。settings.gradle脚本的执行是在构建生命周期的初始化阶段。Gradle组装构建之前会创建一个<a href="https://docs.gradle.org/4.2.1/javadoc/org/gradle/api/initialization/Settings.html" target="_blank" rel="noopener">Settings</a>类型的实例。Settings接口是settings文件的直接表示。若想使每个子项目都称为构建的一部分，则可以调用Settings接口中带有项目路径参数的include方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">rootProject</span><br><span class="line">      |———— settings.gradle</span><br><span class="line">      |———— build.gradle</span><br><span class="line">      |———— sub_project1</span><br><span class="line">      |            |———— build.gradle</span><br><span class="line">      |———— sub_project2</span><br><span class="line">      |            |———— build.gradle</span><br></pre></td></tr></table></figure>
+<p>在settings.gradle中要声明当前项目包含的子项目：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include &apos;:sub_project1&apos;, &apos;sub_project2&apos;</span><br></pre></td></tr></table></figure>
+<p>注意：传给include方法的参数是项目路径，不是文件路径。该项目路径是相对于根目录的项目目录。也可以构建更深层次的项目结构。使用冒号(:)字符来分隔每一个子项目的层次结构。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include &apos;:subs:sub_project1&apos;</span><br></pre></td></tr></table></figure>
+<p>有时候，想要为所有的项目或只有子项目定义一些公共的行为。为实现这些用力，<a href="https://docs.gradle.org/4.2.1/javadoc/org/gradle/api/Project.html" target="_blank" rel="noopener">Project</a> API提供了两个专门的方法：allprojects和subprojects。<br>在根目录中的build.gradle中添加如下配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">allprojects&#123;</span><br><span class="line">	task allTaskHello &lt;&lt;&#123;</span><br><span class="line">		println &quot;hello from $&#123;project.name&#125;&quot;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>配置在allprojects 这个闭包下的所有内容对根项目和子项目都有效。<br>在根目录下执行<code>gradle  allTaskHello</code> 命令，可以看到结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">:allTaskHello</span><br><span class="line">hello from rootProject</span><br><span class="line"></span><br><span class="line">:sub_project1:allTaskHello</span><br><span class="line">hello from sub_project1</span><br><span class="line"></span><br><span class="line">:sub_project2:allTaskHello</span><br><span class="line">hello from sub_project2</span><br></pre></td></tr></table></figure>
+<p>在根目录中的build.gradle中添加如下配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">subprojects&#123;</span><br><span class="line">	task subTaskHello &lt;&lt;&#123;</span><br><span class="line">		println &quot;hello from sub project $&#123;project.name&#125;&quot;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>配置在subprojects 这个闭包下的所有内容只对子项目都有效，对根项目无效。<br>在根目录下执行<code>gradle subTaskHello</code> 命令，可以看到结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">:sub_project1:subTaskHello</span><br><span class="line">hello from sub project sub_project1</span><br><span class="line"></span><br><span class="line">:sub_project2:subTaskHello</span><br><span class="line">hello from sub project sub_project2</span><br></pre></td></tr></table></figure>
+<p>如果进入到子项目目录下执行gradle命令，只会对当前的这个子项目有效。比如进入sub_project1这个子项目中，执行<code>gradle  subTaskHello</code>命令，结果是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">:sub_project1:subTaskHello</span><br><span class="line">hello from sub project sub_project1</span><br></pre></td></tr></table></figure>
+<p><strong>默认的task执行顺序</strong></p>
+<p>如果task没有声明依赖另一个task，在多项目构建中位于根目录的task总是先执行。对于子项目来说，执行顺序完全取决于项目名称的字母顺序。例如，sub_project1在sub_project2之前。记住，在settings文件中子项目的声明顺序完全不影响其执行顺序。</p>
+<p><strong>单独定义特定的行为</strong></p>
+<p>前面我们讲的，都是在allprojects和subprojects中进行的定义，实际上我们在根目录下的build.gradle中也可以对每一个项目进行单独的定义。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">project(&apos;:sub_project1&apos;)&#123;</span><br><span class="line">	task forSub1 &lt;&lt;&#123;</span><br><span class="line">		println &apos;this is only for sub_project1 task&apos;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行<code>gradle forSub1</code>命令，可以看到结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">:sub_project1:forSub1</span><br><span class="line">this is only for sub_project1 task</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>记住：在根目录下的build.gradle中执行task，Gradle会在所有拥有该task的project上执行该task。</p>
+</blockquote>
+<p><strong>属性继承</strong></p>
+<p>属性继承，在一个根项目中定义的属性会自动的被其子项目继承，也就是说子项目中也可以用到这些属性，例如我们在根项目中声明一个扩展属性projectInfo，对于根项目和子项目都是可用的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">ext.projectInfo=[&apos;group&apos;:&apos;com.sososeen09&apos;,&apos;version&apos;:&apos;0.1&apos;]</span><br><span class="line"></span><br><span class="line">group = projectInfo.group</span><br><span class="line">version = projectInfo.version</span><br><span class="line">project(&apos;:sub_project1&apos;)&#123;</span><br><span class="line">	group = projectInfo.group</span><br><span class="line">    version = projectInfo.version</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">project(&apos;:sub_project2&apos;)&#123;</span><br><span class="line">	group = projectInfo.group</span><br><span class="line">    version = projectInfo.version</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>项目之间的依赖</strong></p>
+<p>多项目之间一般不会是毫无关联的，可能会存在依赖关系。比如sub-project1中有taskA和taskB，taskA依赖于taskB，而taskB依赖于sub_project2中的taskC。到目前为止，我们把子项目中的属性和任务都放在根目录下的build.gradle中声明，现在是时候在它们各自的build.gradle中是声明自己的任务了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">//sub_project1 中</span><br><span class="line">task taskA &lt;&lt; &#123;</span><br><span class="line">	println &quot;this is $&#123;name&#125; from $&#123;project.name&#125;&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">task taskB &lt;&lt; &#123;</span><br><span class="line">	println &quot;this is $&#123;name&#125; from $&#123;project.name&#125;&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">taskA.dependsOn taskB</span><br><span class="line">taskB.dependsOn &apos;:sub_project2:taskC&apos;</span><br><span class="line"></span><br><span class="line">//sub_project2 中</span><br><span class="line">task taskC &lt;&lt; &#123;</span><br><span class="line">	println &quot;this is $&#123;name&#125; from $&#123;project.name&#125;&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们分析一下，taskA 依赖taskB ，所以taskA执行之前，taskB必须先执行；而taskB又依赖于sub_project2中的taskC，所以taskB执行前，taskC必须先执行。<br>现在执行 <code>gradle taskA</code>命令，可以看到结果跟我们的分析一致：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">:sub_project2:taskC</span><br><span class="line">this is taskC from sub_project2</span><br><span class="line"></span><br><span class="line">:sub_project1:taskB</span><br><span class="line">this is taskB from sub_project1</span><br><span class="line"></span><br><span class="line">:sub_project1:taskA</span><br><span class="line">this is taskA from sub_project1</span><br></pre></td></tr></table></figure>
+<p><a href="http://www.jianshu.com/p/337e8d4f1817" target="_blank" rel="noopener">下一篇</a>，我们开始学习自定义Gradle插件，这是本系列的最后一篇，也是一个非常重要的部分。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习8——依赖管理/" rel="next" title="Gradle学习8——依赖管理">
+                <i class="fa fa-chevron-left"></i> Gradle学习8——依赖管理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习10——自定义Gradle插件/" rel="prev" title="Gradle学习10——自定义Gradle插件">
+                Gradle学习10——自定义Gradle插件 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

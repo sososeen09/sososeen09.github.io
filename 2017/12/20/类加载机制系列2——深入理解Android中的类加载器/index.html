@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Android中的ClassLoaderJava中的ClassLoader是加载class文件，而Android中的虚拟机无论是dvm还是art都只能识别dex文件。因此Java中的ClassLoader在Android中不适用。Android中的java.lang.ClassLoader这个类也不同于Java中的java.lang.ClassLoader。Android中的ClassLoader">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类加载机制系列2——深入理解Android中的类加载器">
+<meta property="og:url" content="http://yoursite.com/2017/12/20/类加载机制系列2——深入理解Android中的类加载器/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Android中的ClassLoaderJava中的ClassLoader是加载class文件，而Android中的虚拟机无论是dvm还是art都只能识别dex文件。因此Java中的ClassLoader在Android中不适用。Android中的java.lang.ClassLoader这个类也不同于Java中的java.lang.ClassLoader。Android中的ClassLoader">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-64e93a71d99c1459.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-9a448c7910a74af2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T04:25:04.679Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="类加载机制系列2——深入理解Android中的类加载器">
+<meta name="twitter:description" content="Android中的ClassLoaderJava中的ClassLoader是加载class文件，而Android中的虚拟机无论是dvm还是art都只能识别dex文件。因此Java中的ClassLoader在Android中不适用。Android中的java.lang.ClassLoader这个类也不同于Java中的java.lang.ClassLoader。Android中的ClassLoader">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/2083810-64e93a71d99c1459.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/20/类加载机制系列2——深入理解Android中的类加载器/"/>
+
+
+
+
+
+  <title>类加载机制系列2——深入理解Android中的类加载器 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/20/类加载机制系列2——深入理解Android中的类加载器/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">类加载机制系列2——深入理解Android中的类加载器</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-20T10:53:00+08:00">
+                2017-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Android中的ClassLoader"><a href="#Android中的ClassLoader" class="headerlink" title="Android中的ClassLoader"></a>Android中的ClassLoader</h1><p>Java中的ClassLoader是加载class文件，而Android中的虚拟机无论是dvm还是art都只能识别dex文件。因此Java中的ClassLoader在Android中不适用。Android中的<code>java.lang.ClassLoader</code>这个类也不同于Java中的<code>java.lang.ClassLoader</code>。<br>Android中的ClassLoader类型也可分为系统ClassLoader和自定义ClassLoader。其中系统ClassLoader包括3种分别是：</p>
+<ul>
+<li>BootClassLoader，Android系统启动时会使用BootClassLoader来预加载常用类，与Java中的Bootstrap ClassLoader不同的是，它并不是由C/C++代码实现，而是由Java实现的。BootClassLoader是ClassLoader的一个内部类。</li>
+<li>PathClassLoader，全名是<code>dalvik/system.PathClassLoader</code>，可以加载已经安装的Apk，也就是<code>/data/app/package</code> 下的apk文件，也可以加载<code>/vendor/lib, /system/lib</code>下的nativeLibrary。</li>
+<li>DexClassLoader，全名是<code>dalvik/system.DexClassLoader</code>，可以加载一个未安装的apk文件。</li>
+</ul>
+<p><code>PathClassLoader</code>和<code>DexClasLoader</code>都是继承自 <code>dalviksystem.BaseDexClassLoader</code>，它们的类加载逻辑全部写在<code>BaseDexClassLoader</code>中。<br>下图展示了Android中的ClassLoader中的继承体系，其中SecureClassLoader和UrlClassLoader是在Java中的类加载器，在Android中是没法办使用的。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2083810-64e93a71d99c1459.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Android中的ClassLoader.png"></p>
+<p>在MainActivity中打印当前的ClassLoader，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public class MainActivity extends AppCompatActivity &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">        super.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        ClassLoader classLoader = getClassLoader();</span><br><span class="line">        while (classLoader != null) &#123;</span><br><span class="line">            System.out.println(&quot;classLoader: &quot; + classLoader);</span><br><span class="line">            classLoader = classLoader.getParent();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dalvik.system.PathClassLoader[DexPathList[[zip file &quot;/data/app/com.sososeen09.classloadtest-1/base.apk&quot;],nativeLibraryDirectories=[/vendor/lib, /system/lib]]]</span><br><span class="line">java.lang.BootClassLoader@aced87d</span><br></pre></td></tr></table></figure>
+<p>从打印的结果也可以证实：App系统类加载器是PathClassLoader，而BootClassLoader是其parent类加载器。</p>
+<h1 id="ClassLoader源码分析"><a href="#ClassLoader源码分析" class="headerlink" title="ClassLoader源码分析"></a>ClassLoader源码分析</h1><p>在Android中我们主要关心的是PathClassLoader和DexClassLoader。<br>PathClassLoader用来操作本地文件系统中的文件和目录的集合。并不会加载来源于网络中的类。Android采用这个类加载器一般是用于加载系统类和它自己的应用类。这个应用类放置在data/data/包名下。<br>看一下PathClassLoader的源码，只有2个构造方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">package dalvik.system;</span><br><span class="line"></span><br><span class="line">public class PathClassLoader extends BaseDexClassLoader &#123;</span><br><span class="line"></span><br><span class="line">    public PathClassLoader(String dexPath, ClassLoader parent) &#123;</span><br><span class="line">        super(dexPath, null, null, parent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public PathClassLoader(String dexPath, String libraryPath,</span><br><span class="line">            ClassLoader parent) &#123;</span><br><span class="line">        super(dexPath, null, libraryPath, parent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>DexClassLoader可以加载一个未安装的APK，也可以加载其它包含dex文件的JAR/ZIP类型的文件。DexClassLoader需要一个对应用私有且可读写的文件夹来缓存优化后的class文件。而且一定要注意不要把优化后的文件存放到外部存储上，避免使自己的应用遭受代码注入攻击。看一下它的源码，只有1个构造方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">package dalvik.system;</span><br><span class="line">import java.io.File;</span><br><span class="line">public class DexClassLoader extends BaseDexClassLoader &#123;</span><br><span class="line">    public DexClassLoader(String dexPath, String optimizedDirectory,</span><br><span class="line">            String libraryPath, ClassLoader parent) &#123;</span><br><span class="line">        super(dexPath, new File(optimizedDirectory), libraryPath, parent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，PathClassLoader和DexClassLoader除了构造方法传参不同，其它的逻辑都是一样的。要注意的是DexClassLoader构造方法第2个参数指的是dex优化缓存路径，这个值是不能为空的。而PathClassLoader对应的dex优化缓存路径为null是因为Android系统自己决定了缓存路径。</p>
+<p>先提前漏一嘴，Android中具体负责类加载的并不是哪个ClassLoader，而是通过DexFile的defineClassNative()方法来加载的。</p>
+<p><strong>接下来我们看一下BaseDexClassLoader这个类：</strong></p>
+<p>BaseDexClassLoader的构造方法有四个参数：</p>
+<ul>
+<li>dexPath，指的是在Androdi包含类和资源的jar/apk类型的文件集合，指的是包含dex文件。多个文件用“：”分隔开，用代码就是<code>File.pathSeparator</code>。</li>
+<li>optimizedDirectory，指的是odex优化文件存放的路径，可以为null，那么就采用默认的系统路径。</li>
+<li>libraryPath，指的是native库文件存放目录，也是以“：”分隔。</li>
+<li>parent，parent类加载器</li>
+</ul>
+<p>可以看到，在BaseDexClassLoader类中初始化了DexPathList这个类的对象。这个类的作用是存放指明包含dex文件、native库和优化目录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># dalvik.system.BaseDexClassLoader</span><br><span class="line">    public BaseDexClassLoader(String dexPath, File optimizedDirectory,</span><br><span class="line">            String libraryPath, ClassLoader parent) &#123;</span><br><span class="line">        super(parent);</span><br><span class="line">        this.pathList = new DexPathList(this, dexPath, libraryPath, optimizedDirectory);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><code>dalvik.system.DexPathList</code>封装了dex路径，是一个final类，而且访问权限是包权限，也就是说外界不可继承，也不可访问这个类。<br>BaseDexClassLoader在其构造方法中初始化了DexPathList对象，我们来看一下DexPathList的源码，我们需要重点关注一下它的成员变量dexElements，它是一个Element[]数组，是包含dex的文件集合。Element是DexPathList的一个静态内部类。DexPathList的构造方法有4个参数。从其构造方法中也可以看到传递过来的classLoade对象和dexPath不能为null，否则就抛出空指针异常。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"># dalvik.system.DexPathList</span><br><span class="line"></span><br><span class="line">private final Element[] dexElements;</span><br><span class="line"></span><br><span class="line">public DexPathList(ClassLoader definingContext, String dexPath,</span><br><span class="line">        String libraryPath, File optimizedDirectory) &#123;</span><br><span class="line">    if (definingContext == null) &#123;</span><br><span class="line">        throw new NullPointerException(&quot;definingContext == null&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (dexPath == null) &#123;</span><br><span class="line">        throw new NullPointerException(&quot;dexPath == null&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (optimizedDirectory != null) &#123;</span><br><span class="line">        if (!optimizedDirectory.exists())  &#123;</span><br><span class="line">            throw new IllegalArgumentException(</span><br><span class="line">                    &quot;optimizedDirectory doesn&apos;t exist: &quot;</span><br><span class="line">                    + optimizedDirectory);</span><br><span class="line">        &#125;</span><br><span class="line">        // 如果文件不是可读可写的也会抛出异常</span><br><span class="line">        if (!(optimizedDirectory.canRead()</span><br><span class="line">                        &amp;&amp; optimizedDirectory.canWrite())) &#123;</span><br><span class="line">            throw new IllegalArgumentException(</span><br><span class="line">                    &quot;optimizedDirectory not readable/writable: &quot;</span><br><span class="line">                    + optimizedDirectory);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    this.definingContext = definingContext;</span><br><span class="line">    ArrayList&lt;IOException&gt; suppressedExceptions = new ArrayList&lt;IOException&gt;();</span><br><span class="line">    // 通过makeDexElements方法来获取Element数组</span><br><span class="line">    // splitDexPath(dexPath)方法是用来把我们之前按照“：”分隔的路径转为File集合。</span><br><span class="line">    this.dexElements = makeDexElements(splitDexPath(dexPath), optimizedDirectory,</span><br><span class="line">                                       suppressedExceptions);</span><br><span class="line">    if (suppressedExceptions.size() &gt; 0) &#123;</span><br><span class="line">        this.dexElementsSuppressedExceptions =</span><br><span class="line">            suppressedExceptions.toArray(new IOException[suppressedExceptions.size()]);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        dexElementsSuppressedExceptions = null;</span><br><span class="line">    &#125;</span><br><span class="line">    this.nativeLibraryDirectories = splitLibraryPath(libraryPath);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>makeDexElements方法的作用是获取一个包含dex文件的元素集合。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"># dalvik.system.DexPathList</span><br><span class="line">private static Element[] makeDexElements(ArrayList&lt;File&gt; files, File optimizedDirectory,</span><br><span class="line">                                         ArrayList&lt;IOException&gt; suppressedExceptions) &#123;</span><br><span class="line">    ArrayList&lt;Element&gt; elements = new ArrayList&lt;Element&gt;();</span><br><span class="line"></span><br><span class="line">    // 遍历打开所有的文件并且加载直接或者间接包含dex的文件。</span><br><span class="line">    for (File file : files) &#123;</span><br><span class="line">        File zip = null;</span><br><span class="line">        DexFile dex = null;</span><br><span class="line">        String name = file.getName();</span><br><span class="line"></span><br><span class="line">        if (file.isDirectory()) &#123;</span><br><span class="line">            // We support directories for looking up resources.</span><br><span class="line">            // This is only useful for running libcore tests.</span><br><span class="line">            // 可以发现它是支持传递目录的，但是说只测试libCore的时候有用</span><br><span class="line">            elements.add(new Element(file, true, null, null));</span><br><span class="line">        &#125; else if (file.isFile())&#123;</span><br><span class="line">            // 如果文件名后缀是.dex，说明是原始dex文件</span><br><span class="line">            if (name.endsWith(DEX_SUFFIX)) &#123;</span><br><span class="line">                // Raw dex file (not inside a zip/jar).</span><br><span class="line">                try &#123;</span><br><span class="line">                    //调用loadDexFile()方法，加载dex文件，获得DexFile对象</span><br><span class="line">                    dex = loadDexFile(file, optimizedDirectory);</span><br><span class="line">                &#125; catch (IOException ex) &#123;</span><br><span class="line">                    System.logE(&quot;Unable to load dex file: &quot; + file, ex);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                // dex文件包含在其它文件中</span><br><span class="line">                zip = file;</span><br><span class="line"></span><br><span class="line">                try &#123;</span><br><span class="line">                    // 同样调用loadDexFile()方法</span><br><span class="line">                    dex = loadDexFile(file, optimizedDirectory);</span><br><span class="line">                &#125; catch (IOException suppressed) &#123;</span><br><span class="line">                    // 和加载纯dex文件不同的是，会把异常添加到异常集合中</span><br><span class="line">                    /*</span><br><span class="line">                     * IOException might get thrown &quot;legitimately&quot; by the DexFile constructor if</span><br><span class="line">                     * the zip file turns out to be resource-only (that is, no classes.dex file</span><br><span class="line">                     * in it).</span><br><span class="line">                     * Let dex == null and hang on to the exception to add to the tea-leaves for</span><br><span class="line">                     * when findClass returns null.</span><br><span class="line">                     */</span><br><span class="line">                    suppressedExceptions.add(suppressed);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            System.logW(&quot;ClassLoader referenced unknown path: &quot; + file);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // 如果zip或者dex二者一直不为null，就把元素添加进来</span><br><span class="line">        // 注意，现在添加进来的zip存在不为null也不包含dex文件的可能。</span><br><span class="line">        if ((zip != null) || (dex != null)) &#123;</span><br><span class="line">            elements.add(new Element(file, false, zip, dex));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return elements.toArray(new Element[elements.size()]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过上面的代码也可以看到，加载一个dex文件调用的是loadDexFile()方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># dalvik.system.DexPathList</span><br><span class="line">private static DexFile loadDexFile(File file, File optimizedDirectory)</span><br><span class="line">        throws IOException &#123;</span><br><span class="line">    // 如果缓存存放目录为null就直接创建一个DexFile对象返回</span><br><span class="line">    if (optimizedDirectory == null) &#123;</span><br><span class="line">        return new DexFile(file);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        // 根据缓存存放目录和文件名得到一个优化后的缓存文件路径</span><br><span class="line">        String optimizedPath = optimizedPathFor(file, optimizedDirectory);</span><br><span class="line">        // 调用DexFile的loadDex()方法来获取DexFile对象。</span><br><span class="line">        return DexFile.loadDex(file.getPath(), optimizedPath, 0);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>DexFile的loadDex()方法如下，内部也做了一些调用。抛开这些细节来讲，它的作用就是加载DexFile文件，而且会把优化后的dex文件缓存到对应目录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"># dalvik.system.DexFile </span><br><span class="line">static public DexFile loadDex(String sourcePathName, String outputPathName,</span><br><span class="line">    int flags) throws IOException &#123;</span><br><span class="line"></span><br><span class="line">    /*</span><br><span class="line">     * TODO: we may want to cache previously-opened DexFile objects.</span><br><span class="line">     * The cache would be synchronized with close().  This would help</span><br><span class="line">     * us avoid mapping the same DEX more than once when an app</span><br><span class="line">     * decided to open it multiple times.  In practice this may not</span><br><span class="line">     * be a real issue.</span><br><span class="line">     */</span><br><span class="line">    //loadDex方法内部就是调用了DexFile的一个构造方法</span><br><span class="line">    return new DexFile(sourcePathName, outputPathName, flags);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private DexFile(String sourceName, String outputName, int flags) throws IOException &#123;</span><br><span class="line">    if (outputName != null) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            String parent = new File(outputName).getParent();</span><br><span class="line">            if (Libcore.os.getuid() != Libcore.os.stat(parent).st_uid) &#123;</span><br><span class="line">                throw new IllegalArgumentException(&quot;Optimized data directory &quot; + parent</span><br><span class="line">                        + &quot; is not owned by the current user. Shared storage cannot protect&quot;</span><br><span class="line">                        + &quot; your application from code injection attacks.&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (ErrnoException ignored) &#123;</span><br><span class="line">            // assume we&apos;ll fail with a more contextual error later</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mCookie = openDexFile(sourceName, outputName, flags);</span><br><span class="line">    mFileName = sourceName;</span><br><span class="line">    guard.open(&quot;close&quot;);</span><br><span class="line">    //System.out.println(&quot;DEX FILE cookie is &quot; + mCookie + &quot; sourceName=&quot; + sourceName + &quot; outputName=&quot; + outputName);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static long openDexFile(String sourceName, String outputName, int flags) throws IOException &#123;</span><br><span class="line">    // Use absolute paths to enable the use of relative paths when testing on host.</span><br><span class="line">    return openDexFileNative(new File(sourceName).getAbsolutePath(),</span><br><span class="line">                             (outputName == null) ? null : new File(outputName).getAbsolutePath(),</span><br><span class="line">                             flags);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static native long openDexFileNative(String sourceName, String outputName, int flags);</span><br></pre></td></tr></table></figure>
+<p>分析到这，我们可以小结一下：在BaseDexClassLoader对象构造方法内，创建了PathDexList对象。而在PathDexList构造方法内部，通过调用一系列方法，把直接包含或者间接包含dex的文件解压缩并缓存优化后的dex文件，通过PathDexList的成员变量 <code>Element[] dexElements</code>来指向这个文件。</p>
+<p>到此我们就分析完了BaseDexClassLoader的构造方法。</p>
+<p>我们在之前讲Java类加载器的时候已经说了，类加载是按需加载，也就是说当明确需要使用class文件的时候才会加载。我们来看一下在Android中ClassLoader的loadeClass()方法。<br>与在Java中的loadClass()方法主要流程是类似的，不过因为Android中BootClassLoader是用Java代码写的，所以可以直接当作系统类加载器的parent类加载器。在Android中如果parent类加载器找不到类，最终还是会调用ClassLoader对象自己的findClass()方法。这个与在Java中逻辑是一样的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">protected Class&lt;?&gt; loadClass(String className, boolean resolve) throws ClassNotFoundException &#123;</span><br><span class="line">    Class&lt;?&gt; clazz = findLoadedClass(className);</span><br><span class="line"></span><br><span class="line">    if (clazz == null) &#123;</span><br><span class="line">        ClassNotFoundException suppressed = null;</span><br><span class="line">        try &#123;</span><br><span class="line">            clazz = parent.loadClass(className, false);</span><br><span class="line">        &#125; catch (ClassNotFoundException e) &#123;</span><br><span class="line">            suppressed = e;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (clazz == null) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                clazz = findClass(className);</span><br><span class="line">            &#125; catch (ClassNotFoundException e) &#123;</span><br><span class="line">                e.addSuppressed(suppressed);</span><br><span class="line">                throw e;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return clazz;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们可以去看一下BaseDexClassLoader类的findClass()方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># dalvik.system.BaseDexClassLoader</span><br><span class="line">@Override</span><br><span class="line">protected Class&lt;?&gt; findClass(String name) throws ClassNotFoundException &#123;</span><br><span class="line">    List&lt;Throwable&gt; suppressedExceptions = new ArrayList&lt;Throwable&gt;();</span><br><span class="line">    // 调用DexPathList对象的findClass()方法</span><br><span class="line">    Class c = pathList.findClass(name, suppressedExceptions);</span><br><span class="line">    if (c == null) &#123;</span><br><span class="line">        ClassNotFoundException cnfe = new ClassNotFoundException(&quot;Didn&apos;t find class \&quot;&quot; + name + &quot;\&quot; on path: &quot; + pathList);</span><br><span class="line">        for (Throwable t : suppressedExceptions) &#123;</span><br><span class="line">            cnfe.addSuppressed(t);</span><br><span class="line">        &#125;</span><br><span class="line">        throw cnfe;</span><br><span class="line">    &#125;</span><br><span class="line">    return c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，实际上BaseDexClassLoader调用的是其成员变量<code>DexPathList pathList</code>的findClass()方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># dalvik.system.DexPathList</span><br><span class="line">public Class findClass(String name, List&lt;Throwable&gt; suppressed) &#123;</span><br><span class="line">    // 遍历Element</span><br><span class="line">    for (Element element : dexElements) &#123;</span><br><span class="line">        // 获取DexFile，然后调用DexFile对象的loadClassBinaryName()方法来加载Class文件。</span><br><span class="line">        DexFile dex = element.dexFile;</span><br><span class="line">       </span><br><span class="line">        if (dex != null) &#123;</span><br><span class="line">            Class clazz = dex.loadClassBinaryName(name, definingContext, suppressed);</span><br><span class="line">            if (clazz != null) &#123;</span><br><span class="line">                return clazz;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    if (dexElementsSuppressedExceptions != null) &#123;</span><br><span class="line">        suppressed.addAll(Arrays.asList(dexElementsSuppressedExceptions));</span><br><span class="line">    &#125;</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上面的代码中我们也可以看到，实际上DexPathList最终还是遍历其自身的Element[]数组，获取DexFile对象来加载Class文件。我们之前讲DexPathList构造方法内是调用其makeDexElements()方法来创建Element[]数组的，而且也提到了如果zip文件或者dex文件二者之一不为null，就把元素添加进来，而添加进来的zip存在不为null也不包含dex文件的可能。从上面的代码中也可以看到，获取Class的时候跟这个zip文件没什么关系，调用的是dex文件对应的DexFile的方法来获取Class。</p>
+<p>数组的遍历是有序的，假设有两个dex文件存放了二进制名称相同的Class，类加载器肯定就会加载在放在数组前面的dex文件中的Class。现在很多热修复技术就是把修复的dex文件放在DexPathList中Element[]数组的前面，这样就实现了修复后的Class抢先加载了，达到了修改bug的目的。</p>
+<p>Android加载一个Class是调用DexFile的defineClass()方法。而不是调用ClassLoader的defineClass()方法。这一点与Java不同，毕竟Android虚拟机加载的dex文件，而不是class文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># dalvik.system.DexFile</span><br><span class="line">public Class loadClassBinaryName(String name, ClassLoader loader, List&lt;Throwable&gt; suppressed) &#123;</span><br><span class="line">    return defineClass(name, loader, mCookie, suppressed);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static Class defineClass(String name, ClassLoader loader, long cookie,</span><br><span class="line">                                 List&lt;Throwable&gt; suppressed) &#123;</span><br><span class="line">    Class result = null;</span><br><span class="line">    try &#123;</span><br><span class="line">        result = defineClassNative(name, loader, cookie);</span><br><span class="line">    &#125; catch (NoClassDefFoundError e) &#123;</span><br><span class="line">        if (suppressed != null) &#123;</span><br><span class="line">            suppressed.add(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; catch (ClassNotFoundException e) &#123;</span><br><span class="line">        if (suppressed != null) &#123;</span><br><span class="line">            suppressed.add(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Android中ClassLoader的defineClass()方法已经不能用了。可以看到它的方法体里直接抛出异常了，而且在BaseDexClassLoader中也没有重写这个方法，毕竟BaseDexClassLoader加载类的逻辑已经变了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># java.lang.ClassLoader</span><br><span class="line">protected final Class&lt;?&gt; defineClass(String className, byte[] classRep, int offset, int length,</span><br><span class="line">        ProtectionDomain protectionDomain) throws java.lang.ClassFormatError &#123;</span><br><span class="line">    throw new UnsupportedOperationException(&quot;can&apos;t load this type of class file&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>好了，分析到此我们可以小结一下：<br>Android中加载一个类是遍历PathDexList的Element[]数组，这个Element包含了DexFile，调用DexFile的方法来获取Class文件，如果获取到了Class，就跳出循环。否则就在下一个Element中寻找Class。</p>
+<h1 id="使用DexClassLoader加载类"><a href="#使用DexClassLoader加载类" class="headerlink" title="使用DexClassLoader加载类"></a>使用DexClassLoader加载类</h1><p>写一个Test类。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">class Test &#123;</span><br><span class="line">    public Test() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void print() &#123;</span><br><span class="line">        System.out.println(&quot;this is Test Class&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过<code>javac</code>命令生成class文件，然后通过Android中的<code>dex</code>工具生成dex文件。<br>为了方便测试，我把生成的dex文件放在了assets文件中。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2083810-9a448c7910a74af2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="dex文件.png"></p>
+<p>测试的时候，先把assets中的classes.dex文件复制到本地一个目录。<br>主要代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">// 1. 先把assets中的classes.dex文件复制到一个本地目录中</span><br><span class="line">File originDex = null;</span><br><span class="line">try &#123;</span><br><span class="line">    InputStream open = getAssets().open(&quot;classes.dex&quot;);</span><br><span class="line">    File dexOutputDir = getCacheDir();</span><br><span class="line">    originDex = new File(dexOutputDir, &quot;classes.dex&quot;);</span><br><span class="line">    FileOutputStream fileOutputStream = new FileOutputStream(originDex);</span><br><span class="line">    byte[] bytes = new byte[1024];</span><br><span class="line">    int len = 0;</span><br><span class="line">    while ((len = open.read(bytes)) != -1) &#123;</span><br><span class="line">        fileOutputStream.write(bytes, 0, len);</span><br><span class="line">    &#125;</span><br><span class="line">    fileOutputStream.close();</span><br><span class="line">    open.close();</span><br><span class="line">&#125; catch (IOException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 2. 创建DexClassLoader加载dex文件中的类</span><br><span class="line">if (originDex != null) &#123;</span><br><span class="line">    File dexOptimizeDir = getDir(&quot;dex&quot;, Context.MODE_PRIVATE);</span><br><span class="line">    String dexOutputPath = dexOptimizeDir.getAbsolutePath();</span><br><span class="line">    DexClassLoader dexClassLoader = new DexClassLoader(originDex.getAbsolutePath(), dexOutputPath, null, getClassLoader());</span><br><span class="line"></span><br><span class="line">    try &#123;</span><br><span class="line">        Class&lt;?&gt; clazz = dexClassLoader.loadClass(&quot;com.sososeen09.Test&quot;);</span><br><span class="line">        System.out.println(&quot;loaded class: &quot; + clazz);</span><br><span class="line">        System.out.println(&quot;class loader: &quot; + clazz.getClassLoader());</span><br><span class="line">        System.out.println(&quot;class loader parent: &quot; + clazz.getClassLoader().getParent());</span><br><span class="line">        Constructor constructor = clazz.getConstructor();</span><br><span class="line">        constructor.setAccessible(true);</span><br><span class="line">        Object o = constructor.newInstance();</span><br><span class="line">        Method print = clazz.getDeclaredMethod(&quot;print&quot;);</span><br><span class="line">        print.setAccessible(true);</span><br><span class="line">        print.invoke(o);</span><br><span class="line">    &#125; catch (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>打印结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">I/System.out: loaded class: class com.sososeen09.Test</span><br><span class="line">I/System.out: class loader: dalvik.system.DexClassLoader[DexPathList[[dex file &quot;/data/data/com.sososeen09.android_basic_knowledge/cache/classes.dex&quot;],nativeLibraryDirectories=[/vendor/lib, /system/lib]]]</span><br><span class="line">I/System.out: class loader parent: dalvik.system.PathClassLoader[DexPathList[[zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/base.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_dependencies_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_0_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_1_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_2_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_3_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_4_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_5_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_6_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_7_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_8_apk.apk&quot;, zip file &quot;/data/app/com.sososeen09.android_basic_knowledge-2/split_lib_slice_9_apk.apk&quot;],nativeLibraryDirectories=[/vendor/lib, /system/lib]]]</span><br><span class="line">I/System.out: this is Test Class</span><br></pre></td></tr></table></figure>
+<p>可以看到我们通过DexClassLoader对象正确的加载到了我们自己的dex文件中的类。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Android中的类加载器是BootClassLoader、PathClassLoader、DexClassLoader，其中BootClassLoader是虚拟机加载系统类需要用到的，PathClassLoader是App加载自身dex文件中的类用到的，DexClassLoader可以加载直接或间接包含dex文件的文件，如APK等。</p>
+<p>PathClassLoader和DexClassLoader都继承自BaseDexClassLoader，它的一个DexPathList类型的成员变量pathList很重要。DexPathList中有一个Element类型的数组dexElements，这个数组中存放了包含dex文件（对应的是DexFile）的元素。BaseDexClassLoader加载一个类，最后调用的是DexFile的方法进行加载的。</p>
+<p>无论是热修复还是插件化技术中都利用了类加载机制，所以深入理解Android中的类加载机制对于理解这些技术的原理很有帮助。</p>
+<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><ul>
+<li><a href="http://liuwangshu.cn/application/classloader/2-android-classloader.html" target="_blank" rel="noopener">Android解析ClassLoader（二）Android中的ClassLoader</a></li>
+<li><a href="http://blog.csdn.net/briblue/article/details/54973413" target="_blank" rel="noopener">一看你就懂，超详细java中的ClassLoader详解</a></li>
+<li><a href="http://www.jianshu.com/p/a620e368389a" target="_blank" rel="noopener">Android动态加载之ClassLoader详解</a></li>
+<li><a href="https://segmentfault.com/a/1190000004062952" target="_blank" rel="noopener">Android动态加载入门 简单加载模式</a></li>
+<li><a href="http://blog.csdn.net/yulong0809/article/details/78426280" target="_blank" rel="noopener">唯一插件化Replugin源码及原理深度剖析–唯一Hook点原理</a></li>
+<li><a href="http://www.jianshu.com/p/57fc356b9093" target="_blank" rel="noopener">Android插件化框架系列之类加载器</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/20/类加载机制系列1——深入理解Java中的类加载器/" rel="next" title="类加载机制系列1——深入理解Java中的类加载器">
+                <i class="fa fa-chevron-left"></i> 类加载机制系列1——深入理解Java中的类加载器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/20/类加载机制系列3——MultiDex原理解析/" rel="prev" title="类加载机制系列3——MultiDex原理解析">
+                类加载机制系列3——MultiDex原理解析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Android中的ClassLoader"><span class="nav-number">1.</span> <span class="nav-text">Android中的ClassLoader</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ClassLoader源码分析"><span class="nav-number">2.</span> <span class="nav-text">ClassLoader源码分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用DexClassLoader加载类"><span class="nav-number">3.</span> <span class="nav-text">使用DexClassLoader加载类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文章"><span class="nav-number">5.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

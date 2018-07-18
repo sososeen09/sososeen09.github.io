@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  读取和设置Project和Task的属性是很重要的一块内容，每个Project和Task实例都提供了可以通过getter和setter方法访问的属性。一个属性可能是一个任务的描述或者项目的版本。你也可以定义自己的属性。Gra">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gradle学习3——自定义属性">
+<meta property="og:url" content="http://yoursite.com/2017/10/14/Gradle学习3——自定义属性/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  读取和设置Project和Task的属性是很重要的一块内容，每个Project和Task实例都提供了可以通过getter和setter方法访问的属性。一个属性可能是一个任务的描述或者项目的版本。你也可以定义自己的属性。Gra">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-18T02:42:24.269Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gradle学习3——自定义属性">
+<meta name="twitter:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  读取和设置Project和Task的属性是很重要的一块内容，每个Project和Task实例都提供了可以通过getter和setter方法访问的属性。一个属性可能是一个任务的描述或者项目的版本。你也可以定义自己的属性。Gra">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/14/Gradle学习3——自定义属性/"/>
+
+
+
+
+
+  <title>Gradle学习3——自定义属性 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/14/Gradle学习3——自定义属性/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Gradle学习3——自定义属性</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-14T16:52:03+08:00">
+                2017-10-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>学习本系列前可以下载相关的github项目<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">gradleLearnDemo</a>。<br>地址：<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">https://github.com/sososeen09/gradleLearnDemo</a></p>
+</blockquote>
+<p>读取和设置Project和Task的属性是很重要的一块内容，每个Project和Task实例都提供了可以通过getter和setter方法访问的属性。一个属性可能是一个任务的描述或者项目的版本。你也可以定义自己的属性。Gradle允许用户通过扩展属性自定义一些变量。还有，很多Plugin都会加入扩展属性，可以通过设置属性来控制使用Pulgin。</p>
+<h1 id="Project自带的属性"><a href="#Project自带的属性" class="headerlink" title="Project自带的属性"></a>Project自带的属性</h1><p>Gradle在默认情况下已经为Project定义了很多属性，其中比较常用的有：</p>
+<ul>
+<li>project：Project本身对象</li>
+<li>name：Project的名字</li>
+<li>path：Project的绝对路径</li>
+<li>description：Project的描述信息</li>
+<li>buildDir：Project构建结果存放目录</li>
+<li>version：Project的版本号<br>属性都可以通过getter和setter方法来访问，也可以直接使用点好的形式来访问，例如：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">setDescription(&apos;myProject&apos;)</span><br><span class="line">println &quot;Description of project $name: &quot;+project.description</span><br></pre></td></tr></table></figure>
+<p>当在build.gradle中访问属性和方法的时候，不需要使用project变量，它会假设你使用的是project实例。但是有一些情况需要注意，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">version = &apos;this is the project version&apos;</span><br><span class="line">description = &apos;this is the project description&apos;</span><br><span class="line"></span><br><span class="line">task showProjectProperties &lt;&lt; &#123;</span><br><span class="line">   println version</span><br><span class="line">   println project.description</span><br><span class="line">   println description</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于Task本身也有description属性，所以当在Task中，如果不显式的指定project，就会打印的是Task的description。这是因为定义Task的闭包将delegate设置成了当前的Task。有关delegate的介绍，我们可以看前一篇文章。<br> Gradle还为我们提供了多种方法来自定义Project的Property。</p>
+<h1 id="额外属性"><a href="#额外属性" class="headerlink" title="额外属性"></a>额外属性</h1><p>Gradle的很多领域模型类提供了特别的属性支持。在内部，这些属性以简直对的形式存储。为了添加属性，你需要使用ext命名空间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">// 只在初始声明额外属性时需要使用ext命名空间</span><br><span class="line">project.ext.myProp=&apos;myValue&apos;</span><br><span class="line"></span><br><span class="line">ext&#123;</span><br><span class="line">        someOtherProp=123</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 使用ext命名空间访问属性是可选的</span><br><span class="line">assert myProp==&apos;myValue&apos;</span><br><span class="line"></span><br><span class="line">println project.someOtherProp</span><br><span class="line"></span><br><span class="line">ext.someOtherProp=567</span><br></pre></td></tr></table></figure>
+<p>类似的，额外的属性也可以通过属性文件来提供。</p>
+<h1 id="Gradle属性"><a href="#Gradle属性" class="headerlink" title="Gradle属性"></a>Gradle属性</h1><p>Gradle属性可以通过在gradle.properties文件中声明直接添加到项目中，这个文件位于<user_home>/.gradle目录或者项目的根目录下。这些属性可以通过项目实例访问。即使有多个项目，每个用户也只有能一个Gradle属性文件在xx/.gradle目录下，这是目前Gradle对它的限制。</user_home></p>
+<p>在这个属性文件中声明的属性对所有的项目可用。<br>我们假设在gradle.properties文件中声明的:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">exampleProp=myValue</span><br><span class="line">someOtherProp=455</span><br></pre></td></tr></table></figure>
+<p>可以按照如下方式访问项目中的这两个变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">assert project.exampleProp==&apos;myValue&apos;</span><br><span class="line"></span><br><span class="line">task printGradleProperties &lt;&lt;&#123;</span><br><span class="line">    println &quot;Second property :$someOtherProp&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="声明属性的其他方式"><a href="#声明属性的其他方式" class="headerlink" title="声明属性的其他方式"></a>声明属性的其他方式</h1><p>前面两种方式，我们大多用来声明自定义变量及其值。Gradle也提供了很多其他方式为构建提供属性。</p>
+<h2 id="项目属性通过-P命令行选项提供"><a href="#项目属性通过-P命令行选项提供" class="headerlink" title="项目属性通过 -P命令行选项提供"></a>项目属性通过 -P命令行选项提供</h2><p>对于下面的例子，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">task printMyProperties &lt;&lt;&#123;</span><br><span class="line">	println myProperties</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果我们直接执行 <code>gradle -q printMyProperties</code> 命令，会报错：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">* What went wrong:</span><br><span class="line">Execution failed for task &apos;:printMyProperties&apos;.</span><br><span class="line">&gt; Could not get unknown property &apos;myProperties&apos; for task &apos;:printMyProperties&apos; of type org.gradle.api.DefaultTask.</span><br></pre></td></tr></table></figure>
+<p>这是因为myProperties属性没有定义，所以我们在调用gradle命令的时候可以通过 -P 命令来传参数，就可以把这个属性打印出来。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gradle -q -P myProperties=&apos;this is -P params&apos;  printMyProperties</span><br></pre></td></tr></table></figure>
+<h2 id="系统属性通过-D命令行选项提供"><a href="#系统属性通过-D命令行选项提供" class="headerlink" title="系统属性通过 -D命令行选项提供"></a>系统属性通过 -D命令行选项提供</h2><p>与在Java中类似的，我们在Gradle中也可以通过-D来定义JVM的系统参数，只是需要增加一些约定，每个通过-D 方式声明的属性前面都要以“org.gradle.project”为前缀，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gradle -q -D org.gradle.project.myProperties=&apos;this is -D params&apos;  printMyProperties</span><br></pre></td></tr></table></figure>
+<h2 id="环境属性模式提供"><a href="#环境属性模式提供" class="headerlink" title="环境属性模式提供"></a>环境属性模式提供</h2><p>我们可以通过设置环境变量的形式来设置Project的属性。但是也要增加一些约定，例如每个属性前面都要加上一个<code>ORG_GRADLE_PROJECT_</code>的前缀，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ORG_GRADLE_PROJECT_propertyName=someValue</span><br></pre></td></tr></table></figure>
+<p>当你再去执行printMyProperties这个task的时候就不用传参数了。</p>
+<p><a href="http://www.jianshu.com/p/60bf794cdf91" target="_blank" rel="noopener">下一篇</a>，我们会开始探索task的依赖，构建的生命周期等内容。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习2——开始使用Gradle/" rel="next" title="Gradle学习2——开始使用Gradle">
+                <i class="fa fa-chevron-left"></i> Gradle学习2——开始使用Gradle
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习4——深入了解Task和构建生命周期/" rel="prev" title="Gradle学习4——深入了解Task和构建生命周期">
+                Gradle学习4——深入了解Task和构建生命周期 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Project自带的属性"><span class="nav-number">1.</span> <span class="nav-text">Project自带的属性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#额外属性"><span class="nav-number">2.</span> <span class="nav-text">额外属性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Gradle属性"><span class="nav-number">3.</span> <span class="nav-text">Gradle属性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#声明属性的其他方式"><span class="nav-number">4.</span> <span class="nav-text">声明属性的其他方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#项目属性通过-P命令行选项提供"><span class="nav-number">4.1.</span> <span class="nav-text">项目属性通过 -P命令行选项提供</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#系统属性通过-D命令行选项提供"><span class="nav-number">4.2.</span> <span class="nav-text">系统属性通过 -D命令行选项提供</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境属性模式提供"><span class="nav-number">4.3.</span> <span class="nav-text">环境属性模式提供</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

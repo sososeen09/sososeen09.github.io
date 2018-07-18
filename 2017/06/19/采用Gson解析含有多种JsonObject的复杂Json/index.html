@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文对应的项目是MultiTypeJsonParser ，项目地址 https://github.com/sososeen09/MultiTypeJsonParser  前奏使用 Gson 去解析 json 应该是很常见的，大部分的情况下我们只要创建一个 Gson 对象，然后根据 json 和对应的 Java 类去解析就可以了。 12Gson gson = new Gson();Person p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="采用Gson解析含有多种JsonObject的复杂Json">
+<meta property="og:url" content="http://yoursite.com/2017/06/19/采用Gson解析含有多种JsonObject的复杂Json/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文对应的项目是MultiTypeJsonParser ，项目地址 https://github.com/sososeen09/MultiTypeJsonParser  前奏使用 Gson 去解析 json 应该是很常见的，大部分的情况下我们只要创建一个 Gson 对象，然后根据 json 和对应的 Java 类去解析就可以了。 12Gson gson = new Gson();Person p">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-18T02:03:28.659Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="采用Gson解析含有多种JsonObject的复杂Json">
+<meta name="twitter:description" content="本文对应的项目是MultiTypeJsonParser ，项目地址 https://github.com/sososeen09/MultiTypeJsonParser  前奏使用 Gson 去解析 json 应该是很常见的，大部分的情况下我们只要创建一个 Gson 对象，然后根据 json 和对应的 Java 类去解析就可以了。 12Gson gson = new Gson();Person p">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/06/19/采用Gson解析含有多种JsonObject的复杂Json/"/>
+
+
+
+
+
+  <title>采用Gson解析含有多种JsonObject的复杂Json | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/19/采用Gson解析含有多种JsonObject的复杂Json/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">采用Gson解析含有多种JsonObject的复杂Json</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-19T14:41:00+08:00">
+                2017-06-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>本文对应的项目是<a href="https://github.com/sososeen09/MultiTypeJsonParser" target="_blank" rel="noopener">MultiTypeJsonParser</a> ，项目地址 <a href="https://github.com/sososeen09/MultiTypeJsonParser" target="_blank" rel="noopener">https://github.com/sososeen09/MultiTypeJsonParser</a></p>
+</blockquote>
+<h1 id="前奏"><a href="#前奏" class="headerlink" title="前奏"></a>前奏</h1><p>使用 <a href="https://github.com/google/gson" target="_blank" rel="noopener">Gson</a> 去解析 json 应该是很常见的，大部分的情况下我们只要创建一个 Gson 对象，然后根据 json 和对应的 Java 类去解析就可以了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Gson gson = new Gson();</span><br><span class="line">Person person = gson.form(json,Person.class);</span><br></pre></td></tr></table></figure>
+<p>但是对于比较复杂的 json，比如下面这种， attributes 对应的 jsonObject 中的字段是完全不一样的，这个时候再简单的用上面的方法就解析不了了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;total&quot;: 2,</span><br><span class="line">    &quot;list&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;type&quot;: &quot;address&quot;,</span><br><span class="line">            &quot;attributes&quot;: &#123;</span><br><span class="line">                &quot;street&quot;: &quot;NanJing Road&quot;,</span><br><span class="line">                &quot;city&quot;: &quot;ShangHai&quot;,</span><br><span class="line">                &quot;country&quot;: &quot;China&quot;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;type&quot;: &quot;name&quot;,</span><br><span class="line">            &quot;attributes&quot;: &#123;</span><br><span class="line">                &quot;first-name&quot;: &quot;Su&quot;,</span><br><span class="line">                &quot;last-name&quot;: &quot;Tu&quot;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然了，我们说一步到位的方式解决不了，但用一点笨方法还是可以的。比如先手动解析拿到 <strong>attributes</strong> 对应的 jsonObject，根据与它同级 <strong>type</strong> 对应的 <strong>value</strong> 就可以判断这一段 jsonObject 对应的 Java 类是哪个，最后就采用 <figure class="highlight plain"><figcaption><span>方法解析出 **attributes** 对应的 Java 对象。</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<p>ListInfoWithType listInfoWithType = new ListInfoWithType();</p>
+<p>//创建 org.json 包下的 JSONObject 对象<br>JSONObject jsonObject = new JSONObject(TestJson.TEST_JSON_1);<br>int total = jsonObject.getInt(“total”);</p>
+<p>//创建 org.json 包下的 JSONArray 对象<br>JSONArray jsonArray = jsonObject.getJSONArray(“list”);<br>Gson gson = new Gson();<br>List<attributewithtype> list = new ArrayList&lt;&gt;();</attributewithtype></p>
+<p>//遍历<br>for (int i = 0; i &lt; jsonArray.length(); i++) {<br>    JSONObject innerJsonObject = jsonArray.getJSONObject(i);<br>    Class&lt;? extends Attribute&gt; clazz;<br>    String type = innerJsonObject.getString(“type”);<br>    if (TextUtils.equals(type, “address”)) {<br>        clazz = AddressAttribute.class;<br>    } else if (TextUtils.equals(type, “name”)) {<br>        clazz = NameAttribute.class;<br>    } else {<br>        //有未知的类型就跳过<br>        continue;<br>    }<br>    AttributeWithType attributeWithType = new AttributeWithType();</p>
+<p>//采用Gson解析<br>    Attribute attribute = gson.fromJson(innerJsonObject.getString(“attributes”), clazz);<br>    attributeWithType.setType(type);<br>    attributeWithType.setAttributes(attribute);<br>    list.add(attributeWithType);<br>}</p>
+<p>listInfoWithType.setTotal(total);<br>listInfoWithType.setList(list);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">虽然这样能实现整个 json 的反序列化，但是这种方式比较麻烦，而且一点也不优雅，如果项目中存在很多这样的情况，就会做很多重复的体力劳动。</span><br><span class="line">如何更优雅、更通用的解决这类问题，在网上没有找到答案，只好去深入研究一下Gson了。带着这样的目的，翻看了[Gson的文档](https://github.com/google/gson/blob/master/UserGuide.md)，发现了一句话</span><br><span class="line">&gt; Gson can work with arbitrary Java objects including pre-existing objects that you do not have source code of.</span><br><span class="line"></span><br><span class="line">这句话说 Gson 可以处理任意的 Java 对象。那么对于上面讲的那种反序列化情况来讲， Gson 应该也能做到。通过研究 Gson 的文档，发现可以通过自定义JsonDeserializer的方式来实现解析这种 jsonObject 类型不同的情况。</span><br><span class="line"></span><br><span class="line">我们知道，大部分情况下 Gson 是通过直接 **new** 出来的方式来创建，不过也可以采用 **GsonBuilder** 这个类去生成 Gson。</span><br></pre></td></tr></table></figure></p>
+<p>  Gson gson = new GsonBuilder()<br>   .registerTypeAdapter(Id.class, new IdTypeAdapter())<br>   .enableComplexMapKeySerialization()<br>   .serializeNulls()<br>   .setDateFormat(DateFormat.LONG)<br>   .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)<br>   .setPrettyPrinting()<br>   .setVersion(1.0)<br>   .create();</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">**GsonBuilder** 通过 **registerTypeAdapter()**方法，对目标类进行注册。当序列化或者反序列化目标类的时候就会调用我们注册的typeAdapter， 这样就实现了人工干预 Gson 的序列化和反序列化过程。</span><br><span class="line"></span><br><span class="line"> GsonBuilder 的 registerTypeAdapte() 方法的第二个参数是 Object 类型，也就意味着我们可以注册多种类型的 typeAdapter，目前支持的类型有 JsonSerializer、JsonDeserializer、InstanceCreator、TypeAdapter。</span><br></pre></td></tr></table></figure>
+<p>  public GsonBuilder registerTypeAdapter(Type type, Object typeAdapter)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">经过一番捣鼓，写了一个工具类，对于上面的那个复杂 json，用了不到10行代码就搞定，而且比较优雅和通用。</span><br></pre></td></tr></table></figure></p>
+<p>MultiTypeJsonParser<attribute> multiTypeJsonParser = new MultiTypeJsonParser.Builder<attribute>()<br>        .registerTypeElementName(“type”)<br>        .registerTargetClass(Attribute.class)<br>        .registerTargetUpperLevelClass(AttributeWithType.class)<br>        .registerTypeElementValueWithClassType(“address”, AddressAttribute.class)<br>        .registerTypeElementValueWithClassType(“name”, NameAttribute.class)<br>        .build();</attribute></attribute></p>
+<p>ListInfoWithType listInfoWithType = multiTypeJsonParser.fromJson(TestJson.TEST_JSON_1, ListInfoWithType.class);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">本文就简单分析一下如何通过自定义 JsonDeserializer 来实现一个通用的工具类用于解析复杂类型 json。对于以后碰到相似问题，这种处理方法可以提供一种解决问题的思路。具体的代码和实例，可以查看[项目](https://github.com/sososeen09/MultiTypeJsonParser)。如果对您的思路有一些启发，欢迎交流和Star。</span><br><span class="line"></span><br><span class="line"># JsonDeserializer介绍</span><br><span class="line"></span><br><span class="line"> JsonDeserializer 是一个接口，使用的时候需要实现这个接口并在 GsonBuilder 中对具体的类型去注册。当反序列化到对应的类的时候就会调用这个自定义 JsonDeserializer 的 deserialize() 方法。下面对这个方法的几个参数做一下解释，以便于更好的理解Gson解析的过程。</span><br></pre></td></tr></table></figure></p>
+<p>public interface JsonDeserializer<t> {<br>  public T deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)<br>      throws JsonParseException;<br>}</t></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## JsonElement </span><br><span class="line"></span><br><span class="line">  JsonElement代表 在 Gson 中的代表一个元素。它是一个抽象类，有4个子类：JsonObject、JsonArray、JsonPrimitive、JsonNull。</span><br><span class="line">1.**JsonObject**  表示的是包含name-value型的 json 字符串，其中 name 是字符串，而 value 可以是其它类型的 JsonElement 元素。在json中用 **“&#123;&#125;”** 包裹起来的一个整体就是JsonObject。例如</span><br></pre></td></tr></table></figure>
+<p>// “attributes” 是name，后面跟着的{}内容是它对应的value，而这个value就是一个JsonObject<br>  “attributes”: {<br>                  “first-name”: “Su”,<br>                  “last-name”: “Tu”<br>                 }</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">2.**JsonArray** 这个类在 Gson 中代表一个数组类型，一个数组就是JsonElement的集合，这个集合中每一个类型都可能不同。这是一个有序的集合，意味着元素的添加顺序是被维持着的。上面例子中list对应的 **“[]”** 包裹起来的json就是JsonArray。</span><br><span class="line"></span><br><span class="line">3.**JsonPrimitive ** 这个可以认为是json中的原始类型的值，包含Java的8个基本类型和它们对应的包装类型，也包含 String 类型。比如上面 &quot;first-name&quot; 对应的 &quot;Su&quot; 就是一个 String 类型的 JsonPrimitive 。</span><br><span class="line"></span><br><span class="line">4.**JsonNull**  通过名字也可以猜到，这个代表的是 null 值。</span><br><span class="line"></span><br><span class="line">## Type</span><br><span class="line"></span><br><span class="line">Type是Java中的所有类型的顶层接口，它的子类有 GenericArrayType、ParameterizedType、TypeVariable、WildcardType，这个都是在java.lang.reflect包下面的类。另外，我们最熟悉的一个类 Class 也实现了 Type 接口。</span><br><span class="line"></span><br><span class="line">一般来讲，调用 GsonBuilder 的 registerTypeAdapter() 去注册，第一个参数使用 Class 类型就可以了。</span><br><span class="line"></span><br><span class="line">## JsonDeserializationContext</span><br><span class="line"></span><br><span class="line">这个类是在反序列过程中，由其它类调用我们自定义的 JsonDeserialization 的 deserialize() 方法时传递过来的，在 Gson 中它唯一的一个实现是TreeTypeAdapter 中的一个私有的内部类 GsonContextImpl 。可以在自定义的 JsonDeserializer 的 deserialize() 中去调用 JsonDeserializationContext 的 deserialize() 方法去获得一个对象。</span><br><span class="line"></span><br><span class="line">**但是要记住，如果传递到 JsonDeserializationContext 中的 json 与 JsonDeserializer 中的 json 一样的话，可能会导致死循环调用。**</span><br><span class="line"></span><br><span class="line"># 思路分析</span><br><span class="line">## 创建JavaBean</span><br><span class="line"></span><br><span class="line">还是以最上面的那个 json 进行分析，在 **list** 对应 JsonArray ，其中的两个 JsonObject 中，**attributes** 对应的 JsonObject 字段完全不一样，但是为了统一，在写 JavaBean 的时候可以给它们设置一个共同的父类，尽管它是空的。</span><br></pre></td></tr></table></figure>
+<p>public class Attribute {<br>      …<br>}</p>
+<p>public class AddressAttribute extends Attribute {<br>    private String street;<br>    private String city;<br>    private String country;<br>… 省略get/set<br>}</p>
+<p>public class NameAttribute extends Attribute {<br>    @SerializedName(“first-name”)<br>    private String firstname;<br>    @SerializedName(“last-name”)<br>    private String lastname;<br>…省略get/set<br>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">设置 Attribute 这个 SuperClass 只是为了在 GsonBuilder 去注册，当具体解析的时候我们会根据type 对应的类型去找到对应的Class。</span><br></pre></td></tr></table></figure>
+<p> gsonBuilder.registerTypeAdapter(Attribute.class, new AttributeJsonDeserializer());<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">到了这里我们就应该想到，type 对应的 value 肯定是要与具体的 JavaBean 对应起来的。比如在这里就是</span><br></pre></td></tr></table></figure></p>
+<p>“address”——AddressAttribute.class<br>“name”——NameAttribute.class<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">如果 type 是 **&quot;address&quot;** ，那么我们就可以用 gson 去拿 AddressAttribute.class 和对应的 json 去解析。</span><br></pre></td></tr></table></figure></p>
+<p>Attribute attribute = gson.form(addressJson,AddressAttribute.class);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## 如何把 json 准确的转为对应的 JavaBean </span><br><span class="line">我们注册的是父类 Attribute ，当反序列化需要解析 Attribute 的时候就会把对应的 json 作为参数回调自定义的 JsonDeserializer 。我们就可以在下面这个方法中写自己的逻辑得到我们需要的  Attribute 对象了。</span><br></pre></td></tr></table></figure></p>
+<p> public Attribute deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">但是细心的朋友应该会发现了，这个时候传递的 json 有可能是这样的</span><br></pre></td></tr></table></figure></p>
+<p>{<br>   “street”: “NanJing Road”,<br>   “city”: “ShangHai”,<br>   “country”: “China”<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">也有可能是这样的</span><br></pre></td></tr></table></figure></p>
+<p>{<br>   “first-name”: “Su”,<br>   “last-name”: “Tu”<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">我们怎么知道该解析成 AddressAttribute 还是 NameAttribute  ？？？</span><br><span class="line"></span><br><span class="line">我们想想，具体解析成哪个，我们肯定是需要知道 type 对应的 value 。而这个 type 是与 attributes 同级的字段，照着刚才这样肯定是没希望拿到这个 value 的。</span><br><span class="line"></span><br><span class="line">我们再想想，能够知道这个 type 对应的 value 是什么的肯定是 attributes 上一层级的 json 。</span><br></pre></td></tr></table></figure></p>
+<p>{<br>   “type”: “name”,<br>   “attributes”: {<br>                          …<br>                 }<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">那么我们可不可以在 GsonBuilder 中再去注册一个 typeAdapter 来解析这个外层的 json 呢？当然可以。</span><br></pre></td></tr></table></figure></p>
+<p>gsonBuilder.registerTypeAdapter(AttributeWithType.class, new AttributeWithTypeJsonDeserializer());<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">这个 AttributeWithType 就是外层的 json 对应的 JavaBean</span><br></pre></td></tr></table></figure></p>
+<p>public class AttributeWithType {<br>    private String type;<br>    private Attribute attributes;<br>     …<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">在反序列化 AttributeWithType 这个类的时候，我们可以获得这个 type 对应的 value，然后把这个 value 传递给里层的 Attribute 对应的 JsonDeserializer。这样就可以根据 value 是 “address” 或者 “name” 去对 AddresAttribute 或者 NameAttribute 进行反序列化了。</span><br><span class="line"></span><br><span class="line">## 有一个坑</span><br><span class="line">前面那我们讲过，调用 JsonDeserializationContext 的方法应该注意死循环。在具体的实践中，我虽然没有调用 JsonDeserializationContext 的方法，但是依然出现了死循环的情况。就是因为我是这么用的。</span><br></pre></td></tr></table></figure></p>
+<p> AttributeWithType attributeWithType = gson.fromJson(json, AttributeWithType.class);</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">乍一看没什么问题啊，问题就出在这个 gson 身上。这个 gson 是已经注册过解析 AttributeWithType 的 GsonBuilder 创建的。 gson.fromJson() 方法中的 json 是 AttributeWithType 对应的反序列化的 json，gson.fromJson() 内部会再次调用 AttributeWithType 对应的 JsonDeserializer 中的 deserialize() 方法，从而导致死循环。</span><br><span class="line"></span><br><span class="line">避免死循环的方式就是用GsonBuilder新建一个 gson ，这个GsonBuilder不再注册  AttributeWithType  ，而只去注册  Attribute 去解析。</span><br><span class="line"></span><br><span class="line"># 为了更好更通用</span><br><span class="line">1.在项目中，可能还会存在另一种格式的json，外部没有单独的type元素，而是与其它的元素放在同一个JsonObject中。这样的格式更省事，不需要注册外层的typeAdaper即可。</span><br></pre></td></tr></table></figure>
+<p>{<br>    “total”: 2,<br>    “list”: [<br>        {<br>            “type”: “address”,<br>            “street”: “NanJing Road”,<br>            “city”: “ShangHai”,<br>            “country”: “China”<br>        },<br>        {<br>            “type”: “name”,<br>            “first-name”: “Su”,<br>            “last-name”: “Tu”<br>        }<br>    ]<br>}</p>
+<p>MultiTypeJsonParser<attribute> multiTypeJsonParser = new MultiTypeJsonParser.Builder<attribute>()<br>        .registerTypeElementName(“type”)<br>        .registerTargetClass(Attribute.class)<br>// 如果所要解析的 jsonObejct 中已经含有能够表示自身类型的字段，不需要注册外层 Type，这样更省事<br>//        .registerTargetUpperLevelClass(AttributeWithType.class)<br>        .registerTypeElementValueWithClassType(“address”, AddressAttribute.class)<br>        .registerTypeElementValueWithClassType(“name”, NameAttribute.class)<br>        .build();</attribute></attribute></p>
+<p>ListInfoWithType listInfoWithType = multiTypeJsonParser.fromJson(TestJson.TEST_JSON_1, ListInfoWithType.class);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">2.如果在解析过程中发现有些类型没有注册到 MultiTypeJsonParser 的 Builder 中，解析的时候碰到相应的 jsonObject 就直接返回null。比如下面这样的json中，&quot;type&quot; 对应的 &quot;parents&quot; 如果没有注册，那么反序列化的时候这个 json 所代表的对象就为 null 。</span><br></pre></td></tr></table></figure></p>
+<p> {<br>        “type”: “parents”,<br>        “attributes”: {<br>          “mather”: “mi lan”,<br>          “father”: “lin ken”<br>        }<br> }<br>```</p>
+<p>在Android中我们反序列这样的 json 后一般会把得到的对象的设置到列表控件上，如果后端返回的 json 中包含之前未注册的类型，为了程序不至于 crash，需要对反序列化的 null 对象进行过滤，项目中提供了一个工具类 ListItemFilter 可以过滤集合中为 null 的元素。</p>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>对于如何优雅的解析这种类型不同的 JsonObject ，刚开始我是缺少思路的，在网上也没有查到合适的文档。但是通过查看 Gson 的文档和源码，通过自己的理解和分析，逐步的完成了这个过程。我的一个感触就是，多去看看官方的使用文档应该比盲目去搜索解决方案更好。</p>
+<p>代码是最好的文档，本文只简单介绍了一些实现思路，文中贴出的一些代码是为了讲述方便，与项目中的代码可能会有有些区别。具体的使用可以看<a href="https://github.com/sososeen09/MultiTypeJsonParser" target="_blank" rel="noopener">项目</a>中的例子。</p>
+<p>如果有问题，欢迎提 issue 或留言，如果对您有所帮助，欢迎Star。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://github.com/google/gson/blob/master/UserGuide.md" target="_blank" rel="noopener">Gson官方文档</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/21/重识OkHttp——探究源码设计/" rel="next" title="重识OkHttp——探究源码设计">
+                <i class="fa fa-chevron-left"></i> 重识OkHttp——探究源码设计
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/22/浅析Activity中View的生命周期方法回调/" rel="prev" title="浅析Activity中View的生命周期方法回调">
+                浅析Activity中View的生命周期方法回调 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前奏"><span class="nav-number">1.</span> <span class="nav-text">前奏</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结语"><span class="nav-number">2.</span> <span class="nav-text">结语</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

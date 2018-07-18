@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  自定义task包含两个组件：  自定义的task类，封装了逻辑行为，也被称作任务类型 真实的task，提供了用于配置行为的task类所暴露的属性值。Gradle把这些task称为增强的task。  可维护性是编写自定义tas">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gradle学习7——编写和使用自定义Task">
+<meta property="og:url" content="http://yoursite.com/2017/10/14/Gradle学习7——编写和使用自定义Task/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  自定义task包含两个组件：  自定义的task类，封装了逻辑行为，也被称作任务类型 真实的task，提供了用于配置行为的task类所暴露的属性值。Gradle把这些task称为增强的task。  可维护性是编写自定义tas">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-18T02:43:25.407Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gradle学习7——编写和使用自定义Task">
+<meta name="twitter:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  自定义task包含两个组件：  自定义的task类，封装了逻辑行为，也被称作任务类型 真实的task，提供了用于配置行为的task类所暴露的属性值。Gradle把这些task称为增强的task。  可维护性是编写自定义tas">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/14/Gradle学习7——编写和使用自定义Task/"/>
+
+
+
+
+
+  <title>Gradle学习7——编写和使用自定义Task | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/14/Gradle学习7——编写和使用自定义Task/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Gradle学习7——编写和使用自定义Task</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-14T16:52:07+08:00">
+                2017-10-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>学习本系列前可以下载相关的github项目<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">gradleLearnDemo</a>。<br>地址：<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">https://github.com/sososeen09/gradleLearnDemo</a></p>
+</blockquote>
+<p>自定义task包含两个组件：</p>
+<ul>
+<li>自定义的task类，封装了逻辑行为，也被称作任务类型</li>
+<li>真实的task，提供了用于配置行为的task类所暴露的属性值。Gradle把这些task称为增强的task。</li>
+</ul>
+<p>可维护性是编写自定义task类的优势之一。增强的task的另一个优势是可重用性。自定义task所暴露的属性可以在构建脚本中进行单独设置。</p>
+<p>我们还是按照之前的例子，修改配置文件中的release 参数。</p>
+<h1 id="自定义task类"><a href="#自定义task类" class="headerlink" title="自定义task类"></a>自定义task类</h1><p>前面已经提到，Gradle为构建脚本中每个简单的task都创建了一个DefaultTask类型的实例。我们现在创建一个ReleaseVersionTask，它的作用是把目标文件中的release变为true。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">class ReleaseVersionTask extends DefaultTask&#123;</span><br><span class="line">  @Input Boolean release</span><br><span class="line">  @OutputFile File destFile</span><br><span class="line"></span><br><span class="line">  ReleaseVersionTask()&#123;</span><br><span class="line">    group=&apos;versioning&apos;</span><br><span class="line">    description=&apos;Makes project a release version.&apos;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @TaskAction</span><br><span class="line">  void start()&#123;</span><br><span class="line">    project.version.release=true;</span><br><span class="line">    ant.propertyfile(file:destFile)&#123;</span><br><span class="line">       entry(key:&apos;release&apos;,type:&apos;string&apos;,operation:&apos;=&apos;,value: &apos;true&apos;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过org.gradle.api.tasks包下的注解可以用来声明输入输出属性。</p>
+<blockquote>
+<p>task输入验证 @Input注解会在配置期间验证属性值。如果值为null，Gradle会抛出TaskValidationException异常。为了允许输入为null值，可以给它添加@Optional注解。</p>
+</blockquote>
+<h1 id="使用自定义task"><a href="#使用自定义task" class="headerlink" title="使用自定义task"></a>使用自定义task</h1><p>我们自定义的task类是没有办法自己执行的，要使用和配置自定义task类定义的行为和属性，需要创建一个增强型的task。该task定义了它要使用的task类型，在本例中我们定义一个增强型taskmakeReleaseVersion，它使用的task类型是ReleaseVersionTask，通过为它的属性赋值来设置输入和输出。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">task makeReleaseVersion(type:ReleaseVersionTask)&#123;</span><br><span class="line">// 设置自定义task属性</span><br><span class="line">    release = version.release</span><br><span class="line">    destFile = versionFile</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行 <code>gradle makeReleaseVersion</code> 命令 ，会发现增强型的makeReleaseVersion task与之前的<a href="http://www.jianshu.com/p/e7e3629835a6" target="_blank" rel="noopener">文章</a>中简单的task的运行结果表现完全一致。<br>与简单的task实现相比，增强型task的一个巨大优势在于所暴露的属性可以被单独赋值。</p>
+<p>比如，ProjectVersion 中的release字段名改为了prodReady，属性文件改名为 project-version.properties。<br>那么makeReleaseVersion task可以这样设置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">task makeReleaseVersion(type:ReleaseVersionTask)&#123;</span><br><span class="line">    release = version.prodReady</span><br><span class="line">    destFile =file(&apos;project-version.properties&apos;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="在buildSrc目录下构建代码"><a href="#在buildSrc目录下构建代码" class="headerlink" title="在buildSrc目录下构建代码"></a>在buildSrc目录下构建代码</h1><p>我们可以把ReleaseVersionTask这个类单独放在一个Groovy文件中，这样就可以在其它地方通过导包的方式来重用这个类。<br>在一个项目工程当中，创建的Groovy类适合被移动到项目的buildSrc目录下。Gradle在buildSrc目录下使源文件结构标准化。Groovy代码放在src/main/groovy目录下，对于Java文件则是放置在src/main/java目录下面。位于这些目录下的文件会被自动编译，并且都加入到Gradle构建脚本的classpath中。</p>
+<p><strong>注意：提取一个类到Groovy文件中需要设置package，在build.gradle中或者其它地方使用这个类的时候需要导包，这一点与Java类的使用是一样的。当然了，如果这个类本身就放在build.gradle中则不需要这个过程，就像之前的例子那样。</strong></p>
+<p>例如 ReleaseVersionTask </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">package com.sososeen09.gia</span><br><span class="line"></span><br><span class="line">import org.gradle.api.DefaultTask</span><br><span class="line">import org.gradle.api.tasks.Input</span><br><span class="line">import org.gradle.api.tasks.OutputFile</span><br><span class="line">import org.gradle.api.tasks.TaskAction</span><br><span class="line">class ReleaseVersionTask extends DefaultTask&#123;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Groovy文件实际放置的位置是 buildSrc/src/main/groovy/com/sososeen09/gia/ReleaseVersionTask</p>
+<p>根据同样的方式，我们也可以把ProjectVersion这个类抽取出来。</p>
+<p>使用的时候，在build.gradle中顶部记得导包：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">import com.sososeen09.gia.ReleaseVersionTask</span><br><span class="line">import com.sososeen09.gia.ProjectVersion</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>此时，执行<figure class="highlight gradle"><figcaption><span>makeReleaseVersion``` 命令，我们就可以看到编译过程：</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<p>:buildSrc:compileJava UP-TO-DATE<br>:buildSrc:compileGroovy UP-TO-DATE<br>:buildSrc:processResources UP-TO-DATE<br>:buildSrc:classes UP-TO-DATE<br>:buildSrc:jar UP-TO-DATE<br>:buildSrc:assemble UP-TO-DATE<br>:buildSrc:compileTestJava UP-TO-DATE<br>:buildSrc:compileTestGroovy UP-TO-DATE<br>:buildSrc:processTestResources UP-TO-DATE<br>:buildSrc:testClasses UP-TO-DATE<br>:buildSrc:test UP-TO-DATE<br>:buildSrc:check UP-TO-DATE<br>:buildSrc:build UP-TO-DATE<br>Reading the version file<br>:makeReleaseVersion</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">**记住：buildSrc 目录被视为Gradle项目的指定路径。**</span><br><span class="line"></span><br><span class="line"># 把Task编写的类编译成jar包提供给其它项目使用</span><br><span class="line"></span><br><span class="line">我们把Groovy类放在了buildSrc目录下，虽然自定义的Task类与build.gradle分离开了，但是这些类依然只能应用到当前的项目中。如果我们想要在其它的项目中也可以使用这些Task，就需要在单独的项目中来定义，然后其它项目通过声明依赖的方式来使用。</span><br><span class="line"></span><br><span class="line">创建一个新项目，把之前我们讲的buildSrc目录下的内容复制到这个项目中。这个时候，我们就要自己使用Groovy插件来编译这些Groovy源代码了，就像我们编译Java代码需要Java插件一样。Groovy插件是基于Java插件的。在这个项目目录下新建一个build.gradle文件，并在文件中引入Groovy Plugin。</span><br><span class="line">还有一点，我们期望把这些Groovy编写的Task和其它类打包成jar文件供其它地方使用。这个时候我们就可以使用maven插件，把jar文件上传到repository中。关于如何使用maven插件上传，可以查阅相关文档，也可以看这篇 [Gradle User Guide Maven Plugin](https://docs.gradle.org/4.2.1/userguide/maven_plugin.html)。为了简单演示，打包的jar文件上传到了本地的文件系统中。最终的build.gradle文件如下：</span><br></pre></td></tr></table></figure>
+<p>apply plugin: ‘groovy’<br>apply plugin: ‘maven’</p>
+<p>version = ‘1.0’<br>group = ‘com.sososeen09.gia’<br>archivesBaseName = ‘releaseVersionTask’</p>
+<p>repositories {<br>    mavenCentral()<br>}</p>
+<p>dependencies {<br>    // 编译的时候我们需要使用Gradle中的API<br>    compile gradleApi()<br>}</p>
+<p>uploadArchives {<br>    repositories {<br>        mavenDeployer {<br>            repository(url: “file:../lib”)<br>        }<br>    }<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">执行`gradle uploadArchives`命令后就可以看到，在与当前项目同级的lib文件目录中生成了我们期望的jar文件。</span><br><span class="line"></span><br><span class="line">下面来演示如何使用这个jar文件。我们再新建一个工程，这个工程中有一个脚本文件build.gradle和一个配置文件version.properties。</span><br><span class="line">其中，build.gradle中的代码如下：</span><br></pre></td></tr></table></figure></p>
+<p>import com.sososeen09.gia.ReleaseVersionTask<br>import com.sososeen09.gia.ProjectVersion<br>buildscript {<br>    repositories {<br>        maven {<br>            url ‘file:../lib’<br>        }</p>
+<pre><code>}
+
+dependencies {
+    classpath &apos;com.sososeen09.gia:releaseVersionTask:1.0&apos;
+}
+</code></pre><p>}</p>
+<p>version=new ProjectVersion(0,1)</p>
+<p>task printVersion {<br>  doLast{<br>    logger.quiet “Version: $version”<br>  }<br>}</p>
+<p>// Project接口提供了file方法，它会创建一个相对于项目目录的java.io.File实例<br>ext.versionFile=file(‘version.properties’)</p>
+<p>task loadVersion{<br>    project.version=readVersion()<br>}</p>
+<p>//readVersion方法，与task是不同的<br>ProjectVersion readVersion(){<br>    logger.quiet ‘Reading the version file’<br>    if(!versionFile.exists()){<br>        throw new GradleException (“Required version file dose not exist:$versionFile.canonicalPath “ )<br>    }</p>
+<pre><code>//Groovy的文件实现通过添加新的方法来读取InputStream
+Properties versionProps=new Properties()
+versionFile.withInputStream{stream-&gt;
+    versionProps.load(stream)
+}
+// 在Groovy中，如果return是方法中的最后一条语句的话，则可以将它省略
+new ProjectVersion(versionProps.major.toInteger(),versionProps.minor.toInteger(),versionProps.release.toBoolean())
+</code></pre><p>}</p>
+<p>task makeReleaseVersion(type:ReleaseVersionTask){<br>    release = version.release<br>    destFile = versionFile<br>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">version.properties中的内容如下：</span><br></pre></td></tr></table></figure>
+<p>major=0<br>minor=1<br>release=fasle<br>```</p>
+<p>执行 <code>gradle makeReleaseVersion</code> 命令之后可以看到配置文件中release变为true。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>通过以上的介绍，我们了解了自定义Task的方式。 自定义的Task可以放置在build.gradle脚本中，也可以在当前的项目的buildSrc目录下。当然了，如果你期望你写的自定义Task可以被其它的项目中使用，那么你可以用一个单独的工程来放置自定的Task。</p>
+<p>关于自定义Task的学习，我们也可以查看Gradle的官方Guide来查看如何<a href="https://guides.gradle.org/writing-gradle-tasks/" target="_blank" rel="noopener">自定义task</a></p>
+<p><a href="http://www.jianshu.com/p/e01d647b1c75" target="_blank" rel="noopener">下一篇</a>，我们开始学习Gradle中的依赖管理。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="https://docs.gradle.org/4.2.1/userguide/maven_plugin.html" target="_blank" rel="noopener">Gradle User Guide Maven Plugin</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习6——挂接到构建生命周期/" rel="next" title="Gradle学习6——挂接到构建生命周期">
+                <i class="fa fa-chevron-left"></i> Gradle学习6——挂接到构建生命周期
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习8——依赖管理/" rel="prev" title="Gradle学习8——依赖管理">
+                Gradle学习8——依赖管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#自定义task类"><span class="nav-number">1.</span> <span class="nav-text">自定义task类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用自定义task"><span class="nav-number">2.</span> <span class="nav-text">使用自定义task</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在buildSrc目录下构建代码"><span class="nav-number">3.</span> <span class="nav-text">在buildSrc目录下构建代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

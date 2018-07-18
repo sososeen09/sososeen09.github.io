@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  依赖管理是Gradle非常棒的一个功能，很多情况下，你只需要在构建文件中添加一行代码，Gradle就会从远程仓库中下载依赖，在项目中就可以使用依赖中的类。如果你所依赖的这个库本身也有它自己的依赖，Gradle会处理并解决这些">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gradle学习8——依赖管理">
+<meta property="og:url" content="http://yoursite.com/2017/10/14/Gradle学习8——依赖管理/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  依赖管理是Gradle非常棒的一个功能，很多情况下，你只需要在构建文件中添加一行代码，Gradle就会从远程仓库中下载依赖，在项目中就可以使用依赖中的类。如果你所依赖的这个库本身也有它自己的依赖，Gradle会处理并解决这些">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-685e209dd721faf8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T02:43:31.991Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gradle学习8——依赖管理">
+<meta name="twitter:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  依赖管理是Gradle非常棒的一个功能，很多情况下，你只需要在构建文件中添加一行代码，Gradle就会从远程仓库中下载依赖，在项目中就可以使用依赖中的类。如果你所依赖的这个库本身也有它自己的依赖，Gradle会处理并解决这些">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/2083810-685e209dd721faf8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/14/Gradle学习8——依赖管理/"/>
+
+
+
+
+
+  <title>Gradle学习8——依赖管理 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/14/Gradle学习8——依赖管理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Gradle学习8——依赖管理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-14T16:52:08+08:00">
+                2017-10-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>学习本系列前可以下载相关的github项目<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">gradleLearnDemo</a>。<br>地址：<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">https://github.com/sososeen09/gradleLearnDemo</a></p>
+</blockquote>
+<p>依赖管理是Gradle非常棒的一个功能，很多情况下，你只需要在构建文件中添加一行代码，Gradle就会从远程仓库中下载依赖，在项目中就可以使用依赖中的类。如果你所依赖的这个库本身也有它自己的依赖，Gradle会处理并解决这些问题，这些依赖中的依赖，被称作传递性依赖。</p>
+<p>Gradle使用 dependencies 这个DSL来定义构建所依赖的类库，使用repositories 来告诉构建从哪里获取依赖，当你配置好后，Gradle会自动下载依赖，并存储在本地缓存中，在构建中使用它们，一个特定版本的依赖只会在你的机器上下载一次。<br>例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    mavenCentral()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile &apos;org.jsoup:jsoup:1.9.2&apos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Gradle支持三种不同的依赖仓库：Maven、Ivy和静态文件或文件夹。一个依赖通常由三种元素定义的，可以称呼它们为依赖属性。</p>
+<ul>
+<li>group：通常标识一个组织、公司或者项目。如org.jsoup</li>
+<li>name:一个工件的名称唯一的描述了依赖。如：:jsoup</li>
+<li>version：一个类库的版本号。如1.9.2</li>
+</ul>
+<p>上面的dependencies，也可以使用map形式包含group、name、version属性。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    compile group:&apos;org.jsoup&apos;, name:&apos;jsoup&apos;, version:&apos;1.9.2&apos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>对于依赖来说，唯一需要的字段是name。group和version都是可选的元素。尽管如此，为了表述清楚，建议添加group，而version可确保依赖库不会自动更新。</p>
+</blockquote>
+<h1 id="使用和配置仓库"><a href="#使用和配置仓库" class="headerlink" title="使用和配置仓库"></a>使用和配置仓库</h1><p>为了方便，Gradle预定义了三个Maven仓库：</p>
+<ul>
+<li>Jcenter</li>
+<li>Maven Central</li>
+<li>本地Maven仓库</li>
+</ul>
+<p>Gradle使用Maven Central仓库就是调用mavenCentral()方法，其它两个仓库的使用也类似。为了在构建脚本中包含它们，你需要这么做：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    jcenter()</span><br><span class="line">    mavenCentral()</span><br><span class="line">    mavenLocal()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Maven Central 和JCenter是两个有名的远程仓库，一般不同时使用它们，通常推荐使用JCenter，它是Maven Central的超集，其也是Android Studio创建Android项目时的默认依赖仓库，而且JCenter还支持HTTPS。</p>
+<p>本地Maven仓库是你已经使用了的所有依赖的本地缓存，你也可以自己添加依赖。默认情况下，依赖仓库可以在一个名为.m2目录文件夹的主目录中找到。在Linux或Mac OS X上，该路径是~/.m2，在Windows上路径是%UserProfile%/.m2。<br>除了这些预定义的依赖仓库，你也可以添加其它的公有或私有仓库，可以指定一个任意的Maven或者Ivy仓库的URL并且配置来使用身份验证，或者可以使用简单的文件系统仓库来解决依赖关系。</p>
+<p>在项目中定义仓库的关键是<a href="https://docs.gradle.org/4.2.1/javadoc/org/gradle/api/artifacts/dsl/RepositoryHandler.html" target="_blank" rel="noopener">RepositoryHandler</a>接口，它提供了添加各种类型仓库的方法。从项目上看，这些方法在repositories配置块中被调用。</p>
+<p>可以声明多个仓库，下载依赖的时候按照声明的顺序来检查仓库，仓库提供了依赖优先原则，对于特定的依赖后续的仓库声明不会被进一步检查。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    mavenLocal()</span><br><span class="line">    jcenter()</span><br><span class="line">    maven &#123; url &quot;https://jitpack.io&quot; &#125;</span><br><span class="line">    flatDir &#123;</span><br><span class="line">        dirs &apos;libs&apos;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Gradle API 支持两种方式来配置一个自定义仓库：maven()和mavenRepo()。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    maven &#123;</span><br><span class="line">        name &apos;Custom Maven Repository&apos;</span><br><span class="line">        url &apos;http://repo.acmp.com/release/&apos;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>也可以使用Ivy仓库，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    ivy &#123;</span><br><span class="line">        url &apos;http://repo.acmp.com/release/&apos;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有些Maven仓库的访问需要凭证，那么可以这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    maven &#123;</span><br><span class="line">        url &apos;http://repo.acmp.com/release/&apos;</span><br><span class="line">        credentials&#123;</span><br><span class="line">            username &apos;user&apos;</span><br><span class="line">            password &apos;secretPassword&apos;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>不建议在构建配置文件中存储凭证，最好是在本地一个单独的未纳入版本控制系统的属性文件存储凭证</p>
+</blockquote>
+<p><strong>扁平的目录仓库</strong></p>
+<p>flat目录是最简单和最基本的仓库形式。在文件系统中它是一个单独的目录，只包含jar文件或者Android 库中的aar类型的文件，没有maven元数据。<br>当声明依赖时，你只能使用name和versin属性，不能使用group属性，因为它会导致产生不明确的依赖关系。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    compile name: &apos;jsoup&apos;, version: &apos;1.9.2&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">    flatDir&#123;</span><br><span class="line">        dirs &apos;flatlibs&apos;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="本地依赖"><a href="#本地依赖" class="headerlink" title="本地依赖"></a>本地依赖</h1><p>某些情况下，你可能仍然需要使用手动下载的jar文件或原生库。<br>你可以使用Gradle提供的files方法来添加jar文件作为一个依赖，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dependencies&#123;</span><br><span class="line">	compile files(&apos;libs/jsoup.jar&apos;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果jar文件很多，我们一个一个的这样依赖太繁琐，就可以一次添加一个完成的文件夹：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dependencies&#123;</span><br><span class="line">	compile fileTree(&apos;libs&apos;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Android Studio中创建Android项目的时候，新建的Android项目会有一个libs文件夹，其会被声明为依赖的文件夹，并且通过过滤只依赖jar文件，而不是所有的文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dependencies&#123;</span><br><span class="line">	compile fileTree(include: [&apos;*.jar&apos;], dir: &apos;libs&apos;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>原生依赖</strong></p>
+<p>如果想要使用C或C++编译的原生依赖库.so文件，需要指明jniLibs的目录。假设.so文件也都放置在libs目录下，如图：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2083810-685e209dd721faf8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+<p>在脚本文件中就需要这么配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    sourceSets &#123;</span><br><span class="line">        main &#123;</span><br><span class="line">            jniLibs.srcDirs = [&apos;libs&apos;]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>依赖项目</strong></p>
+<p>如果在项目中创建了一个模块作为依赖项目，那么需要在settings.gradle中添加该模块，然后在应用模块中使用它作为依赖。比如，在Android项目中，app模块是我们的主模块，library模块是依赖模块，也称作依赖库。<br>settings.gradle 中添加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include &apos;:app&apos; ,&apos; : library&apos;</span><br></pre></td></tr></table></figure>
+<p>app模块下的build.gradle中添加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dependencies&#123;</span><br><span class="line">	compile project(&apos;:library&apos;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>使用.aar文件</strong></p>
+<p>当你已经把aar文件放置在libs目录下或者其他的扁平文件目录下，添加aar文件作为依赖可以这么操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">compile(name: &apos;libraryname&apos;, ext: &apos;aar&apos;)</span><br></pre></td></tr></table></figure>
+<p>这样就告知Gradle查找具有特定名称切扩展名为.aar的依赖库</p>
+<h1 id="依赖配置"><a href="#依赖配置" class="headerlink" title="依赖配置"></a>依赖配置</h1><p>前面我们讲了添加依赖库的时候，前面都要有一个compile。其实这个compile就是一个配置Configuration。<br>Gradle根据配置对依赖进行分组，比如编译Java时使用的是这组依赖，运行Java时又可以使用另一组依赖。每一组依赖称为一个Configuration，在声明依赖时，我们实际上是在设置不同的Configuration。<br>Java插件提供了6个现成的配置：compile、runtime、testCompile、testRuntime、archives、default。<br>而在Android中的插件也提供了几个标准配置：compile、apk、provided、testCompile、androidTestCompile。<br>compile 是默认的配置，在编译主应用时包含所有的依赖，不禁会将依赖添加至类路径，还会生成对应的apk。<br>如果依赖使用apk配置，则该依赖只会被打包到apk，而不会被添加到编译类路径。<br>provided配置与apk配置相反，只在编译的时候用到，其依赖不会被打包进apk。<br>testCompile、androidTestCompile配置会添加用于测试的额外依赖库，在运行测试相关的任务时会被用到。比如添加JUnit或者Espresso测试框架。</p>
+<p>要自定义一个配置Configuration，我们可以这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">configurations &#123;</span><br><span class="line">    myConfiguration &#123;</span><br><span class="line">        description = &apos;this is  my configuration&apos;</span><br><span class="line">        visible = false</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们在自定义配置的时候，同时定义了该配置的一些属性，description表示的是该配置的描述信息，visiable表示该配置是否可以在该Project之外可见，默认是true。还可以定义其它的属性，具体可参考<a href="https://docs.gradle.org/4.2.1/javadoc/org/gradle/api/artifacts/Configuration.html" target="_blank" rel="noopener">Configuration</a>这个类。当然，你也可以什么都不写。configurations对应的Gradle的Api中<a href="https://docs.gradle.org/4.2.1/javadoc/org/gradle/api/artifacts/ConfigurationContainer.html" target="_blank" rel="noopener">ConfigurationContainer
+</a>这个类。</p>
+<p>以上只是定义了一个名为myConfiguration的配置，我们并未向其中加入依赖。可以通过dependencies()方法向myConfiguration中加入实际的依赖项：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">   myConfiguration &apos;org.jsoup:jsoup:1.9.2&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">    mavenCentral()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行<code>gradle dependencies</code> 这个帮助task，会显示当前的依赖树。此时可以看到我们在myConfiguration这个配置中依赖的库：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">myConfiguration - this is  my configuration</span><br><span class="line">\--- org.jsoup:jsoup:1.9.2</span><br></pre></td></tr></table></figure>
+<p>由于我们只依赖了一个库，所以依赖树看着很简洁。如果依赖很多库，而这些依赖库又都有传递性依赖，就有可能发生依赖冲突。如果存在依赖冲突，在默认情况下，Gradle会选择最新版本，这和Maven是不同的，Maven会选择离依赖树最近的版本。如果你需要更改默认的冲突解决策略，可以自行搜索相关内容，本文就不多做介绍了。</p>
+<p>使用Gradle API可以找到Gradle依赖的缓存文件放置的位置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">task printDependencies &lt;&lt; &#123;</span><br><span class="line">    configurations.getByName(&apos;myConfiguration&apos;).each &#123; dependency -&gt;</span><br><span class="line">        println dependency</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行<code>gradle printDependencies</code> 命令，可以看到打印结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; Task :printDependencies</span><br><span class="line">/Users/jason/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.9.2/5e3bda828a80c7a21dfbe2308d1755759c2fd7b4/jsoup-1.9.2.jar</span><br></pre></td></tr></table></figure>
+<h1 id="动态版本声明"><a href="#动态版本声明" class="headerlink" title="动态版本声明"></a>动态版本声明</h1><p>如果想使用最新版本的依赖，可以使用占位符 latest.integration 。例如 ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.jsoup:jsoup:latest-integration</span><br></pre></td></tr></table></figure>
+<p>或者，声明版本属性，通过使用一个加号(+) 标定它来动态改变：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.jsoup:jsoup:1.+</span><br></pre></td></tr></table></figure>
+<p>当然了，我们最好是少用或者不用动态版本声明。</p>
+<p><a href="http://www.jianshu.com/p/62c1f3ca380c" target="_blank" rel="noopener">下一篇</a>，我们开始学习Gradle中的多项目构建。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习7——编写和使用自定义Task/" rel="next" title="Gradle学习7——编写和使用自定义Task">
+                <i class="fa fa-chevron-left"></i> Gradle学习7——编写和使用自定义Task
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习9——多项目构建/" rel="prev" title="Gradle学习9——多项目构建">
+                Gradle学习9——多项目构建 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用和配置仓库"><span class="nav-number">1.</span> <span class="nav-text">使用和配置仓库</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#本地依赖"><span class="nav-number">2.</span> <span class="nav-text">本地依赖</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#依赖配置"><span class="nav-number">3.</span> <span class="nav-text">依赖配置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#动态版本声明"><span class="nav-number">4.</span> <span class="nav-text">动态版本声明</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

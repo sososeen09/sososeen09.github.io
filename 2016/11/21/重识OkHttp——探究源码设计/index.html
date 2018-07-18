@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文是重试OkHttp系列的第2篇，依然是基于OkHttp3.4。上一篇重识OkHttp——更深入了解如何使用算是对OkHttp的基本使用做了一个简单的总结，本篇会深入源码内部，探究OkHttp是如何工作的。  #1 客户端完整的请求 OkHttp发送一个请求需要4步：  构建OkHttpClient 构建Request 创建一个Call 执行Call的同步或者异步方法，处理响应。  我们只以一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重识OkHttp——探究源码设计">
+<meta property="og:url" content="http://yoursite.com/2016/11/21/重识OkHttp——探究源码设计/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文是重试OkHttp系列的第2篇，依然是基于OkHttp3.4。上一篇重识OkHttp——更深入了解如何使用算是对OkHttp的基本使用做了一个简单的总结，本篇会深入源码内部，探究OkHttp是如何工作的。  #1 客户端完整的请求 OkHttp发送一个请求需要4步：  构建OkHttpClient 构建Request 创建一个Call 执行Call的同步或者异步方法，处理响应。  我们只以一">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-b7337609283fad43.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T01:58:32.289Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="重识OkHttp——探究源码设计">
+<meta name="twitter:description" content="本文是重试OkHttp系列的第2篇，依然是基于OkHttp3.4。上一篇重识OkHttp——更深入了解如何使用算是对OkHttp的基本使用做了一个简单的总结，本篇会深入源码内部，探究OkHttp是如何工作的。  #1 客户端完整的请求 OkHttp发送一个请求需要4步：  构建OkHttpClient 构建Request 创建一个Call 执行Call的同步或者异步方法，处理响应。  我们只以一">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/2083810-b7337609283fad43.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/11/21/重识OkHttp——探究源码设计/"/>
+
+
+
+
+
+  <title>重识OkHttp——探究源码设计 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/11/21/重识OkHttp——探究源码设计/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">重识OkHttp——探究源码设计</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-21T18:44:00+08:00">
+                2016-11-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>本文是重试OkHttp系列的第2篇，依然是基于<a href="https://github.com/square/okhttp/tree/okhttp_34" target="_blank" rel="noopener">OkHttp3.4</a>。上一篇<a href="http://www.jianshu.com/p/c70d0ce5400c" target="_blank" rel="noopener">重识OkHttp——更深入了解如何使用</a>算是对OkHttp的基本使用做了一个简单的总结，本篇会深入源码内部，探究OkHttp是如何工作的。</p>
+</blockquote>
+<p>#1 客户端完整的请求</p>
+<p>OkHttp发送一个请求需要4步：</p>
+<ul>
+<li>构建OkHttpClient</li>
+<li>构建Request</li>
+<li>创建一个Call</li>
+<li>执行Call的同步或者异步方法，处理响应。</li>
+</ul>
+<p>我们只以一个简单的异步get请求来举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">//创建OkHttpClient</span><br><span class="line">OkHttpClient client = new OkHttpClient.Builder().build();</span><br><span class="line"></span><br><span class="line">//创建Request</span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;http://publicobject.com/helloworld.txt&quot;) </span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line">//创建Call</span><br><span class="line">Call call = client.newCall(request);</span><br><span class="line"></span><br><span class="line">//执行Call的异步方法</span><br><span class="line"> call.enqueue(new Callback() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void onFailure(Call call, IOException e) &#123;</span><br><span class="line">                //做一些请求失败的处理</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onResponse(Call call, Response response) throws IOException &#123;</span><br><span class="line">              //做一些请求成功的处理</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<p>Request和OkHttpClient都是我们自己创建的，不再讨论了。就从这个Call来展开讨论。</p>
+<h1 id="探究源码"><a href="#探究源码" class="headerlink" title="探究源码"></a>探究源码</h1><h2 id="Call的实现类RealCall"><a href="#Call的实现类RealCall" class="headerlink" title="Call的实现类RealCall"></a>Call的实现类RealCall</h2><p>Call是一个准备执行的请求，它是一个接口。含有一个内部接口Factory 用于生成Call。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public interface Call &#123;</span><br><span class="line">//返回当前Call的Request</span><br><span class="line">  Request request();</span><br><span class="line">//同步请求</span><br><span class="line">  Response execute() throws IOException;</span><br><span class="line">//异步请求</span><br><span class="line">  void enqueue(Callback responseCallback);</span><br><span class="line">//取消请求</span><br><span class="line">  void cancel();</span><br><span class="line">//判断是否执行过</span><br><span class="line">  boolean isExecuted();</span><br><span class="line">//判断是否取消了</span><br><span class="line">  boolean isCanceled();</span><br><span class="line"></span><br><span class="line">  interface Factory &#123;</span><br><span class="line">    Call newCall(Request request);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>OkHttpClient实现了Call.Factory接口，所以有一个newCall方法，这个方法中干了这么个事：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#OkHttpClient</span><br><span class="line">  @Override public Call newCall(Request request) &#123;</span><br><span class="line">    return new RealCall(this, request);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">#RealCall的构造方法</span><br><span class="line">  protected RealCall(OkHttpClient client, Request originalRequest) &#123;</span><br><span class="line">    this.client = client;</span><br><span class="line">    this.originalRequest = originalRequest;</span><br><span class="line">    this.retryAndFollowUpInterceptor = new RetryAndFollowUpInterceptor(client);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，返回了一个RealCall，这个RealCall是OkHttp中Call的唯一实现类。说明我们执行请求，是通过RealCall发出的。<br>在RealCall的构造方法中，我们还创建了一个拦截器RetryAndFollowUpInterceptor，通过名字我们可以猜测一下这个拦截器的作用是重试和跟进，这个负责是否断线重连和重定向，可以看到这个拦截器跟OkHttpClient有关联，我们可以在配置OkHttpClient的时候配置断线重连等，默认的都是true。</p>
+<blockquote>
+<p>在OkHttp中以Real为前缀的类，都是真正干活的类</p>
+</blockquote>
+<h2 id="RealCall的enqueue-Callback-callBack-方法"><a href="#RealCall的enqueue-Callback-callBack-方法" class="headerlink" title="RealCall的enqueue( Callback callBack)方法"></a>RealCall的enqueue( Callback callBack)方法</h2><p>OkHttpClient的newCall方法只是创建了一个RealCall，RealCall的enqueue方法传递了一个CallBack用于处理回调，那我们看看这个方法都干了些什么:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#RealCall</span><br><span class="line">  @Override public void enqueue(Callback responseCallback) &#123;</span><br><span class="line">    synchronized (this) &#123;</span><br><span class="line"> //同一个Call只能执行一次，否则会报错。</span><br><span class="line">      if (executed) throw new IllegalStateException(&quot;Already Executed&quot;);</span><br><span class="line">      executed = true;</span><br><span class="line">    &#125;</span><br><span class="line">    client.dispatcher().enqueue(new AsyncCall(responseCallback));</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>从上面可以看出，同一个Call只能执行一次，否则会报错。<br>client.dispatcher()返回的是与OkHttpClient绑定的一个Dispatcher。这个Dispatcher用来管理请求的调度。在上一篇<a href="http://www.jianshu.com/p/c70d0ce5400c" target="_blank" rel="noopener">重识OkHttp——更深入了解如何使用</a>中我们简单的也提到过这个类。这个类主要是用来管理异步请求的调度，同步请求中虽然也参与了，但只是简单的统计正在执行的Call并在Call执行完毕之后做相应的处理。</p>
+<p>AsyncCall是RealCall的内部类，继承了NamedRunnable，实际上也是一个Runnable实现类。这个AsyncCall 包装了Callback。它的run()方法中最终会调用它自己的execute()方法。后面我们会讲到AsyncCall的execute()方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#NamedRunnable</span><br><span class="line">  @Override public final void run() &#123;</span><br><span class="line">    String oldName = Thread.currentThread().getName();</span><br><span class="line">    Thread.currentThread().setName(name);</span><br><span class="line">    try &#123;</span><br><span class="line">      execute();</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      Thread.currentThread().setName(oldName);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  protected abstract void execute();</span><br></pre></td></tr></table></figure>
+<p>RealCall的enqueue( Callback callBack)实际上最后调用了Dispatcher的enqueue(AsyncCall call)方法。</p>
+<h2 id="Dispatcher的enqueue方法"><a href="#Dispatcher的enqueue方法" class="headerlink" title="Dispatcher的enqueue方法"></a>Dispatcher的enqueue方法</h2><p>Dispatcher的enqueue方法是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#Dispatcher</span><br><span class="line">  synchronized void enqueue(AsyncCall call) &#123;</span><br><span class="line">//判断是否可以执行当前这个Call</span><br><span class="line">    if (runningAsyncCalls.size() &lt; maxRequests &amp;&amp; runningCallsForHost(call) &lt; maxRequestsPerHost) &#123;</span><br><span class="line">//满足条件，添加到代表执行的Call的集合中，并开始执行</span><br><span class="line">      runningAsyncCalls.add(call);</span><br><span class="line">      executorService().execute(call);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">//不满足条件，添加到等待的集合中</span><br><span class="line">      readyAsyncCalls.add(call);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法中首先会判断当前正在执行的Call的数量以及访问同一个主机地址的Call的数量是否在限定范围内。Dispatcher默认的Call的并发数是64，同一个主机地址的并发数是5。这个并发数可以更改。<br>如果满足条件，就向代表当前正在执行的Call的集合中添加该Call，并且去执行它。否则就会向等待的集合中添加该Call，等待被执行。</p>
+<p>executorService()返回的是ExecutorService对象，调用ExecutorService的execute(call)方法实际上最后调用的就是AsyncCall 的execute()方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">#RealCall.AsyncCall</span><br><span class="line">   @Override protected void execute() &#123;</span><br><span class="line">      boolean signalledCallback = false;</span><br><span class="line">      try &#123;</span><br><span class="line">//最核心的方法，调用之后返回Response</span><br><span class="line">        Response response = getResponseWithInterceptorChain();</span><br><span class="line">        if (retryAndFollowUpInterceptor.isCanceled()) &#123;</span><br><span class="line">          signalledCallback = true;</span><br><span class="line">          responseCallback.onFailure(RealCall.this, new IOException(&quot;Canceled&quot;));</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">          signalledCallback = true;</span><br><span class="line">          responseCallback.onResponse(RealCall.this, response);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; catch (IOException e) &#123;</span><br><span class="line">        if (signalledCallback) &#123;</span><br><span class="line">          // Do not signal the callback twice!</span><br><span class="line">          Platform.get().log(INFO, &quot;Callback failure for &quot; + toLoggableString(), e);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">          responseCallback.onFailure(RealCall.this, e);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; finally &#123;</span><br><span class="line">        client.dispatcher().finished(this);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>在这个execute()方法中，能获得返回Response，之后做回调处理，Dispatcher也会对Call进行管理。核心的方法就是getResponseWithInterceptorChain()。</p>
+<h2 id="核心方法getResponseWithInterceptorChain"><a href="#核心方法getResponseWithInterceptorChain" class="headerlink" title="核心方法getResponseWithInterceptorChain()"></a>核心方法getResponseWithInterceptorChain()</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"> private Response getResponseWithInterceptorChain() throws IOException &#123;</span><br><span class="line">    // Build a full stack of interceptors.</span><br><span class="line">    List&lt;Interceptor&gt; interceptors = new ArrayList&lt;&gt;();</span><br><span class="line">//添加开发者用户自己定义的拦截器。</span><br><span class="line">    interceptors.addAll(client.interceptors());</span><br><span class="line"></span><br><span class="line">//添加失败重连和重定向的拦截器</span><br><span class="line">    interceptors.add(retryAndFollowUpInterceptor);</span><br><span class="line"></span><br><span class="line">//这个拦截器主要是添加一些请求头和其它信息，同时对返回的响应做一些响应头或其它处理。</span><br><span class="line">    interceptors.add(new BridgeInterceptor(client.cookieJar()));</span><br><span class="line"></span><br><span class="line">//添加缓存拦截器，根据不同的缓存策略做相应的处理。</span><br><span class="line">    interceptors.add(new CacheInterceptor(client.internalCache()));</span><br><span class="line">/**</span><br><span class="line"> * 添加连接拦截器，与服务器建立Socket连接。</span><br><span class="line"> * 其他的拦截器都会对Request和Response进行一些操作，这个拦截器不会。</span><br><span class="line"> */</span><br><span class="line">    interceptors.add(new ConnectInterceptor(client));</span><br><span class="line">/**</span><br><span class="line"> * 默认retryAndFollowUpInterceptor.isForWebSocket()为false，</span><br><span class="line"> * 所以会添加网络拦截器networkInterceptors()，</span><br><span class="line"> * 这个拦截器也是在配置OkHttpClient的时候开发者添加的。</span><br><span class="line"> * 这个拦截器工作的时候肯定已经联网了。</span><br><span class="line"> */</span><br><span class="line">    if (!retryAndFollowUpInterceptor.isForWebSocket()) &#123;</span><br><span class="line">      interceptors.addAll(client.networkInterceptors());</span><br><span class="line">    &#125;</span><br><span class="line">/**</span><br><span class="line"> * 添加CallServerInterceptor拦截器，它主要就是IO操作了， 本质就是Socket的网络IO操作。 </span><br><span class="line"> * 对服务器：写入请求头，如果有请求体的话写入请求体。</span><br><span class="line"> * 拿到响应之后处理响应头、code、message、body等。</span><br><span class="line"> */</span><br><span class="line">    interceptors.add(new CallServerInterceptor(</span><br><span class="line">        retryAndFollowUpInterceptor.isForWebSocket()));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> // 创建一个RealInterceptorChain，用它来开始处理请求。</span><br><span class="line">    Interceptor.Chain chain = new RealInterceptorChain(</span><br><span class="line">        interceptors, null, null, null, 0, originalRequest);</span><br><span class="line">    return chain.proceed(originalRequest);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>在这个getResponseWithInterceptorChain()方法中，有大量的Interceptors，有开发者自己定义的Interceptor也有OkHttp自己的Interceptor。这些Interceptor都存入到了ArrayList集合，我们在这里就可以大胆猜测一下这个Interceptor应该是顺序执行的。最后创建了一个RealInterceptorChain，通过调用它的proceed(request)方法开始处理原始的request，然后我们就拿到了我们想要的Response。</p>
+<p>RealInterceptorChain是Interceptor.Chain的实现类，看这个Real前缀就知道它干的绝对是重要的事。它是一个具体的拦截器链，我们存放在List<interceptor> interceptors集合中的拦截器之间的传递都要靠它。<br>它的proceed(request)最终会调用到四个参数的重载方法：</interceptor></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"> public Response proceed(Request request, StreamAllocation streamAllocation, HttpStream httpStream,</span><br><span class="line">      Connection connection) throws IOException &#123;</span><br><span class="line">  ...</span><br><span class="line">//下面的代码能够调用拦截器链中的下一个拦截器Interceptor</span><br><span class="line">    // Call the next interceptor in the chain.</span><br><span class="line">//创建一个新的RealInterceptorChain用于把Request传递给下一个Interceptor去处理</span><br><span class="line">    RealInterceptorChain next = new RealInterceptorChain(</span><br><span class="line">        interceptors, streamAllocation, httpStream, connection, index + 1, request);</span><br><span class="line">    Interceptor interceptor = interceptors.get(index);</span><br><span class="line">    Response response = interceptor.intercept(next);</span><br><span class="line">  ...</span><br><span class="line">    return response;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>上述代码部分就是这个方法的核心，能够把Request依次传递给下一个Interceptor去处理。<br>拦截器Interceptor的设计真是很赞，每一个Interceptor在发送Request的时候只处理自己那一部分Request，然后通过RealInterceptorChain的带动传递给下一个Interceptor进行处理，最后一个Interceptor发送完请求得到服务器的响应Response，经过自己的处理之后返回给它之前的那个Interceptor进行处理，依次进行，最后一个处理完毕的Response返回给开发者用户。<br>形象一点，Interceptor就像是生产线上的工人，Request是物料，Response是产品，RealInterceptorChain是一节一节的传送带。每个工人同时负责处理自己那一部分的Request和Response，由传送带进行传递，各司其职，最后完成一件对用户来讲完美的产品。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2083810-b7337609283fad43.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="拦截器流程.png"></p>
+<p>我第一次看OkHttp3.4源码的的时候真是一脸懵逼继而叹为观止。后来看了其它文章，才知道原来这个设计模式叫作<strong>责任链模式</strong>。在<em>Android源码设计模式解析与实战</em>这本书中介绍了Android的事件分发处理采用的也是责任链模式。</p>
+<p>具体到每个拦截器都是怎么处理Request和Response的，最好自己去看一下，我们就不展开讨论了。</p>
+<h1 id="同步请求"><a href="#同步请求" class="headerlink" title="同步请求"></a>同步请求</h1><p>看了异步请求的调用，同步请求的分析就比较简单了，因为最终调用的还是getResponseWithInterceptorChain()这个核心方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#RealCall</span><br><span class="line">  @Override public Response execute() throws IOException &#123;</span><br><span class="line">    synchronized (this) &#123;</span><br><span class="line">  //同一个Call只能执行一次，否则会报错。</span><br><span class="line">      if (executed) throw new IllegalStateException(&quot;Already Executed&quot;);</span><br><span class="line">      executed = true;</span><br><span class="line">    &#125;</span><br><span class="line">    try &#123;</span><br><span class="line">//Dispatcher.execute(Call call)方法，只是把当前正在执行的Call添加到代表执行中的集合去。</span><br><span class="line">      client.dispatcher().executed(this);</span><br><span class="line">//核心的方法就是调用的这个getResponseWithInterceptorChain()方法返回响应Response。</span><br><span class="line">      Response result = getResponseWithInterceptorChain();</span><br><span class="line">      if (result == null) throw new IOException(&quot;Canceled&quot;);</span><br><span class="line">      return result;</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">//下面的方法只是代表对一个Call结束之后做的处理。</span><br><span class="line">      client.dispatcher().finished(this);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本文对OkHttp一个完整的请求过程做了简单的说明，限于篇幅有些地方讲的不是很详细，有兴趣的读者可以自己去探索一下这个流程，尤其是在拦截器那一部分，掌握好了之后对我们平时灵活运用OkHttp会有很大帮助，如配置我们自定义的缓存拦截器，或者在拦截器中监听下载进度，网上也有很多文章可供参考。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考:"></a>参考:</h1><ul>
+<li><a href="http://gold.xitu.io/post/581311cabf22ec0068826aff" target="_blank" rel="noopener">从OKHttp框架看代码设计</a></li>
+<li><a href="http://blog.piasy.com/2016/07/11/Understand-OkHttp/" target="_blank" rel="noopener">拆轮子系列：拆 OkHttp</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/14/重识OkHttp——更深入了解如何使用/" rel="next" title="重识OkHttp——更深入了解如何使用">
+                <i class="fa fa-chevron-left"></i> 重识OkHttp——更深入了解如何使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/19/采用Gson解析含有多种JsonObject的复杂Json/" rel="prev" title="采用Gson解析含有多种JsonObject的复杂Json">
+                采用Gson解析含有多种JsonObject的复杂Json <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#探究源码"><span class="nav-number">1.</span> <span class="nav-text">探究源码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Call的实现类RealCall"><span class="nav-number">1.1.</span> <span class="nav-text">Call的实现类RealCall</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RealCall的enqueue-Callback-callBack-方法"><span class="nav-number">1.2.</span> <span class="nav-text">RealCall的enqueue( Callback callBack)方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dispatcher的enqueue方法"><span class="nav-number">1.3.</span> <span class="nav-text">Dispatcher的enqueue方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心方法getResponseWithInterceptorChain"><span class="nav-number">1.4.</span> <span class="nav-text">核心方法getResponseWithInterceptorChain()</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#同步请求"><span class="nav-number">2.</span> <span class="nav-text">同步请求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考:</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

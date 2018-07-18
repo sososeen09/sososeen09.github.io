@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  之前已经讲了Gradle的构建生命周期阶段，当我们在编写构建脚本的时候，可能不仅限于编写不同构建阶段执行的task工作或者配置逻辑。有的时候当一个特定的生命周期事件或者task执行的时候，你想要执行一些代码。这个时候我们就可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gradle学习6——挂接到构建生命周期">
+<meta property="og:url" content="http://yoursite.com/2017/10/14/Gradle学习6——挂接到构建生命周期/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  之前已经讲了Gradle的构建生命周期阶段，当我们在编写构建脚本的时候，可能不仅限于编写不同构建阶段执行的task工作或者配置逻辑。有的时候当一个特定的生命周期事件或者task执行的时候，你想要执行一些代码。这个时候我们就可">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-a0bb14f5a52d292e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T02:43:18.757Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gradle学习6——挂接到构建生命周期">
+<meta name="twitter:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  之前已经讲了Gradle的构建生命周期阶段，当我们在编写构建脚本的时候，可能不仅限于编写不同构建阶段执行的task工作或者配置逻辑。有的时候当一个特定的生命周期事件或者task执行的时候，你想要执行一些代码。这个时候我们就可">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/2083810-a0bb14f5a52d292e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/14/Gradle学习6——挂接到构建生命周期/"/>
+
+
+
+
+
+  <title>Gradle学习6——挂接到构建生命周期 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/14/Gradle学习6——挂接到构建生命周期/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Gradle学习6——挂接到构建生命周期</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-14T16:52:06+08:00">
+                2017-10-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>学习本系列前可以下载相关的github项目<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">gradleLearnDemo</a>。<br>地址：<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">https://github.com/sososeen09/gradleLearnDemo</a></p>
+</blockquote>
+<p>之前已经讲了Gradle的构建生命周期阶段，当我们在编写构建脚本的时候，可能不仅限于编写不同构建阶段执行的task工作或者配置逻辑。有的时候当一个特定的生命周期事件或者task执行的时候，你想要执行一些代码。这个时候我们就可以根据回调生命周期事件来处理我们需要的逻辑。</p>
+<p>有两种方式编写回调生命周期事件：在闭包中或者通过Gradle API所提供的监听器接口实现。<br>选择哪种方式都可以，这个就看个人选择了。<br>采用监听器实现最大的优势在于你处理的类通过编写单元测试是完全可测试的。<br>下面展示了一个hook 构建生命周期的示意图。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2083810-a0bb14f5a52d292e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="hook生命周期.png"></p>
+<p>许多生命周期回调方法被定义在Project和Gradle接口中。</p>
+<h1 id="挂接到task执行图"><a href="#挂接到task执行图" class="headerlink" title="挂接到task执行图"></a>挂接到task执行图</h1><p>我们之前讲的例子是通过一个task来将配置文件中的release变为true，现在，我们编写一个生命周期钩子可以实现同样的目标。因为构建确切的知道task在得到执行之前哪些将参与构建，假设当我们的脚本文件build.gradle中如果有releaseProject 这个task的话，我们就把release 变为true。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">task releaseProject &lt;&lt; &#123;</span><br><span class="line">    logger.quiet &apos;Releasing the project...&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">gradle.taskGraph.whenReady&#123;TaskExecutionGraph taskGraph -&gt;</span><br><span class="line">  //注册的生命周期钩子在task图生成后被调用</span><br><span class="line">  //查看执行图中是否包含task releaseProject</span><br><span class="line">  if(taskGraph.hasTask(releaseProject))&#123;</span><br><span class="line">     if(!version.release)&#123;</span><br><span class="line">       version.release=true</span><br><span class="line">       ant.propertyfile(file:versionFile)&#123;</span><br><span class="line">         entry(key:&apos;release&apos;,type:&apos;string&apos;,operation:&apos;=&apos;,value: &apos;true&apos;)</span><br><span class="line">       &#125;</span><br><span class="line">     &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后执行任何一个能够触发releaseProject任务的命令，比如<code>gradle releaseProject</code>，这个时候releaseProject 这个task就被添加到task执行图中了，当task执行图生成完成后，TaskExecutionGraph 这个类提供的 whenReady 方法会被调用。</p>
+<h1 id="实现task执行图监听器"><a href="#实现task执行图监听器" class="headerlink" title="实现task执行图监听器"></a>实现task执行图监听器</h1><p>通过监听器挂接到构建生命周期只需要两个简单的步骤：</p>
+<ul>
+<li>通过在构建脚本中编写一个类实现特定的监听器接口</li>
+<li>注册监听器实现</li>
+</ul>
+<p>用于监听task执行图事件的接口是由TaskExecutionGraphListener接口提供的。<br>监听器可以通过通用的addListener方法或者指定监听器类型实例的方法进行注册。</p>
+<p>有一点要指出，在我们自定义的监听器中，是不可以直接访问构建脚本的Project实例的。我们可以根据Task类的getProject()方法来获得该task所在的Project实例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">class ReleaseVersionListener implements TaskExecutionGraphListener &#123;</span><br><span class="line">    final static String releaseTaskPath = &apos;:releaseProject&apos;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    void graphPopulated(TaskExecutionGraph taskGraph) &#123;</span><br><span class="line">      // 确定releaseProject task 是否包含在执行图中</span><br><span class="line">        if (taskGraph.hasTask(releaseTaskPath)) &#123;</span><br><span class="line">            List&lt;Task&gt; allTasks = taskGraph.allTasks</span><br><span class="line">            // 从执行图中的所有task来找到releaseProject 的 task 实例</span><br><span class="line">            Task releaseTask = allTasks.find &#123; it.path == releaseTaskPath &#125;</span><br><span class="line">            // 每个task都知道自己所属的project</span><br><span class="line">            Project project = releaseTask.project</span><br><span class="line"></span><br><span class="line">            if (!project.version.release) &#123;</span><br><span class="line">                project.version.release = true</span><br><span class="line">                project.ant.propertyfile(file: project.versionFile) &#123;</span><br><span class="line">                    entry(key: &apos;release&apos;, type: &apos;string&apos;, operation: &apos;=&apos;, value: &apos;true&apos;)</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 注册监听器到task执行图中</span><br><span class="line">gradle.taskGraph.addTaskExecutionGraphListener(new ReleaseVersionListener())</span><br></pre></td></tr></table></figure>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>我们上面介绍了挂接到构建生命周期的两种方式，这些都是在构建脚本中进行的。但实际上并不局限于在构建脚本中注册生命周期监听器。在任何task执行之前，都可以应用生命周期逻辑来监听Gradle事件，比如在初始化脚本中也可以来挂接到构建生命周期，这部分内容我们就不介绍了，有兴趣的可以自行搜索。</p>
+<p><a href="http://www.jianshu.com/p/5a413815a7ae" target="_blank" rel="noopener">下一篇</a>，我们开始学习编写和使用自定义Task。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习5——Gradle增量式构建/" rel="next" title="Gradle学习5——Gradle增量式构建">
+                <i class="fa fa-chevron-left"></i> Gradle学习5——Gradle增量式构建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习7——编写和使用自定义Task/" rel="prev" title="Gradle学习7——编写和使用自定义Task">
+                Gradle学习7——编写和使用自定义Task <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#挂接到task执行图"><span class="nav-number">1.</span> <span class="nav-text">挂接到task执行图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现task执行图监听器"><span class="nav-number">2.</span> <span class="nav-text">实现task执行图监听器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Android中的进程保活应该分为两个方面：  提高进程的优先级，减少被系统杀死的可能性 在进程已经被杀死的情况下，通过一些手段来重新启动应用进程  本文针对这两方面来进程阐述，并给出相应的示例。其实主要也是在前人的基础上做了一个总结，并进行了一些实践。  阅读本文的时候，可以先clone一份代码 android-process-daemon，这样的话可能理解更清晰。  进程等级与Low Memo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android进程保活招数概览">
+<meta property="og:url" content="http://yoursite.com/2018/05/01/Android进程保活招数概览/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Android中的进程保活应该分为两个方面：  提高进程的优先级，减少被系统杀死的可能性 在进程已经被杀死的情况下，通过一些手段来重新启动应用进程  本文针对这两方面来进程阐述，并给出相应的示例。其实主要也是在前人的基础上做了一个总结，并进行了一些实践。  阅读本文的时候，可以先clone一份代码 android-process-daemon，这样的话可能理解更清晰。  进程等级与Low Memo">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-12de25557189a20b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-56c4b4339858dfa3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-22f9de159b910a96.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T03:15:07.387Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android进程保活招数概览">
+<meta name="twitter:description" content="Android中的进程保活应该分为两个方面：  提高进程的优先级，减少被系统杀死的可能性 在进程已经被杀死的情况下，通过一些手段来重新启动应用进程  本文针对这两方面来进程阐述，并给出相应的示例。其实主要也是在前人的基础上做了一个总结，并进行了一些实践。  阅读本文的时候，可以先clone一份代码 android-process-daemon，这样的话可能理解更清晰。  进程等级与Low Memo">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/2083810-12de25557189a20b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/05/01/Android进程保活招数概览/"/>
+
+
+
+
+
+  <title>Android进程保活招数概览 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/01/Android进程保活招数概览/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android进程保活招数概览</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-01T09:36:00+08:00">
+                2018-05-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Android中的进程保活应该分为两个方面：</p>
+<ul>
+<li>提高进程的优先级，减少被系统杀死的可能性</li>
+<li>在进程已经被杀死的情况下，通过一些手段来重新启动应用进程</li>
+</ul>
+<p>本文针对这两方面来进程阐述，并给出相应的示例。其实主要也是在前人的基础上做了一个总结，并进行了一些实践。</p>
+<blockquote>
+<p>阅读本文的时候，可以先clone一份代码 <a href="https://github.com/sososeen09/android-process-daemon" target="_blank" rel="noopener">android-process-daemon</a>，这样的话可能理解更清晰。</p>
+</blockquote>
+<h1 id="进程等级与Low-Memory-Killer"><a href="#进程等级与Low-Memory-Killer" class="headerlink" title="进程等级与Low Memory Killer"></a>进程等级与Low Memory Killer</h1><p>在开始之前，首先有必要了解一下进程等级的概念。Android 系统将尽量长时间地保持应用进程，但为了新建进程或运行更重要的进程，需要清除旧进程来回收内存。 为了确定保留或终止哪些进程，系统会对进程进行分类。 需要时，系统会首先消除重要性最低的进程，然后是清除重要性稍低一级的进程，依此类推，以回收系统资源。</p>
+<p>进程等级：</p>
+<ul>
+<li><p>前台进程</p>
+<ul>
+<li>与用户正在交互的Activity</li>
+<li>前台Activity以bind方式启动的Service</li>
+<li>Service调用了startForground，绑定了Notification</li>
+<li>正在执行生命周期的Service，例如在执行onCreate、onStart、onDestory</li>
+<li>正在执行onReceive方法的BroadcastReceiver</li>
+</ul>
+</li>
+<li><p>可见进程</p>
+<ul>
+<li>托管不在前台、但仍对用户可见的 Activity（已调用其 onPause() 方法）。例如，如果前台 Activity 启动了一个对话框，允许在其后显示上一 Activity，则有可能会发生这种情况。</li>
+<li>托管绑定到可见（或前台）Activity 的 Service。</li>
+</ul>
+</li>
+<li><p>服务进程<br>正在运行已使用 startService() 方法启动的服务且不属于上述两个更高类别进程的进程。尽管服务进程与用户所见内容没有直接关联，但是它们通常在执行一些用户关心的操作（例如，在后台播放音乐或从网络下载数据）。因此，除非内存不足以维持所有前台进程和可见进程同时运行，否则系统会让服务进程保持运行状态。</p>
+</li>
+<li><p>后台进程<br>包含目前对用户不可见的 Activity 的进程（已调用 Activity 的 onStop() 方法）。这些进程对用户体验没有直接影响，系统可能随时终止它们，以回收内存供前台进程、可见进程或服务进程使用。 通常会有很多后台进程在运行，因此它们会保存在 LRU （最近最少使用）列表中，以确保包含用户最近查看的 Activity 的进程最后一个被终止。如果某个 Activity 正确实现了生命周期方法，并保存了其当前状态，则终止其进程不会对用户体验产生明显影响，因为当用户导航回该 Activity 时，Activity 会恢复其所有可见状态。</p>
+</li>
+<li><p>空进程<br>不含任何活动应用组件的进程。保留这种进程的的唯一目的是用作缓存，以缩短下次在其中运行组件所需的启动时间。 为使总体系统资源在进程缓存和底层内核缓存之间保持平衡，系统往往会终止这些进程。</p>
+</li>
+</ul>
+<p>进程等级参考谷歌官方文档 <a href="https://developer.android.google.cn/guide/components/processes-and-threads.html?hl=zh-cn。" target="_blank" rel="noopener">https://developer.android.google.cn/guide/components/processes-and-threads.html?hl=zh-cn。</a></p>
+<p>系统出于体验和性能上的考虑，app在退到后台时系统并不会真正的kill掉这个进程，而是将其缓存起来。打开的应用越多，后台缓存的进程也越多。在系统内存不足的情况下，系统开始依据自身的一套进程回收机制来判断要kill掉哪些进程，以腾出内存来供给需要的app, 这套杀进程回收内存的机制就叫 Low Memory Killer，它是一种根据 OOM_ADJ 阈值级别触发相应力度的内存回收的机制。</p>
+<p>关于 OOM_ADJ 的说明如下：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-12de25557189a20b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片摘自——腾讯Bugly干货分享】Android 进程保活招式大全.png"></p>
+<p>其中红色部分代表比较容易被杀死的 Android 进程（OOM_ADJ&gt;=4）,绿色部分表示不容易被杀死的 Android 进程，其他表示非 Android 进程（纯 Linux 进程）。在Low Memory Killer 回收内存时会根据进程的级别优先杀死 OOM_ADJ 比较大的进程，对于优先级相同的进程则进一步受到进程所占内存和进程存活时间的影响。</p>
+<p>Android 手机中进程被杀死可能有如下情况：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-56c4b4339858dfa3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片摘自——腾讯Bugly干货分享】Android 进程保活招式大全.png"></p>
+<p>所以，想要应用降低被杀死的可能性就要尽量提高进程的优先级，这样才会在系统内存不足的时候减少被杀死的可能性。在这里，我们只是说减少被杀死的可能性，而不是说一定不会杀死。除了系统应用，或者厂商白名单中的应用，一般的应用都有被杀死的可能性。</p>
+<p>我们可以通过adb命令来查看进程的优先级<br>首先使用命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell ps | grep  packageName</span><br></pre></td></tr></table></figure>
+<p>获取进程的PID，然后使用命令获取进程的oom_adj值，这个值越小，代表优先级越高越不容易被杀死：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell cat /proc/PID/oom_adj</span><br></pre></td></tr></table></figure>
+<p>比如，先获取adb进程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># adb shell ps |grep com.sososeen09.process</span><br><span class="line">u0_a85    1740  486  1013428 64840 00000000 f7491e65 S com.sososeen09.process.daemon.sample</span><br></pre></td></tr></table></figure>
+<p>然后获取oom_adj值:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># adb shell cat /proc/1740/oom_adj</span><br><span class="line">0</span><br></pre></td></tr></table></figure>
+<p>此时该进程运行在前台，它的优先级为0，这种情况下被杀死的可能性很小。当通过Home键把当前引用退回后台的时候，重新查看一下oom_adj，这个值可能会变为6（不同的rom情况可能不一样）。</p>
+<h1 id="提升进程优先级"><a href="#提升进程优先级" class="headerlink" title="提升进程优先级"></a>提升进程优先级</h1><h2 id="利用Activity提升权限"><a href="#利用Activity提升权限" class="headerlink" title="利用Activity提升权限"></a>利用Activity提升权限</h2><p>前面我们也讲了，当应用切换后后台的时候进程的优先级变得很低，被杀死的可能性就增大了。如果此时用户通过电源键进行息屏了。可以考虑通过监听息屏和解锁的广播，在息屏的时候启动一个只有一个像素的Activity。这样的话，在息屏这段时间，应用的进程优先级很高，不容易被杀死。采用这种方案要注意的是要使用户无感知。</p>
+<p>该方案主要解决第三方应用及系统管理工具在检测到锁屏事件后一段时间（一般为5分钟以内）内会杀死后台进程，已达到省电的目的问题。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">public class KeepLiveActivity extends Activity &#123;</span><br><span class="line"></span><br><span class="line">    private static final String TAG = &quot;KeepLiveActivity&quot;;</span><br><span class="line">    @Override</span><br><span class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">        super.onCreate(savedInstanceState);</span><br><span class="line">        Log.e(TAG,&quot;start Keep app activity&quot;);</span><br><span class="line">        Window window = getWindow();</span><br><span class="line">        //设置这个act 左上角</span><br><span class="line">        window.setGravity(Gravity.START | Gravity.TOP);</span><br><span class="line">        //宽 高都为1</span><br><span class="line">        WindowManager.LayoutParams attributes = window.getAttributes();</span><br><span class="line">        attributes.width = 1;</span><br><span class="line">        attributes.height = 1;</span><br><span class="line">        attributes.x = 0;</span><br><span class="line">        attributes.y = 0;</span><br><span class="line">        window.setAttributes(attributes);</span><br><span class="line"></span><br><span class="line">        KeepLiveManager.getInstance().setKeep(this);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onDestroy() &#123;</span><br><span class="line">        super.onDestroy();</span><br><span class="line">        Log.e(TAG,&quot;stop keep app activity&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为了让无用无感知，Activity要设置的小（只有一个像素），无背景并且是透明的。此外还要注意一点，需要设置Activity的taskAffinity 属性，要与我们的应用默认的taskAffinity不同，否则当这个Activity启动的时候，会把我们的应用所在的任务栈移动到前台，当屏幕解锁之后，会发现我们的应用移动到前台了。而用户在息屏的时候明明已经把我们的应用切换到后台了，这会给用户造成困扰。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity</span><br><span class="line">    android:name=&quot;.keepliveactivity.KeepLiveActivity&quot;</span><br><span class="line">    android:excludeFromRecents=&quot;true&quot;</span><br><span class="line">    android:exported=&quot;false&quot;</span><br><span class="line">    android:finishOnTaskLaunch=&quot;false&quot;</span><br><span class="line">    android:taskAffinity=&quot;com.sososeen09.daemon.keep.live&quot;</span><br><span class="line">    android:theme=&quot;@style/KeepLiveTheme&quot; /&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;style name=&quot;KeepLiveTheme&quot;&gt;</span><br><span class="line">    &lt;item name=&quot;android:windowBackground&quot;&gt;@null&lt;/item&gt;</span><br><span class="line">    &lt;item name=&quot;android:windowIsTranslucent&quot;&gt;true&lt;/item&gt;</span><br><span class="line">&lt;/style&gt;</span><br></pre></td></tr></table></figure>
+<p>要有一个BroadcastReceiver，用于监听屏幕的点亮和关闭的广播，在这里我们使用了<code>Intent.ACTION_USER_PRESENT</code>这个action，它会早于系统发出的<code>Intent.ACTION_SCREEN_OFF</code> 广播。这样可以更早的结束之前息屏的时候启动的Activity。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public class KeepLiveReceiver extends BroadcastReceiver &#123;</span><br><span class="line">    private static final String TAG = &quot;KeepLiveReceiver&quot;;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onReceive(Context context, Intent intent) &#123;</span><br><span class="line">        String action = intent.getAction();</span><br><span class="line">        Log.e(TAG, &quot;receive action:&quot; + action);</span><br><span class="line">        //屏幕关闭事件</span><br><span class="line">        if (TextUtils.equals(action, Intent.ACTION_SCREEN_OFF)) &#123;</span><br><span class="line">            //关屏 开启1px activity</span><br><span class="line">            KeepLiveManager.getInstance().startKeepLiveActivity(context);</span><br><span class="line">            // 解锁事件</span><br><span class="line">        &#125; else if (TextUtils.equals(action, Intent.ACTION_USER_PRESENT)) &#123;</span><br><span class="line">            KeepLiveManager.getInstance().finishKeepLiveActivity();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        KeepLiveManager.getInstance().startKeepLiveService(context);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Service绑定一个Notification的方式："><a href="#Service绑定一个Notification的方式：" class="headerlink" title="Service绑定一个Notification的方式："></a>Service绑定一个Notification的方式：</h2><p>应用启动一个Service，并且Service通过调用startForeground方法来绑定一个前台的通知时，可以有效的提升进程的优先级。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public int onStartCommand(Intent intent, int flags, int startId) &#123;</span><br><span class="line">    NotificationCompat.Builder builder = new NotificationCompat.Builder(this);</span><br><span class="line">    builder.setSmallIcon(R.mipmap.ic_launcher);</span><br><span class="line">    builder.setContentTitle(&quot;Foreground&quot;);</span><br><span class="line">    builder.setContentText(&quot;I am a foreground service&quot;);</span><br><span class="line">    builder.setContentInfo(&quot;Content Info&quot;);</span><br><span class="line">    builder.setWhen(System.currentTimeMillis());</span><br><span class="line">    Intent activityIntent = new Intent(this, MainActivity.class);</span><br><span class="line">    PendingIntent pendingIntent = PendingIntent.getActivity(this, 1, activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);</span><br><span class="line">    builder.setContentIntent(pendingIntent);</span><br><span class="line">    Notification notification = builder.build();</span><br><span class="line">    startForeground(FOREGROUND_ID, notification);</span><br><span class="line">    return super.onStartCommand(intent, flags, startId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种方式的话会在通知栏显示一个通知，该方式属于比较文明的。</p>
+<p>我们可以使用 命令来查看当前正在运行的服务信息，比如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell dumpsys activity services com.sososeen09.process</span><br></pre></td></tr></table></figure>
+<p>可以得到结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">ACTIVITY MANAGER SERVICES (dumpsys activity services)</span><br><span class="line">  User 0 active services:</span><br><span class="line">  * ServiceRecord&#123;d18c80d u0 com.sososeen09.process.daemon.sample/.service.WhiteService&#125;</span><br><span class="line">    intent=&#123;cmp=com.sososeen09.process.daemon.sample/.service.WhiteService&#125;</span><br><span class="line">    packageName=com.sososeen09.process.daemon.sample</span><br><span class="line">    processName=com.sososeen09.process.daemon.sample:white</span><br><span class="line">    baseDir=/data/app/com.sososeen09.process.daemon.sample-2/base.apk</span><br><span class="line">    dataDir=/data/data/com.sososeen09.process.daemon.sample</span><br><span class="line">    app=ProcessRecord&#123;696d809 2478:com.sososeen09.process.daemon.sample:white/u0a85&#125;</span><br><span class="line">    isForeground=true foregroundId=1001 foregroundNoti=Notification(pri=0 contentView=com.sososeen09.process.daemon.sample/0x1090077 vibrate=null sound=null defaults=0x0 flags=0x62 color=0x00000000 vis=PRIVATE)</span><br><span class="line">    createTime=-44s879ms startingBgTimeout=--</span><br><span class="line">    lastActivity=-44s860ms restartTime=-44s860ms createdFromFg=true</span><br><span class="line">    startRequested=true delayedStop=false stopIfKilled=false callStart=true lastStartId=1</span><br><span class="line"></span><br><span class="line">  * ServiceRecord&#123;e4782a4 u0 com.sososeen09.process.daemon.sample/.service.NormalService&#125;</span><br><span class="line">    intent=&#123;cmp=com.sososeen09.process.daemon.sample/.service.NormalService&#125;</span><br><span class="line">    packageName=com.sososeen09.process.daemon.sample</span><br><span class="line">    processName=com.sososeen09.process.daemon.sample:normal</span><br><span class="line">    baseDir=/data/app/com.sososeen09.process.daemon.sample-2/base.apk</span><br><span class="line">    dataDir=/data/data/com.sososeen09.process.daemon.sample</span><br><span class="line">    app=ProcessRecord&#123;2402ea0e 2459:com.sososeen09.process.daemon.sample:normal/u0a85&#125;</span><br><span class="line">    createTime=-48s510ms startingBgTimeout=--</span><br><span class="line">    lastActivity=-48s479ms restartTime=-48s479ms createdFromFg=true</span><br><span class="line">    startRequested=true delayedStop=false stopIfKilled=false callStart=true lastStartId=1</span><br><span class="line"></span><br><span class="line">  Connection bindings to services:</span><br><span class="line">  * ConnectionRecord&#123;3b4eb582 u0 CR DEAD com.sososeen09.process.daemon.sample/.acount.AuthenticationService:@2a1598cd&#125;</span><br><span class="line">    binding=AppBindRecord&#123;d621c2f com.sososeen09.process.daemon.sample/.acount.AuthenticationService:system&#125;</span><br><span class="line">    conn=android.app.LoadedApk$ServiceDispatcher$InnerConnection@2a1598cd flags=0x1</span><br></pre></td></tr></table></figure>
+<p>可以看到，调用了startForeground方法的Service是一个前台进程了，有一个属性是isForeground=true。</p>
+<p>在这种情况下，当应用所在进程退回到后台时，oom_adj的值为1，不容易被杀死。</p>
+<h2 id="隐藏Notification的Service"><a href="#隐藏Notification的Service" class="headerlink" title="隐藏Notification的Service"></a>隐藏Notification的Service</h2><p>前面讲的startForeground，会在通知栏中显示一个通知。有一种方式利用了系统漏洞，把通知栏给隐藏，让用户无感知。不过这种方式跟版本有关：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public int onStartCommand(Intent intent, int flags, int startId) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">        Notification notification = new Notification();</span><br><span class="line">        if (Build.VERSION.SDK_INT &lt; 18) &#123;</span><br><span class="line">            startForeground(NOTIFICATION_ID, notification);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            startForeground(NOTIFICATION_ID, notification);</span><br><span class="line">            // start InnerService</span><br><span class="line">            startService(new Intent(this, InnerService.class));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; catch (Throwable e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return super.onStartCommand(intent, flags, startId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后在InnerService中关闭Notification</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void onCreate() &#123;</span><br><span class="line">    super.onCreate();</span><br><span class="line">    try &#123;</span><br><span class="line">        startForeground(NOTIFICATION_ID, new Notification());</span><br><span class="line">    &#125; catch (Throwable throwable) &#123;</span><br><span class="line">        throwable.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">    stopSelf();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其实我们可以发现，在Tinker中，由于在Patch的过程是在另一个服务进程中，为了保证这个服务进程不被干掉，Tinker也利用了这个系统的漏洞。具体可以查看<a href="https://github.com/Tencent/tinker/blob/master/tinker-android/tinker-android-lib/src/main/java/com/tencent/tinker/lib/service/TinkerPatchService.java" target="_blank" rel="noopener">TinkerPatchService</a></p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-22f9de159b910a96.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="tinker中Service进程保活.png"></p>
+<h1 id="进程保活"><a href="#进程保活" class="headerlink" title="进程保活"></a>进程保活</h1><p>上面讲了提升进程优先级的方式了来减少应用被杀死的可能性，但是当应用真的被杀死的时候，我们就要想办法来拉活进行了。</p>
+<h2 id="利用广播拉活"><a href="#利用广播拉活" class="headerlink" title="利用广播拉活"></a>利用广播拉活</h2><p>这个在推送中比较常见，当几个App都集成了同一家的推送，只要有一个App起来，就会发送一个广播，这样其它的App接收到这个广播之后，开启一个服务，就把进程给启动起来了。各大厂家的全家桶也是这样的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">public class WakeReceiver extends BroadcastReceiver &#123;</span><br><span class="line">    private final static int NOTIFICATION_ID = 1001;</span><br><span class="line">    public final static String ACTION_WAKE = &quot;com.sososeen09.wake&quot;;</span><br><span class="line">    private final static String TAG = &quot;WakeReceiver&quot;;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onReceive(Context context, Intent intent) &#123;</span><br><span class="line">        String action = intent.getAction();</span><br><span class="line">        if (action != null &amp;&amp; action.equals(ACTION_WAKE)) &#123;</span><br><span class="line">            context.startService(new Intent(context, WakeService.class));</span><br><span class="line"></span><br><span class="line">            Log.e(TAG, &quot;onReceive: &quot; + &quot;收到广播，兄弟们要起来了。。。&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static class WakeService extends Service &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public int onStartCommand(Intent intent, int flags, int startId) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                Notification notification = new Notification();</span><br><span class="line">                if (Build.VERSION.SDK_INT &lt; 18) &#123;</span><br><span class="line">                    startForeground(NOTIFICATION_ID, notification);</span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    startForeground(NOTIFICATION_ID, notification);</span><br><span class="line">                    // start InnerService</span><br><span class="line">                    startService(new Intent(this, WakeInnerService.class));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; catch (Throwable e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">            Log.e(TAG, &quot;onReceive: &quot; + &quot;我是 WakeService，我起来了，谢谢兄弟。。。&quot; + ProcessUtils.getProcessName(this));</span><br><span class="line">            return super.onStartCommand(intent, flags, startId);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static class WakeInnerService extends Service &#123;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onCreate() &#123;</span><br><span class="line">            super.onCreate();</span><br><span class="line">            try &#123;</span><br><span class="line">                startForeground(NOTIFICATION_ID, new Notification());</span><br><span class="line">            &#125; catch (Throwable throwable) &#123;</span><br><span class="line">                throwable.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">            stopSelf();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onDestroy() &#123;</span><br><span class="line">            stopForeground(true);</span><br><span class="line">            super.onDestroy();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其实也可以监听系统的广播来达到启动应用进程的方式，但是从android 7.0开始，对广播进行了限制，而且在8.0更加严格<a href="https://developer.android.google.cn/about/versions/oreo/background.html#broadcasts" target="_blank" rel="noopener">https://developer.android.google.cn/about/versions/oreo/background.html#broadcasts</a></p>
+<p>可静态注册广播列表：<br><a href="https://developer.android.google.cn/guide/components/broadcast-exceptions.html" target="_blank" rel="noopener">https://developer.android.google.cn/guide/components/broadcast-exceptions.html</a></p>
+<h2 id="系统Service机制拉活"><a href="#系统Service机制拉活" class="headerlink" title="系统Service机制拉活"></a>系统Service机制拉活</h2><p>将 Service 设置为 START_STICKY，利用系统机制在 Service 挂掉后自动拉活。</p>
+<ul>
+<li>START_STICKY：<br>  “粘性”。如果service进程被kill掉，保留service的状态为开始状态，但不保留递送的intent对象。随后系统会尝试重新创建service，由于服务状态为开始状态，所以创建服务后一定会调用onStartCommand(Intent,int,int)方法。如果在此期间没有任何启动命令被传递到service，那么参数Intent将为null。</li>
+<li>START_NOT_STICKY：<br>  “非粘性的”。使用这个返回值时，如果在执行完onStartCommand后，服务被异常kill掉，系统不会自动重启该服务。</li>
+<li>START_REDELIVER_INTENT：<br>  重传Intent。使用这个返回值时，如果在执行完onStartCommand后，服务被异常kill掉，系统会自动重启该服务，并将Intent的值传入。</li>
+<li>START_STICKY_COMPATIBILITY：<br>  START_STICKY的兼容版本，但不保证服务被kill后一定能重启。<br>只要 targetSdkVersion 不小于5，就默认是 START_STICKY。<br>但是某些ROM 系统不会拉活。并且经过测试，Service 第一次被异常杀死后很快被重启，第二次会比第一次慢，第三次又会比前一次慢，一旦在短时间内 Service 被杀死4-5次，则系统不再拉起。</li>
+</ul>
+<h2 id="使用账户同步拉活"><a href="#使用账户同步拉活" class="headerlink" title="使用账户同步拉活"></a>使用账户同步拉活</h2><p>手机系统设置里会有“帐户”一项功能，任何第三方APP都可以通过此功能将数据在一定时间内同步到服务器中去。系统在将APP帐户同步时，会将未启动的APP进程拉活。 如何利用账户同步可以参考 <a href="https://github.com/googlesamples/android-BasicSyncAdapter" target="_blank" rel="noopener">https://github.com/googlesamples/android-BasicSyncAdapter</a></p>
+<p>但是账户同步这个东西，在不同的手机上可能在同步时间不同。</p>
+<p>关于这种方式，这里就不多讲了，有兴趣的可以搜索相关文章，在<a href="[https://github.com/sososeen09/android-process-daemon">示例代码</a>中也有相关的介绍。](<a href="https://github.com/sososeen09/android-process-daemon)中也有相关的介绍。" target="_blank" rel="noopener">https://github.com/sososeen09/android-process-daemon)中也有相关的介绍。</a>)</p>
+<h2 id="使用JobSchedule拉活"><a href="#使用JobSchedule拉活" class="headerlink" title="使用JobSchedule拉活"></a>使用JobSchedule拉活</h2><p>JobScheduler允许在特定状态与特定时间间隔周期执行任务。可以利用它的这个特点完成保活的功能，效果类似开启一个定时器，与普通定时器不同的是其调度由系统完成。它是在Android5.0之后推出的，在5.0之前无法使用。</p>
+<p>首先写一个Service类继承自JobService，在小于7.0的系统上，JobInfo可以周期性的执行，但是在7.0以上的系统上，不能周期性的执行了。因此可以在JobService的onStartJob回调方法中继续开启一个任务来执行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">@SuppressLint(&quot;NewApi&quot;)</span><br><span class="line">public class MyJobService extends JobService &#123;</span><br><span class="line">    private static final String TAG = &quot;MyJobService&quot;;</span><br><span class="line"></span><br><span class="line">    public static void startJob(Context context) &#123;</span><br><span class="line">        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);</span><br><span class="line"></span><br><span class="line">        JobInfo.Builder builder = new JobInfo.Builder(10, new ComponentName(context.getPackageName(), MyJobService.class.getName())).setPersisted(true);</span><br><span class="line"></span><br><span class="line">        //小于7.0</span><br><span class="line">        if (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.N) &#123;</span><br><span class="line">            // 每隔1s 执行一次 job</span><br><span class="line">            builder.setPeriodic(1_000);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            //延迟执行任务</span><br><span class="line">            builder.setMinimumLatency(1_000);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (jobScheduler != null) &#123;</span><br><span class="line">            jobScheduler.schedule(builder.build());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public boolean onStartJob(JobParameters params) &#123;</span><br><span class="line">        Log.e(TAG, &quot;start job schedule&quot;);</span><br><span class="line">        //如果7.0以上 轮训</span><br><span class="line">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.N) &#123;</span><br><span class="line">            startJob(this);</span><br><span class="line">        &#125;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public boolean onStopJob(JobParameters params) &#123;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AndroidManifest.xml并需要声明权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;service</span><br><span class="line">    android:name=&quot;.jobschedule.MyJobService&quot;</span><br><span class="line">    android:permission=&quot;android.permission.BIND_JOB_SERVICE&quot; /&gt;</span><br></pre></td></tr></table></figure>
+<p>不过在某些ROM可能并不能达到需要的效果(某米)</p>
+<h2 id="双进程守护"><a href="#双进程守护" class="headerlink" title="双进程守护"></a>双进程守护</h2><p>我们都直到Service可以以bind方式启动，当Service被系统杀死的时候，会在ServiceConnection的onServiceDisconnected方法中会收到回调。利用这个原理，可以在主进程中进行有一个LocalService，在子进程中有RemoteService。LocalService中以bind和start方式启动RemoteService，同时RemoteService以bind和start方式启动LocalService。并且在它们各自的ServiceConnection的onServiceDisconnected方法中重新bind和start。</p>
+<p>这种Java层通过Service这种双进程守护的方式，可以有效的保证进程的存活能力。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">public class LocalService extends Service &#123;</span><br><span class="line">    private final static int NOTIFICATION_ID = 1003;</span><br><span class="line">    private static final String TAG = &quot;LocalService&quot;;</span><br><span class="line">    private ServiceConnection serviceConnection;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public IBinder onBind(Intent intent) &#123;</span><br><span class="line">        return new MyBinder();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onCreate() &#123;</span><br><span class="line">        super.onCreate();</span><br><span class="line">        serviceConnection = new LocalServiceConnection();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public int onStartCommand(Intent intent, int flags, int startId) &#123;</span><br><span class="line">        return super.onStartCommand(intent, flags, startId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    class LocalServiceConnection implements ServiceConnection &#123;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onServiceConnected(ComponentName name, IBinder service) &#123;</span><br><span class="line">            //服务连接后回调</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onServiceDisconnected(ComponentName name) &#123;</span><br><span class="line">            Log.e(TAG, &quot;remote service died，make it alive&quot;);</span><br><span class="line">            //连接中断后回调</span><br><span class="line">            startService(new Intent(LocalService.this, RemoteService.class));</span><br><span class="line">            bindService(new Intent(LocalService.this, RemoteService.class), serviceConnection,</span><br><span class="line">                    BIND_AUTO_CREATE);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    static class MyBinder extends IMyAidlInterface.Stub &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat, double aDouble, String aString) throws RemoteException &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>RemoteService也类似</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">public class RemoteService extends Service &#123;</span><br><span class="line">    private final static int NOTIFICATION_ID = 1002;</span><br><span class="line">    private static final String TAG = &quot;RemoteService&quot;;</span><br><span class="line">    private ServiceConnection serviceConnection;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public IBinder onBind(Intent intent) &#123;</span><br><span class="line">        return new MyBinder();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onCreate() &#123;</span><br><span class="line">        super.onCreate();</span><br><span class="line">        serviceConnection = new RemoteServiceConnection();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public int onStartCommand(Intent intent, int flags, int startId) &#123;</span><br><span class="line">        return super.onStartCommand(intent, flags, startId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    class RemoteServiceConnection implements ServiceConnection &#123;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onServiceConnected(ComponentName name, IBinder service) &#123;</span><br><span class="line">            //服务连接后回调</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onServiceDisconnected(ComponentName name) &#123;</span><br><span class="line">            Log.e(TAG, &quot;main process local service died，make it alive&quot;);</span><br><span class="line">            //连接中断后回调</span><br><span class="line">            startService(new Intent(RemoteService.this, LocalService.class));</span><br><span class="line">            bindService(new Intent(RemoteService.this, LocalService.class), serviceConnection,</span><br><span class="line">                    BIND_AUTO_CREATE);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    static class MyBinder extends IMyAidlInterface.Stub &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat, double aDouble, String aString) throws RemoteException &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为了提高Service所在进程的优先级，可以结合我们之前讲的startForground来开启一个Notification的方式，提高进程的优先级，以降低被杀风险。</p>
+<h2 id="其它方式拉活"><a href="#其它方式拉活" class="headerlink" title="其它方式拉活"></a>其它方式拉活</h2><p>其它我们还可以使用推送拉活，根据终端不同，在小米手机（包括 MIUI）接入小米推送、华为手机接入华为推送，这样也可以保证进程可以被推送唤醒。</p>
+<p>Native拉活，Native fork子进程用于观察当前app主进程的存亡状态。这种在5.0以前的系统上效果比较高，对于5.0以上成功率极低。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>提升进程优先级的方式</p>
+<ul>
+<li><p>Activity提权，监听屏幕的息屏和解锁，使用一个1个像素的Activity</p>
+</li>
+<li><p>Service提权，Service通过startForground方法来开启一个Notification</p>
+</li>
+</ul>
+<p>进程拉活</p>
+<ul>
+<li><p>通过广播的方式</p>
+</li>
+<li><p>通过Service在onStartCommand的返回值，START_STICK，由系统拉活，在短时间内如果多次被杀死可能就再也启动不了了</p>
+</li>
+<li><p>通过账户同步拉活</p>
+</li>
+<li><p>通过JobSchedule拉活</p>
+</li>
+<li><p>通过Service的bind启动的方式，双进程守护拉活</p>
+</li>
+<li><p>推送拉活</p>
+</li>
+<li><p>Native fork子进程的方式拉活</p>
+</li>
+</ul>
+<blockquote>
+<p>更多详情，请查看 <a href="https://github.com/sososeen09/android-process-daemon" target="_blank" rel="noopener">android-process-daemon</a></p>
+</blockquote>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="https://developer.android.google.cn/about/versions/oreo/background#broadcasts" target="_blank" rel="noopener">https://developer.android.google.cn/about/versions/oreo/background#broadcasts</a></li>
+<li><a href="https://developer.android.google.cn/guide/components/broadcast-exceptions.html" target="_blank" rel="noopener">https://developer.android.google.cn/guide/components/broadcast-exceptions.html</a></li>
+<li><a href="https://github.com/googlesamples/android-BasicSyncAdapter" target="_blank" rel="noopener">https://github.com/googlesamples/android-BasicSyncAdapter</a></li>
+<li><a href="https://segmentfault.com/a/1190000006251859" target="_blank" rel="noopener">【腾讯Bugly干货分享】Android 进程保活招式大全</a></li>
+<li><a href="https://www.jianshu.com/p/63aafe3c12af" target="_blank" rel="noopener">关于 Android 进程保活，你所需要知道的一切</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/14/Android四大组件——ContentProvider的工作过程/" rel="next" title="Android四大组件——ContentProvider的工作过程">
+                <i class="fa fa-chevron-left"></i> Android四大组件——ContentProvider的工作过程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/07/使用AsyncTask需要注意的一些点/" rel="prev" title="使用AsyncTask需要注意的一些点">
+                使用AsyncTask需要注意的一些点 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#进程等级与Low-Memory-Killer"><span class="nav-number">1.</span> <span class="nav-text">进程等级与Low Memory Killer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#提升进程优先级"><span class="nav-number">2.</span> <span class="nav-text">提升进程优先级</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#利用Activity提升权限"><span class="nav-number">2.1.</span> <span class="nav-text">利用Activity提升权限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service绑定一个Notification的方式："><span class="nav-number">2.2.</span> <span class="nav-text">Service绑定一个Notification的方式：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#隐藏Notification的Service"><span class="nav-number">2.3.</span> <span class="nav-text">隐藏Notification的Service</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进程保活"><span class="nav-number">3.</span> <span class="nav-text">进程保活</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#利用广播拉活"><span class="nav-number">3.1.</span> <span class="nav-text">利用广播拉活</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#系统Service机制拉活"><span class="nav-number">3.2.</span> <span class="nav-text">系统Service机制拉活</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用账户同步拉活"><span class="nav-number">3.3.</span> <span class="nav-text">使用账户同步拉活</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用JobSchedule拉活"><span class="nav-number">3.4.</span> <span class="nav-text">使用JobSchedule拉活</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#双进程守护"><span class="nav-number">3.5.</span> <span class="nav-text">双进程守护</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其它方式拉活"><span class="nav-number">3.6.</span> <span class="nav-text">其它方式拉活</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

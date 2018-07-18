@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="学习Gradle，前前后后总结了一些内容，然后整理出了一个系列，共计10篇文章，与大家分享：  Groovy基本介绍 开始使用Gradle 自定义属性 深入了解Task和构建生命周期 Gradle增量式构建 挂接到构建生命周期 编写和使用自定义Task 依赖管理 多项目构建 自定义Gradle插件   学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gradle学习1——Groovy基本介绍">
+<meta property="og:url" content="http://yoursite.com/2017/10/14/Gradle学习1——Groovy基本介绍/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="学习Gradle，前前后后总结了一些内容，然后整理出了一个系列，共计10篇文章，与大家分享：  Groovy基本介绍 开始使用Gradle 自定义属性 深入了解Task和构建生命周期 Gradle增量式构建 挂接到构建生命周期 编写和使用自定义Task 依赖管理 多项目构建 自定义Gradle插件   学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-18T02:42:39.946Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gradle学习1——Groovy基本介绍">
+<meta name="twitter:description" content="学习Gradle，前前后后总结了一些内容，然后整理出了一个系列，共计10篇文章，与大家分享：  Groovy基本介绍 开始使用Gradle 自定义属性 深入了解Task和构建生命周期 Gradle增量式构建 挂接到构建生命周期 编写和使用自定义Task 依赖管理 多项目构建 自定义Gradle插件   学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/14/Gradle学习1——Groovy基本介绍/"/>
+
+
+
+
+
+  <title>Gradle学习1——Groovy基本介绍 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/14/Gradle学习1——Groovy基本介绍/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Gradle学习1——Groovy基本介绍</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-14T16:51:01+08:00">
+                2017-10-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>学习Gradle，前前后后总结了一些内容，然后整理出了一个系列，共计10篇文章，与大家分享：</p>
+<ol>
+<li><a href="http://www.jianshu.com/p/0bde7097abaf" target="_blank" rel="noopener">Groovy基本介绍</a></li>
+<li><a href="http://www.jianshu.com/p/158851436e82" target="_blank" rel="noopener">开始使用Gradle</a></li>
+<li><a href="http://www.jianshu.com/p/434eba22561e" target="_blank" rel="noopener">自定义属性</a></li>
+<li><a href="http://www.jianshu.com/p/60bf794cdf91" target="_blank" rel="noopener">深入了解Task和构建生命周期</a></li>
+<li><a href="http://www.jianshu.com/p/e7e3629835a6" target="_blank" rel="noopener">Gradle增量式构建</a></li>
+<li><a href="http://www.jianshu.com/p/bb13bfb8d1b0" target="_blank" rel="noopener">挂接到构建生命周期</a></li>
+<li><a href="http://www.jianshu.com/p/5a413815a7ae" target="_blank" rel="noopener">编写和使用自定义Task</a></li>
+<li><a href="http://www.jianshu.com/p/e01d647b1c75" target="_blank" rel="noopener">依赖管理</a></li>
+<li><a href="http://www.jianshu.com/p/62c1f3ca380c" target="_blank" rel="noopener">多项目构建</a></li>
+<li><a href="http://www.jianshu.com/p/337e8d4f1817" target="_blank" rel="noopener">自定义Gradle插件</a></li>
+</ol>
+<blockquote>
+<p>学习本系列前可以下载相关的github项目<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">gradleLearnDemo</a>。<br>地址：<a href="https://github.com/sososeen09/gradleLearnDemo" target="_blank" rel="noopener">https://github.com/sososeen09/gradleLearnDemo</a></p>
+</blockquote>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>Gradle脚本使用的是Groovy语言，Groovy也是基于JVM的一种动态语言，基于Java并扩展了Java语言。Groovy会使写Java程序就要写脚本一样简单，写完就可以执行，所以看起来也像是一门脚本语言。Groovy内部会把代码编译为Java class文件然后启动虚拟机来执行，这些过程，我们开发人员是不用管的。</p>
+<p>Gradle是一种DSL，也即是 Domain Specific Language 领域特定语言。说白了DSL就是一种行话，这个语言在Gradle中可以识别，在其它地方就用不了了。</p>
+<p>学习Gradle，我们不必要精通Groovy语言，但还是需要了解一些Groovy的基本知识，比如def关键字、返回语句、字符串、集合、闭包等。下面，我们就来简单介绍一下。</p>
+<h1 id="Groovy代码的执行"><a href="#Groovy代码的执行" class="headerlink" title="Groovy代码的执行"></a>Groovy代码的执行</h1><p>前面我们说了，Groovy很像是一门脚本语言，我们来看一下怎么回事。<br>创建一个HelloGroovy.groovy文件，里面就一行代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">println &apos;hello groovy!&apos;</span><br></pre></td></tr></table></figure>
+<p>然后执行命令<code>groovy HelloGroovy.groovy</code>,得到结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hello groovy!</span><br></pre></td></tr></table></figure>
+<p>是不是很简单，很像脚本语言。</p>
+<h1 id="Groovy中的字符串"><a href="#Groovy中的字符串" class="headerlink" title="Groovy中的字符串"></a>Groovy中的字符串</h1><p>Groovy 对字符串支持相当强大，可以使用多种字符串，包括单引号、双引号、三引号。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">String str=&apos;hello groovy!&apos;</span><br><span class="line"></span><br><span class="line">String getStr()&#123;</span><br><span class="line">	&apos;hello groovy!&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">String str1=&apos;hello&apos;</span><br><span class="line">String str2=&apos; groovy!&apos;</span><br><span class="line">println &apos;hello groovy!&apos;</span><br><span class="line">println &quot;hello groovy!&quot;</span><br><span class="line">println &quot;$str&quot;</span><br><span class="line">println getStr()</span><br><span class="line">println &quot;$&#123;str1+str2&#125;&quot;</span><br><span class="line">println &apos;hello $str2&apos;  //单引号，直接打印内容</span><br></pre></td></tr></table></figure>
+<p>使用单引号会直接打印字符串的内容，不会对美元$符号的内容进行转义。使用双引号的功能更加强大，字符串中使用美元符$后面可以跟字符串变量，如<code>&quot;$str&quot;</code>，也可以跟表达式如 <code>&quot;${str1+str2}&quot;</code>，如果跟表达式，记得要用{}括起来。</p>
+<p>三引号用的比较少，可以支持字符串内容换行，我们了解一下就行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">println &apos;&apos;&apos; aa</span><br><span class="line">bb</span><br><span class="line"></span><br><span class="line">cc</span><br><span class="line">&apos;&apos;&apos;</span><br></pre></td></tr></table></figure>
+<p>我们在getStr()方法中并没有使用return语句，这是因为Groovy默认是把最后一行的执行结果进行返回。如果你需要返回的结果正好是最后一行，就可以省略return。</p>
+<p>另外，在Groovy中，语句的最后的<code>“；”</code>号是可以省略的。还有一点就是Groovy中在调用函数的时候可以不加括号，比如，<code>println (&quot;hello&quot;)</code> 与 <code>println &quot;hello&quot;</code> 的意思是一样的</p>
+<h1 id="def关键字"><a href="#def关键字" class="headerlink" title="def关键字"></a>def关键字</h1><p>def关键字很像是Java中的Object，在定义变量或者方法的时候使用def，如果没有指定具体的参数类型。在运行阶段Groovy会自动判断参数类型。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">def a = 1, b = 2</span><br><span class="line">def str = &quot;hello&quot;</span><br><span class="line">println a + b</span><br><span class="line">println str</span><br></pre></td></tr></table></figure>
+<p>实际上我们在定义变量的时候是可以省略def的，如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a = 1</span><br><span class="line">b = 2</span><br><span class="line">str = &quot;hello&quot;</span><br></pre></td></tr></table></figure>
+<p>但是，最好还是加上def，这是一种好的实践。<br>你还可以在定义变量的时候，在def后面再加上具体的参数类型，如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">def int a = 1</span><br><span class="line">def String str = &quot;hello&quot;</span><br></pre></td></tr></table></figure>
+<p>使用def定义方法的返回值类型，可以返回任意类型。如果指定了具体的返回值类型，就要正确的返回，否则会报错。</p>
+<h1 id="集合"><a href="#集合" class="headerlink" title="集合"></a>集合</h1><p>Groovy的基本类型与Java一样。对于集合类型的数据，List的具体实现是ArrayList。Map集合的具体实现是LinkedHashMap。</p>
+<h2 id="List"><a href="#List" class="headerlink" title="List"></a>List</h2><p>下面我们来简单了解一下如果使用。List使用一个 []中括号来括起来来表示的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">//定义一个List</span><br><span class="line">def lists=[&apos;groovy&apos;,&apos;gradle&apos;,&apos;android&apos;]</span><br><span class="line"></span><br><span class="line">//打印集合size</span><br><span class="line">println lists.size</span><br><span class="line"></span><br><span class="line">//打印集合中的数据</span><br><span class="line">lists.each&#123;</span><br><span class="line">	list-&gt;println list</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>取出集合中的数据直接用索引就可以了。比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">assert lists[0]==&apos;groovy&apos;</span><br></pre></td></tr></table></figure>
+<p>对于集合中变量的存储，我们是不需要担心数组越界的，如果索引超过当前长度，List会自动在该索引中添加元素。比如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">lists[100]=100</span><br><span class="line">println lists.size</span><br><span class="line">println lists[99]</span><br></pre></td></tr></table></figure>
+<p>打印结果，会发现集合的size变为101。index为99的集合数据为null。</p>
+<h2 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h2><p>Map的表示就是用中括号[]括起来的 key:value形式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def map=[&quot;key1&quot;:&quot;hello&quot;,&quot;key2&quot;:&quot;groovy&quot;,&quot;key3&quot;:true]</span><br><span class="line">println map.size()</span><br><span class="line"></span><br><span class="line">map.forEach&#123;</span><br><span class="line">	key,value-&gt;</span><br><span class="line">	println &quot;$key :$value&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">3</span><br><span class="line">key1 :hello</span><br><span class="line">key2 :groovy</span><br><span class="line">key3 :true</span><br></pre></td></tr></table></figure>
+<p>获取Map的元素</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">println map.&apos;key1&apos;</span><br><span class="line">println map[&apos;key1&apos;]</span><br></pre></td></tr></table></figure>
+<p>添加元素</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">map.&apos;key4&apos;=&apos;android&apos;</span><br><span class="line">println map[&apos;key4&apos;]</span><br></pre></td></tr></table></figure>
+<h1 id="Groovy的类"><a href="#Groovy的类" class="headerlink" title="Groovy的类"></a>Groovy的类</h1><p>Groovy中的类与Java中的类的写法类似，但是要更简洁一些。<br>我们在Hello.groovy文件中写一个HelloWorld类。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">class HelloWorld&#123;</span><br><span class="line">	String msg=&apos;hello world&apos;</span><br><span class="line">    </span><br><span class="line">    HelloWorld()&#123;</span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	HelloWorld(String msg)&#123;</span><br><span class="line">		this.msg=msg</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	void sayHello()&#123;</span><br><span class="line">		println msg</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">def say=&#123;</span><br><span class="line">	new HelloWorld(&apos;hello&apos;).sayHello()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">def getMsg=&#123;</span><br><span class="line">	new HelloWorld().msg</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">say()</span><br><span class="line">println getMsg()</span><br></pre></td></tr></table></figure>
+<p>调用<code>groovy Hello.groovy</code> 命令执行该脚本，结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hello</span><br><span class="line">hello world</span><br></pre></td></tr></table></figure>
+<p>当然了，我们也可以写一个单独的HelloWorld类，带上包名，然后在其它地方导包使用，就像Java那样。有关于Groovy类的使用，我们后面还会讲到，这里就不赘述了。<br>总结一下Groovy的类相比Java的一些不同，或者说是优化的一些地方：</p>
+<ul>
+<li>表达式后面的分号是可选的</li>
+<li>每个类、构造方法和方法默认是public的</li>
+<li>在Groovy中，方法体中的最后一个表达式的值会被作为返回值。这意味着return语句是可选的</li>
+<li>Groovy编译器自动加上getter/setter方法，所以不需要自己去书写</li>
+<li>类的属性可以通过点号来获取，看起来好像它们在Java中是public的，在底层Groovy调用的是自动生成的getter/setter方法。</li>
+</ul>
+<h1 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h1><p>闭包<a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/lang/Closure.html" target="_blank" rel="noopener">Closure</a>，在Groovy中是很重要的一种数据类型。闭包实际上就是一段代码块，需要用{}包括起来。前面我们在讲解一些例子的时候已经用到了闭包，我们再来看一下闭包的结构。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//定义一个闭包 ，记得要用&#123;&#125;包裹起来</span><br><span class="line">def aClosure=&#123;</span><br><span class="line">	int a,int b-&gt; //-&gt; 箭头前面代表的是参数，后面是执行语句</span><br><span class="line">	a+b  //返回值</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">println aClosure(1,2)</span><br></pre></td></tr></table></figure>
+<p>结果为 3。</p>
+<p>闭包的参数类型也可以不指定，在运行期有Groovy自动推断，比如下面这个例子，执行起来也是没有问题的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">def bClosure=&#123;</span><br><span class="line">	 a,b-&gt;</span><br><span class="line">	a+b</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">println bClosure(1,2)</span><br></pre></td></tr></table></figure>
+<p>闭包也可以没有参数,如:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">def aa=&#123;</span><br><span class="line">	println &quot;this is a Closure&quot;</span><br><span class="line">&#125;</span><br><span class="line">aa()</span><br></pre></td></tr></table></figure>
+<p>总结一下，闭包的类型有</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. def closureNama =&#123;params -&gt; code&#125; </span><br><span class="line">2. def closureName= &#123;code&#125; 没有参数的时候就没有箭头 -&gt;</span><br></pre></td></tr></table></figure>
+<p>闭包的调用有两种方式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. 闭包对象.call(参数)</span><br><span class="line">2. 闭包对象(参数)</span><br><span class="line"></span><br><span class="line">如</span><br><span class="line">aClosure(1,2)</span><br><span class="line">aClosure.call(1,2)</span><br></pre></td></tr></table></figure>
+<p>需要注意一点，闭包如果没有参数的话，其隐含了一个参数是 <code>it</code>。<br>和this的作用类似，代表的是传入闭包的参数。比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">def sayHello=&#123;&quot;hello $&#123;it&#125;&quot;&#125;</span><br><span class="line">println sayHello(&quot;Jim&quot;)</span><br><span class="line"></span><br><span class="line">等同于</span><br><span class="line">def sayHello=&#123;it-&gt;&quot;hello $&#123;it&#125;&quot;&#125;</span><br></pre></td></tr></table></figure>
+<p>当然了，如果闭包显示的指明了无参数，则在调用闭包的时候不能传参数，否则会报错。如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">def noParams=&#123;-&gt;println &quot;noParams&quot;&#125;</span><br><span class="line">noParams();</span><br><span class="line">//下面的代码执行会报错</span><br><span class="line">//noParams(1)</span><br></pre></td></tr></table></figure></p>
+<p><strong>闭包返回值</strong></p>
+<p>闭包总是会返回一个值。返回值是闭包的最后一条语句的值（如果没有显式的return语句），或者是可执行的return 语句的值。如果闭包的最后一条语句没有值就返回null。如之前举得Hello.groovy中的例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def getMsg=&#123;</span><br><span class="line">	new HelloWorld().msg</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>闭包作为方法参数</strong></p>
+<p>闭包也可以作为方法参数，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">int increment(Closure closure,int count)&#123;</span><br><span class="line">	closure()+count</span><br><span class="line">&#125;</span><br><span class="line">//断言，如果为true就正常执行，如果为false，就会报错</span><br><span class="line">assert increment(&#123;1+1&#125;,1)==3</span><br></pre></td></tr></table></figure>
+<p><strong>闭包委托</strong></p>
+<p>闭包代码是在委托的闭包上执行。默认的，这个委托就是闭包的所有者。比如你在Groovy脚本中定义了一个闭包，那么所有者就是一个groovy.lang.Script实例。闭包的隐式变量delegate 允许你重新定义默认的所有者。</p>
+<p>例如：</p>
+<pre><code>class Test {
+    def x = 30
+    def y = 40
+
+    def run() {
+        def data = [ x: 10, y: 20 ]
+        def cl = { 
+             y = x + y 
+        }
+        cl.delegate = data
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+        assert x == 30
+        assert y == 40
+        assert data == [x:10, y:30]
+    }
+}
+
+new Test().run()
+</code></pre><p>上面例子中闭包c1的委托变为data，闭包的resolveStrategy在默认情况下是OWNER_FIRST，即它会先查找闭包的owner（在本例中指的就是Test对象本身），如果owner存在，则在owner上执行闭包中的代码。这里我们将其设置成了DELEGATE_FIRST，即该闭包会首先查找delegate（本例中即data），如果找不到再去找owner。resolveStrategy还有其它的一些情况，具体的可以查看文档中的例子，相信当你看到这些例子后，会对闭包委托有一个清晰的认识。</p>
+<ul>
+<li><a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/lang/Closure.html#DELEGATE_FIRST" target="_blank" rel="noopener">Closure.DELEGATE_FIRST</a></li>
+<li><a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/lang/Closure.html#DELEGATE_ONLY" target="_blank" rel="noopener">Closure.DELEGATE_ONLY</a></li>
+<li><a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/lang/Closure.html#OWNER_FIRST" target="_blank" rel="noopener">Closure.OWNER_FIRST</a></li>
+<li><a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/lang/Closure.html#OWNER_ONLY" target="_blank" rel="noopener">Closure.OWNER_ONLY</a></li>
+<li><a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/lang/Closure.html#TO_SELF" target="_blank" rel="noopener">Closure.TO_SELF</a></li>
+</ul>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>限于篇幅和本系列的主题，本文简单介绍了Groovy的一些语法和数据结构，这对于学习Gradle会有一些帮助。在后面Gradle的学习过程中，如果对Groovy的一些Api不熟悉可以查看<a href="http://www.groovy-lang.org/api.html" target="_blank" rel="noopener">Groovy的Api文档</a>，我们没必要死记硬背这个Api，掌握学习的方法更加重要，对吗？</p>
+<p><a href="http://www.jianshu.com/p/158851436e82" target="_blank" rel="noopener">下一篇</a>，我们就正式进入Gradle部分的学习了。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="http://www.groovy-lang.org/documentation.html" target="_blank" rel="noopener">Groovy文档</a></li>
+<li><a href="http://blog.csdn.net/innost/article/details/48228651" target="_blank" rel="noopener">深入理解Android之Gradle</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/22/浅析Activity中View的生命周期方法回调/" rel="next" title="浅析Activity中View的生命周期方法回调">
+                <i class="fa fa-chevron-left"></i> 浅析Activity中View的生命周期方法回调
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/14/Gradle学习2——开始使用Gradle/" rel="prev" title="Gradle学习2——开始使用Gradle">
+                Gradle学习2——开始使用Gradle <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Groovy代码的执行"><span class="nav-number">2.</span> <span class="nav-text">Groovy代码的执行</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Groovy中的字符串"><span class="nav-number">3.</span> <span class="nav-text">Groovy中的字符串</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#def关键字"><span class="nav-number">4.</span> <span class="nav-text">def关键字</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#集合"><span class="nav-number">5.</span> <span class="nav-text">集合</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#List"><span class="nav-number">5.1.</span> <span class="nav-text">List</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Map"><span class="nav-number">5.2.</span> <span class="nav-text">Map</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Groovy的类"><span class="nav-number">6.</span> <span class="nav-text">Groovy的类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#闭包"><span class="nav-number">7.</span> <span class="nav-text">闭包</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">8.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

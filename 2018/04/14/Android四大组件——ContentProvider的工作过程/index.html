@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="ContentProvider是内容提供者，对外提供数据。内部运行依赖Binde机制。想要自己写一个ContentProvider向外部提供数据，需要继承ContentProvider并重写一下六个方法，在ContentProvider中提供了增删改查的方法，一般这个增删改查会通过SqliteDataBase这个数据库的方式对外提供增删改查的功能。也可以不这么做。 1234567891011121">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android四大组件——ContentProvider的工作过程">
+<meta property="og:url" content="http://yoursite.com/2018/04/14/Android四大组件——ContentProvider的工作过程/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="ContentProvider是内容提供者，对外提供数据。内部运行依赖Binde机制。想要自己写一个ContentProvider向外部提供数据，需要继承ContentProvider并重写一下六个方法，在ContentProvider中提供了增删改查的方法，一般这个增删改查会通过SqliteDataBase这个数据库的方式对外提供增删改查的功能。也可以不这么做。 1234567891011121">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-dc58c61994176d36.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T03:18:24.345Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android四大组件——ContentProvider的工作过程">
+<meta name="twitter:description" content="ContentProvider是内容提供者，对外提供数据。内部运行依赖Binde机制。想要自己写一个ContentProvider向外部提供数据，需要继承ContentProvider并重写一下六个方法，在ContentProvider中提供了增删改查的方法，一般这个增删改查会通过SqliteDataBase这个数据库的方式对外提供增删改查的功能。也可以不这么做。 1234567891011121">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/2083810-dc58c61994176d36.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/14/Android四大组件——ContentProvider的工作过程/"/>
+
+
+
+
+
+  <title>Android四大组件——ContentProvider的工作过程 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/14/Android四大组件——ContentProvider的工作过程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android四大组件——ContentProvider的工作过程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-14T13:02:00+08:00">
+                2018-04-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>ContentProvider是内容提供者，对外提供数据。内部运行依赖Binde机制。想要自己写一个ContentProvider向外部提供数据，需要继承ContentProvider并重写一下六个方法，在ContentProvider中提供了增删改查的方法，一般这个增删改查会通过SqliteDataBase这个数据库的方式对外提供增删改查的功能。也可以不这么做。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public boolean onCreate() &#123;</span><br><span class="line">    return false;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Nullable</span><br><span class="line">@Override</span><br><span class="line">public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) &#123;</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Nullable</span><br><span class="line">@Override</span><br><span class="line">public String getType(@NonNull Uri uri) &#123;</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Nullable</span><br><span class="line">@Override</span><br><span class="line">public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) &#123;</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) &#123;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) &#123;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>需要在AndroidManifest.xml中去注册：<br>authorities 相当于是个地址<br>permission 用于控制权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;provider</span><br><span class="line">    android:name=&quot;.provider.BookProvider&quot;</span><br><span class="line">    android:authorities=&quot;com.sososeen09.knowledge.provider.book&quot;</span><br><span class="line">    android:permission=&quot;com.sososeen09.PROVIDER&quot;</span><br><span class="line">    android:process=&quot;:provider&quot;/&gt;</span><br></pre></td></tr></table></figure>
+<p>其它客户端查询，需要用到ContentResolver对象，ContentResolver是抽象类，它的实现是ContextImpl中的ApplicationContentResolver，是在ContextImpl的构造方法中创建的对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Uri bookUri = Uri.parse(&quot;content://com.sososeen09.knowledge.provider.book/book&quot;);</span><br><span class="line">ContentValues values = new ContentValues();</span><br><span class="line">values.put(&quot;_id&quot;, 6);</span><br><span class="line">getContentResolver().insert(bookUri, values);</span><br><span class="line">Cursor bookCursor = getContentResolver().query(bookUri, new String[]&#123;&quot;_id&quot;, &quot;name&quot;&#125;, null, null, null);</span><br></pre></td></tr></table></figure>
+<p>Context的getContentResolver方法实际上获取的就是ContextImpl的ApplicationContentResolver类型的成员mContentResolver。</p>
+<p>当ContentProvider所在进程还未创建时，第一次访问ContentProvider会触发ContentProvider所在进程的创建和ContentProvider对象的创建。通过ContentProvider的4个方法中的任何一个都会触发ContentProvider的启动过程。</p>
+<h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><p>我们分析<code>getContentResolver().query</code> 方法触发的流程。</p>
+<p>ContextWrapper的getContentResolver的方法如下，还是通过mBase来获取，这个mBase实际上是ContextImpl对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public ContentResolver getContentResolver() &#123;</span><br><span class="line">    return mBase.getContentResolver();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>来看一下ContextImpl的getContentResolver方法，直接返回了一个成员变量mContentResolver。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public ContentResolver getContentResolver() &#123;</span><br><span class="line">    return mContentResolver;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个mContentResolver实际上是ContentResolver的子类ApplicationContentResolver，该对象是在ContextImpl的构造方法中创建的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">private ContextImpl(ContextImpl container, ActivityThread mainThread,</span><br><span class="line">                    LoadedApk packageInfo, IBinder activityToken, UserHandle user, int flags,</span><br><span class="line">                    Display display, Configuration overrideConfiguration, int createDisplayWithId) &#123;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">    mContentResolver = new ApplicationContentResolver(this, mainThread, user);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取了ContentResolver对象之后，调用它的query方法。在ContentResolver的query方法中首先会调用acquireUnstableProvider来获取一个IContentProvider对象。</p>
+<p>在这里要说一下，返回值是IContentProvider对象，它继承自IInterface，也就是说它的实现类会是一个Binder对象。这也是因此ContentProvider不是一个Binder对象，而且一般ContentProvider和客户端不再同一个进程中。它的增删改查方法的结果肯定是需要一个通过一个Binder对象来进行IPC过程的传输。在这里就是IContentProvider。在这里它的实现是ContentProviderNative的子类ContentProvider.Transport。ContentProvider.Transport对象运行在ContentProvider的同一个进程，在远程有个特代理是ContentProviderProxy。</p>
+<p>acquireUnstableProvider方法由ApplicationContentResolver实现，在ApplicationContentResolver中还有一个重写的方法是acquireProvider，它们都是做一个中转，调用的是ActivityThread的acquireProvider方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">public final IContentProvider acquireProvider(</span><br><span class="line">        Context c, String auth, int userId, boolean stable) &#123;</span><br><span class="line">    final IContentProvider provider = acquireExistingProvider(c, auth, userId, stable);</span><br><span class="line">    if (provider != null) &#123;</span><br><span class="line">        return provider;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // There is a possible race here.  Another thread may try to acquire</span><br><span class="line">    // the same provider at the same time.  When this happens, we want to ensure</span><br><span class="line">    // that the first one wins.</span><br><span class="line">    // Note that we cannot hold the lock while acquiring and installing the</span><br><span class="line">    // provider since it might take a long time to run and it could also potentially</span><br><span class="line">    // be re-entrant in the case where the provider is in the same process.</span><br><span class="line">    IActivityManager.ContentProviderHolder holder = null;</span><br><span class="line">    try &#123;</span><br><span class="line">        holder = ActivityManagerNative.getDefault().getContentProvider(</span><br><span class="line">                getApplicationThread(), auth, userId, stable);</span><br><span class="line">    &#125; catch (RemoteException ex) &#123;</span><br><span class="line">        throw ex.rethrowFromSystemServer();</span><br><span class="line">    &#125;</span><br><span class="line">    if (holder == null) &#123;</span><br><span class="line">        Slog.e(TAG, &quot;Failed to find provider info for &quot; + auth);</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // Install provider will increment the reference count for us, and break</span><br><span class="line">    // any ties in the race.</span><br><span class="line">    holder = installProvider(c, holder, holder.info,</span><br><span class="line">            true /*noisy*/, holder.noReleaseNeeded, stable);</span><br><span class="line">    return holder.provider;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，它首先调用acquireExistingProvider，查看是否有缓存的IContentProvider对象，如果有的话就直接返回这个缓存对象。缓存存放在mProviderMap这个Map集合中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// The lock of mProviderMap protects the following variables.</span><br><span class="line">final ArrayMap&lt;ProviderKey, ProviderClientRecord&gt; mProviderMap</span><br><span class="line">        = new ArrayMap&lt;ProviderKey, ProviderClientRecord&gt;();</span><br></pre></td></tr></table></figure>
+<p>如果当前没有缓存的话，就需要通过一个IPC过程调用AMS的getContentProvider方法来获取一个ContentProviderHolder，ContentProviderHolder实现了Parcelable接口，因此它可以被进程间传递，它就是客户端的ContentProvider的一个代理对象的包装类。之后调用installProvider方法还要修改ContentProvider的引用计数器。</p>
+<p>AMS的getContentProvider方法又会调用getContentProviderImpl方法，在该方法中会判断所要请求的ContentProvider进程是否已经存在，如果不存在的话就会调用startProcessLocked方法来创建ContentProvider的进程并安装ContentProvider。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">private ContentProviderHolder getContentProviderImpl(IApplicationThread caller,</span><br><span class="line">                                                     String name, IBinder token, boolean stable, int userId) &#123;</span><br><span class="line">    ContentProviderRecord cpr;</span><br><span class="line">    ContentProviderConnection conn = null;</span><br><span class="line">    ProviderInfo cpi = null;</span><br><span class="line"></span><br><span class="line">    synchronized(this) &#123;</span><br><span class="line">        long startTime = SystemClock.uptimeMillis();</span><br><span class="line"></span><br><span class="line">        ProcessRecord r = null;</span><br><span class="line">      ...</span><br><span class="line">        boolean checkCrossUser = true;</span><br><span class="line"></span><br><span class="line">        checkTime(startTime, &quot;getContentProviderImpl: getProviderByName&quot;);</span><br><span class="line"></span><br><span class="line">        // First check if this content provider has been published...</span><br><span class="line">        cpr = mProviderMap.getProviderByName(name, userId);</span><br><span class="line">        // If that didn&apos;t work, check if it exists for user 0 and then</span><br><span class="line">        // verify that it&apos;s a singleton provider before using it.</span><br><span class="line">   ...</span><br><span class="line">        boolean providerRunning = cpr != null &amp;&amp; cpr.proc != null &amp;&amp; !cpr.proc.killed;</span><br><span class="line">   ...</span><br><span class="line">        if (!providerRunning) &#123;</span><br><span class="line">            ...</span><br><span class="line">                    ProcessRecord proc = getProcessRecordLocked(</span><br><span class="line">                            cpi.processName, cpr.appInfo.uid, false);</span><br><span class="line">                    if (proc != null &amp;&amp; proc.thread != null &amp;&amp; !proc.killed) &#123;</span><br><span class="line">                        ...</span><br><span class="line">                                proc.thread.scheduleInstallProvider(cpi);</span><br><span class="line">                           </span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; else &#123;</span><br><span class="line">                        proc = startProcessLocked(cpi.processName,</span><br><span class="line">                                cpr.appInfo, false, 0, &quot;content provider&quot;,</span><br><span class="line">                                new ComponentName(cpi.applicationInfo.packageName,</span><br><span class="line">                                        cpi.name), false, false, false);</span><br><span class="line">                       ...</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    cpr.launchingApp = proc;</span><br><span class="line">                    mLaunchingProviders.add(cpr);</span><br><span class="line">                &#125; finally &#123;</span><br><span class="line">                    Binder.restoreCallingIdentity(origId);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> ...</span><br><span class="line">    return cpr != null ? cpr.newHolder(conn) : null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从方法可以看出，如果ContentProvider没有在运行，而且它所在的进程没有存在的话就会调用AMS自身的startProcessLocked方法来创建进程。AMS的startProcessLocked会调用Process的start方法，在该方法表明所要启动一个新进程，并且调用android.app.ActivityThread的main方法作为入口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">private final void startProcessLocked(ProcessRecord app, String hostingType,</span><br><span class="line">                                      String hostingNameStr, String abiOverride, String entryPoint, String[] entryPointArgs) &#123;</span><br><span class="line">  ...</span><br><span class="line">        // Start the process.  It will either succeed and return a result containing</span><br><span class="line">        // the PID of the new process, or else throw a RuntimeException.</span><br><span class="line">        boolean isActivityProcess = (entryPoint == null);</span><br><span class="line">        if (entryPoint == null) entryPoint = &quot;android.app.ActivityThread&quot;;</span><br><span class="line">        Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, &quot;Start proc: &quot; +</span><br><span class="line">                app.processName);</span><br><span class="line">        checkTime(startTime, &quot;startProcess: asking zygote to start proc&quot;);</span><br><span class="line">        Process.ProcessStartResult startResult = Process.start(entryPoint,</span><br><span class="line">                app.processName, uid, uid, gids, debugFlags, mountExternal,</span><br><span class="line">                app.info.targetSdkVersion, app.info.seinfo, requiredAbi, instructionSet,</span><br><span class="line">                app.info.dataDir, entryPointArgs);</span><br><span class="line">     ... </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>App进程启动的流程如下，这里我们就不细讲了。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-dc58c61994176d36.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="App进程启动的流程.png"></p>
+<p>最终ActivityThread的main方法会被调用，该方法中会创建ActivityThread对象，并创建主线程的Looper对象，调用ActivityThread的attach方法，并且传递的参数为false，表明不是系统进程。之后就开始消息循环了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">    Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, &quot;ActivityThreadMain&quot;);</span><br><span class="line">    SamplingProfilerIntegration.start();</span><br><span class="line"></span><br><span class="line">    // CloseGuard defaults to true and can be quite spammy.  We</span><br><span class="line">    // disable it here, but selectively enable it later (via</span><br><span class="line">    // StrictMode) on debug builds, but using DropBox, not logs.</span><br><span class="line">    CloseGuard.setEnabled(false);</span><br><span class="line"></span><br><span class="line">    Environment.initForCurrentUser();</span><br><span class="line"></span><br><span class="line">    // Set the reporter for event logging in libcore</span><br><span class="line">    EventLogger.setReporter(new EventLoggingReporter());</span><br><span class="line"></span><br><span class="line">    // Make sure TrustedCertificateStore looks in the right place for CA certificates</span><br><span class="line">    final File configDir = Environment.getUserConfigDirectory(UserHandle.myUserId());</span><br><span class="line">    TrustedCertificateStore.setDefaultUserDirectory(configDir);</span><br><span class="line"></span><br><span class="line">    Process.setArgV0(&quot;&lt;pre-initialized&gt;&quot;);</span><br><span class="line"></span><br><span class="line">    Looper.prepareMainLooper();</span><br><span class="line"></span><br><span class="line">    ActivityThread thread = new ActivityThread();</span><br><span class="line">    thread.attach(false);</span><br><span class="line"></span><br><span class="line">    if (sMainThreadHandler == null) &#123;</span><br><span class="line">        sMainThreadHandler = thread.getHandler();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (false) &#123;</span><br><span class="line">        Looper.myLooper().setMessageLogging(new</span><br><span class="line">                LogPrinter(Log.DEBUG, &quot;ActivityThread&quot;));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // End of event ActivityThreadMain.</span><br><span class="line">    Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);</span><br><span class="line">    Looper.loop();</span><br><span class="line"></span><br><span class="line">    throw new RuntimeException(&quot;Main thread loop unexpectedly exited&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在ActivityThread的attach方法中，会通过一个IPC过程调用AMS的attachApplication方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">private void attach(boolean system) &#123;</span><br><span class="line">    sCurrentActivityThread = this;</span><br><span class="line">    mSystemThread = system;</span><br><span class="line">    if (!system) &#123;</span><br><span class="line">    ...</span><br><span class="line">        final IActivityManager mgr = ActivityManagerNative.getDefault();</span><br><span class="line">        try &#123;</span><br><span class="line">            mgr.attachApplication(mAppThread);</span><br><span class="line">        &#125; catch (RemoteException ex) &#123;</span><br><span class="line">            throw ex.rethrowFromSystemServer();</span><br><span class="line">        &#125;</span><br><span class="line">  ...</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">     ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AMS的attachApplication方法又会调用其attachApplicationLocked方法，在该方法中又会通过IPC过程调用ApplicationThread的bindApplication方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">public final void bindApplication(String processName, ApplicationInfo appInfo,</span><br><span class="line">                                  List&lt;ProviderInfo&gt; providers, ComponentName instrumentationName,</span><br><span class="line">                                  ProfilerInfo profilerInfo, Bundle instrumentationArgs,</span><br><span class="line">                                  IInstrumentationWatcher instrumentationWatcher,</span><br><span class="line">                                  IUiAutomationConnection instrumentationUiConnection, int debugMode,</span><br><span class="line">                                  boolean enableBinderTracking, boolean trackAllocation,</span><br><span class="line">                                  boolean isRestrictedBackupMode, boolean persistent, Configuration config,</span><br><span class="line">                                  CompatibilityInfo compatInfo, Map&lt;String, IBinder&gt; services, Bundle coreSettings) &#123;</span><br><span class="line"></span><br><span class="line">    if (services != null) &#123;</span><br><span class="line">        // Setup the service cache in the ServiceManager</span><br><span class="line">        ServiceManager.initServiceCache(services);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    setCoreSettings(coreSettings);</span><br><span class="line"></span><br><span class="line">    AppBindData data = new AppBindData();</span><br><span class="line">    data.processName = processName;</span><br><span class="line">    data.appInfo = appInfo;</span><br><span class="line">    data.providers = providers;</span><br><span class="line">    data.instrumentationName = instrumentationName;</span><br><span class="line">    data.instrumentationArgs = instrumentationArgs;</span><br><span class="line">    data.instrumentationWatcher = instrumentationWatcher;</span><br><span class="line">    data.instrumentationUiAutomationConnection = instrumentationUiConnection;</span><br><span class="line">    data.debugMode = debugMode;</span><br><span class="line">    data.enableBinderTracking = enableBinderTracking;</span><br><span class="line">    data.trackAllocation = trackAllocation;</span><br><span class="line">    data.restrictedBackupMode = isRestrictedBackupMode;</span><br><span class="line">    data.persistent = persistent;</span><br><span class="line">    data.config = config;</span><br><span class="line">    data.compatInfo = compatInfo;</span><br><span class="line">    data.initProfilerInfo = profilerInfo;</span><br><span class="line">    sendMessage(H.BIND_APPLICATION, data);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AppBindData是一个JavaBean独享，用于ActivityThreadThread绑定的App的信息。<br>ApplicationThread的bindApplication方法是在Binder线程池中执行，因此通过一个Handler发送<br>H.BIND_APPLICATION消息切换到主线程。在Handler H的handleMessage方法中会从msg中取出AppBindData对象，并且调用ActivityThread的handleBindApplication方法。</p>
+<p>在这里面做了5步操作：</p>
+<ol>
+<li>创建ContextImpl对象</li>
+<li>创建Instrumentation对象</li>
+<li>创建Application对象</li>
+<li>调用<code>installContentProviders(app, data.providers)</code>方法启动当前进程的ContentProvider并调用其onCreate方法</li>
+<li>调用Application的onCreate方法</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br></pre></td><td class="code"><pre><span class="line">private void handleBindApplication(AppBindData data) &#123;</span><br><span class="line">    </span><br><span class="line">...</span><br><span class="line">    // If the app is Honeycomb MR1 or earlier, switch its AsyncTask</span><br><span class="line">    // implementation to use the pool executor.  Normally, we use the</span><br><span class="line">    // serialized executor as the default. This has to happen in the</span><br><span class="line">    // main thread so the main looper is set right.</span><br><span class="line">    if (data.appInfo.targetSdkVersion &lt;= android.os.Build.VERSION_CODES.HONEYCOMB_MR1) &#123;</span><br><span class="line">        AsyncTask.setDefaultExecutor(AsyncTask.THREAD_POOL_EXECUTOR);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">    data.info = getPackageInfoNoCheck(data.appInfo, data.compatInfo);</span><br><span class="line"></span><br><span class="line">   ...</span><br><span class="line"></span><br><span class="line">    // Instrumentation info affects the class loader, so load it before</span><br><span class="line">    // setting up the app context.</span><br><span class="line">    final InstrumentationInfo ii;</span><br><span class="line">    if (data.instrumentationName != null) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            ii = new ApplicationPackageManager(null, getPackageManager())</span><br><span class="line">                    .getInstrumentationInfo(data.instrumentationName, 0);</span><br><span class="line">        &#125; catch (PackageManager.NameNotFoundException e) &#123;</span><br><span class="line">            throw new RuntimeException(</span><br><span class="line">                    &quot;Unable to find instrumentation info for: &quot; + data.instrumentationName);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        mInstrumentationPackageName = ii.packageName;</span><br><span class="line">        mInstrumentationAppDir = ii.sourceDir;</span><br><span class="line">        mInstrumentationSplitAppDirs = ii.splitSourceDirs;</span><br><span class="line">        mInstrumentationLibDir = getInstrumentationLibrary(data.appInfo, ii);</span><br><span class="line">        mInstrumentedAppDir = data.info.getAppDir();</span><br><span class="line">        mInstrumentedSplitAppDirs = data.info.getSplitAppDirs();</span><br><span class="line">        mInstrumentedLibDir = data.info.getLibDir();</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        ii = null;</span><br><span class="line">    &#125;</span><br><span class="line">    // 1 创建 ContextImpl对象</span><br><span class="line">    final ContextImpl appContext = ContextImpl.createAppContext(this, data.info);</span><br><span class="line">...</span><br><span class="line">    // 2 创建Instrumentation对象</span><br><span class="line">    // Continue loading instrumentation.</span><br><span class="line">    if (ii != null) &#123;</span><br><span class="line">        final ApplicationInfo instrApp = new ApplicationInfo();</span><br><span class="line">        ii.copyTo(instrApp);</span><br><span class="line">        instrApp.initForUser(UserHandle.myUserId());</span><br><span class="line">        final LoadedApk pi = getPackageInfo(instrApp, data.compatInfo,</span><br><span class="line">                appContext.getClassLoader(), false, true, false);</span><br><span class="line">        final ContextImpl instrContext = ContextImpl.createAppContext(this, pi);</span><br><span class="line"></span><br><span class="line">        try &#123;</span><br><span class="line">            final ClassLoader cl = instrContext.getClassLoader();</span><br><span class="line">            mInstrumentation = (Instrumentation)</span><br><span class="line">                    cl.loadClass(data.instrumentationName.getClassName()).newInstance();</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            throw new RuntimeException(</span><br><span class="line">                    &quot;Unable to instantiate instrumentation &quot;</span><br><span class="line">                            + data.instrumentationName + &quot;: &quot; + e.toString(), e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        final ComponentName component = new ComponentName(ii.packageName, ii.name);</span><br><span class="line">        mInstrumentation.init(this, instrContext, appContext, component,</span><br><span class="line">                data.instrumentationWatcher, data.instrumentationUiAutomationConnection);</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        mInstrumentation = new Instrumentation();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...// 3 创建 Applcation对象</span><br><span class="line">    try &#123;</span><br><span class="line">        // If the app is being launched for full backup or restore, bring it up in</span><br><span class="line">        // a restricted environment with the base application class.</span><br><span class="line">        Application app = data.info.makeApplication(data.restrictedBackupMode, null);</span><br><span class="line">        mInitialApplication = app;</span><br><span class="line"></span><br><span class="line">        // don&apos;t bring up providers in restricted mode; they may depend on the</span><br><span class="line">        // app&apos;s custom Application class</span><br><span class="line"></span><br><span class="line">        </span><br><span class="line">        // 4 启动当前进程的ContentProvider，并调用其方法</span><br><span class="line">        if (!data.restrictedBackupMode) &#123;</span><br><span class="line">            if (!ArrayUtils.isEmpty(data.providers)) &#123;</span><br><span class="line">                installContentProviders(app, data.providers);</span><br><span class="line">                // For process that contains content providers, we want to</span><br><span class="line">                // ensure that the JIT is enabled &quot;at some point&quot;.</span><br><span class="line">                mH.sendEmptyMessageDelayed(H.ENABLE_JIT, 10*1000);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // Do this after providers, since instrumentation tests generally start their</span><br><span class="line">        // test thread at this point, and we don&apos;t want that racing.</span><br><span class="line">        try &#123;</span><br><span class="line">            mInstrumentation.onCreate(data.instrumentationArgs);</span><br><span class="line">        &#125;</span><br><span class="line">...     // 5 调用Application的onCreate方法</span><br><span class="line">        try &#123;</span><br><span class="line">            mInstrumentation.callApplicationOnCreate(app);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">     ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们来看一下ActivityThread的installContentProviders方法。在该方法中主要遍历当前进程的ProviderInfo信息，通过调用installProvider方法来构建一个IActivityManager.ContentProviderHolder对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">private void installContentProviders(</span><br><span class="line">        Context context, List&lt;ProviderInfo&gt; providers) &#123;</span><br><span class="line">    final ArrayList&lt;IActivityManager.ContentProviderHolder&gt; results =</span><br><span class="line">            new ArrayList&lt;IActivityManager.ContentProviderHolder&gt;();</span><br><span class="line"></span><br><span class="line">    for (ProviderInfo cpi : providers) &#123;</span><br><span class="line">        if (DEBUG_PROVIDER) &#123;</span><br><span class="line">            StringBuilder buf = new StringBuilder(128);</span><br><span class="line">            buf.append(&quot;Pub &quot;);</span><br><span class="line">            buf.append(cpi.authority);</span><br><span class="line">            buf.append(&quot;: &quot;);</span><br><span class="line">            buf.append(cpi.name);</span><br><span class="line">            Log.i(TAG, buf.toString());</span><br><span class="line">        &#125;</span><br><span class="line">        IActivityManager.ContentProviderHolder cph = installProvider(context, null, cpi,</span><br><span class="line">                false /*noisy*/, true /*noReleaseNeeded*/, true /*stable*/);</span><br><span class="line">        if (cph != null) &#123;</span><br><span class="line">            cph.noReleaseNeeded = true;</span><br><span class="line">            results.add(cph);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    try &#123;</span><br><span class="line">        ActivityManagerNative.getDefault().publishContentProviders(</span><br><span class="line">                getApplicationThread(), results);</span><br><span class="line">    &#125; catch (RemoteException ex) &#123;</span><br><span class="line">        throw ex.rethrowFromSystemServer();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>还记得我们之前说的吗，ContentProvider对象是无法跨进程调用的，因此需要一个Binder对象用于给客户端使用。ContentProviderHolder实现了Pacelable接口，可以在进程间传递数据。它实际上就是一个JavaBean对象，但是里面封装了IContentProvider，它实际上会作为一个Binder对象用于进程间方法的调用。我们前面也已经提了。IContentProvider的实现是ContentProviderNative的子类ContentProvider.Transport。ContentProvider.Transport对象运行在ContentProvider的同一个进程，在远程有个特代理是ContentProviderProxy。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public static class ContentProviderHolder implements Parcelable &#123;</span><br><span class="line">    public final ProviderInfo info;</span><br><span class="line">    public IContentProvider provider;</span><br><span class="line">    public IBinder connection;</span><br><span class="line">    public boolean noReleaseNeeded;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们来看一下ActivityThread的installProvider方法，可以看到首先通过类加载器创建了ContentProvider对象，然后调用了ContentProvider的attachInfo方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">private IActivityManager.ContentProviderHolder installProvider(Context context,</span><br><span class="line">                                                               IActivityManager.ContentProviderHolder holder, ProviderInfo info,</span><br><span class="line">                                                               boolean noisy, boolean noReleaseNeeded, boolean stable) &#123;</span><br><span class="line">    ContentProvider localProvider = null;</span><br><span class="line">    IContentProvider provider;</span><br><span class="line">    if (holder == null || holder.provider == null) &#123;</span><br><span class="line">       ...</span><br><span class="line">        Context c = null;</span><br><span class="line">        ApplicationInfo ai = info.applicationInfo;</span><br><span class="line">        if (context.getPackageName().equals(ai.packageName)) &#123;</span><br><span class="line">            c = context;</span><br><span class="line">        &#125; else if (mInitialApplication != null &amp;&amp;</span><br><span class="line">                mInitialApplication.getPackageName().equals(ai.packageName)) &#123;</span><br><span class="line">            c = mInitialApplication;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                c = context.createPackageContext(ai.packageName,</span><br><span class="line">                        Context.CONTEXT_INCLUDE_CODE);</span><br><span class="line">            &#125; catch (PackageManager.NameNotFoundException e) &#123;</span><br><span class="line">                // Ignore</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">        try &#123;</span><br><span class="line">            final java.lang.ClassLoader cl = c.getClassLoader();</span><br><span class="line">            localProvider = (ContentProvider)cl.</span><br><span class="line">                    loadClass(info.name).newInstance();</span><br><span class="line">            provider = localProvider.getIContentProvider();</span><br><span class="line">...</span><br><span class="line">            // XXX Need to create the correct context for this provider.</span><br><span class="line">            localProvider.attachInfo(c, info);</span><br><span class="line">        &#125; catch (java.lang.Exception e) &#123;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        provider = holder.provider;</span><br><span class="line">        if (DEBUG_PROVIDER) Slog.v(TAG, &quot;Installing external provider &quot; + info.authority + &quot;: &quot;</span><br><span class="line">                + info.name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> ...</span><br><span class="line">    return retHolder;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们再来看一下ContentProvider的attachInfo方法，该方法会调用3个参数的重载方法，在该方法中调用了ContextProvider的onCreate方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">private void attachInfo(Context context, ProviderInfo info, boolean testing) &#123;</span><br><span class="line">    mNoPerms = testing;</span><br><span class="line"></span><br><span class="line">    /*</span><br><span class="line">     * Only allow it to be set once, so after the content service gives</span><br><span class="line">     * this to us clients can&apos;t change it.</span><br><span class="line">     */</span><br><span class="line">    if (mContext == null) &#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">        if (context != null) &#123;</span><br><span class="line">            mTransport.mAppOpsManager = (AppOpsManager) context.getSystemService(</span><br><span class="line">                    Context.APP_OPS_SERVICE);</span><br><span class="line">        &#125;</span><br><span class="line">        mMyUid = Process.myUid();</span><br><span class="line">        if (info != null) &#123;</span><br><span class="line">            setReadPermission(info.readPermission);</span><br><span class="line">            setWritePermission(info.writePermission);</span><br><span class="line">            setPathPermissions(info.pathPermissions);</span><br><span class="line">            mExported = info.exported;</span><br><span class="line">            mSingleUser = (info.flags &amp; ProviderInfo.FLAG_SINGLE_USER) != 0;</span><br><span class="line">            setAuthorities(info.authority);</span><br><span class="line">        &#125;</span><br><span class="line">        ContentProvider.this.onCreate();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们上面的分析可知，ContentProvider的onCreate方法是在Application的onCreate方法之前调用的。当然了，还是要晚于Application的attachBaseContext方法。</p>
+<p>ContentProvider创建完毕并启动之后还没有完事，会通过一个IPC过程调用AMS的publishContentProviders方法，此时传递ApplicationThread对象和创建完毕的ContentProviderHolder集合。publishContentProviders方法中也即是在AMS端存一下ContentProvider的记录，这里就不再细说了。</p>
+<p>到此，ContentProvider所在的进程已经创建完毕，并且ContentProvider也已经全部启动起来。但是还没有完，调起ContentResolver发起query方法的那边还在等着返回结果呢。回到ContentResolver的query方法。注意此时客户端获取的IContentProvider对象是ContentProviderProxy，它是ContentProviderNative的内部类，通过IPC过程调用到ContentProviderNative.ContentProvider.Transport中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"># android.content.ContentResolver</span><br><span class="line">public final @Nullable Cursor query(final @RequiresPermission.Read @NonNull Uri uri,</span><br><span class="line">                                    @Nullable String[] projection, @Nullable String selection,</span><br><span class="line">                                    @Nullable String[] selectionArgs, @Nullable String sortOrder,</span><br><span class="line">                                    @Nullable CancellationSignal cancellationSignal) &#123;</span><br><span class="line">    Preconditions.checkNotNull(uri, &quot;uri&quot;);</span><br><span class="line">    IContentProvider unstableProvider = acquireUnstableProvider(uri);</span><br><span class="line">    if (unstableProvider == null) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">    IContentProvider stableProvider = null;</span><br><span class="line">    Cursor qCursor = null;</span><br><span class="line">    try &#123;</span><br><span class="line">  ...</span><br><span class="line">        try &#123;</span><br><span class="line">            qCursor = unstableProvider.query(mPackageName, uri, projection,</span><br><span class="line">                    selection, selectionArgs, sortOrder, remoteCancellationSignal);</span><br><span class="line">        &#125; catch (DeadObjectException e) &#123;</span><br><span class="line">            // The remote process has died...  but we only hold an unstable</span><br><span class="line">            // reference though, so we might recover!!!  Let&apos;s try!!!!</span><br><span class="line">            // This is exciting!!1!!1!!!!1</span><br><span class="line">            unstableProviderDied(unstableProvider);</span><br><span class="line">            stableProvider = acquireProvider(uri);</span><br><span class="line">            if (stableProvider == null) &#123;</span><br><span class="line">                return null;</span><br><span class="line">            &#125;</span><br><span class="line">            qCursor = stableProvider.query(mPackageName, uri, projection,</span><br><span class="line">                    selection, selectionArgs, sortOrder, remoteCancellationSignal);</span><br><span class="line">        &#125;</span><br><span class="line">        if (qCursor == null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // Force query execution.  Might fail and throw a runtime exception here.</span><br><span class="line">        qCursor.getCount();</span><br><span class="line">        long durationMillis = SystemClock.uptimeMillis() - startTime;</span><br><span class="line">        maybeLogQueryToEventLog(durationMillis, uri, projection, selection, sortOrder);</span><br><span class="line"></span><br><span class="line">        // Wrap the cursor object into CursorWrapperInner object.</span><br><span class="line">        final IContentProvider provider = (stableProvider != null) ? stableProvider</span><br><span class="line">                : acquireProvider(uri);</span><br><span class="line">        final CursorWrapperInner wrapper = new CursorWrapperInner(qCursor, provider);</span><br><span class="line">        stableProvider = null;</span><br><span class="line">        qCursor = null;</span><br><span class="line">        return wrapper;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再来看一下ContentProvider.Transport的query方法，由于ContentProvider.Transport是非静态内部类，因此持有ContentProvider的引用，所以内部调用了ContentProvider的query方法的返回值，返回的结果也会通过一个IPC过程返回到调用者那里。ContentProvider对外提供数据的方法，query、insert、delete、update方法也都是通过Transport进行调用的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"># android.content.ContentProvider.Transport</span><br><span class="line">@Override</span><br><span class="line">public Cursor query(String callingPkg, Uri uri, String[] projection,</span><br><span class="line">                    String selection, String[] selectionArgs, String sortOrder,</span><br><span class="line">                    ICancellationSignal cancellationSignal) &#123;</span><br><span class="line">    validateIncomingUri(uri);</span><br><span class="line">    uri = getUriWithoutUserId(uri);</span><br><span class="line">    if (enforceReadPermission(callingPkg, uri, null) != AppOpsManager.MODE_ALLOWED) &#123;</span><br><span class="line">        // The caller has no access to the data, so return an empty cursor with</span><br><span class="line">        // the columns in the requested order. The caller may ask for an invalid</span><br><span class="line">        // column and we would not catch that but this is not a problem in practice.</span><br><span class="line">        // We do not call ContentProvider#query with a modified where clause since</span><br><span class="line">        // the implementation is not guaranteed to be backed by a SQL database, hence</span><br><span class="line">        // it may not handle properly the tautology where clause we would have created.</span><br><span class="line">        if (projection != null) &#123;</span><br><span class="line">            return new MatrixCursor(projection, 0);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // Null projection means all columns but we have no idea which they are.</span><br><span class="line">        // However, the caller may be expecting to access them my index. Hence,</span><br><span class="line">        // we have to execute the query as if allowed to get a cursor with the</span><br><span class="line">        // columns. We then use the column names to return an empty cursor.</span><br><span class="line">        Cursor cursor = ContentProvider.this.query(uri, projection, selection,</span><br><span class="line">                selectionArgs, sortOrder, CancellationSignal.fromTransport(</span><br><span class="line">                        cancellationSignal));</span><br><span class="line">        if (cursor == null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // Return an empty cursor for all columns.</span><br><span class="line">        return new MatrixCursor(cursor.getColumnNames(), 0);</span><br><span class="line">    &#125;</span><br><span class="line">    final String original = setCallingPackage(callingPkg);</span><br><span class="line">    try &#123;</span><br><span class="line">        return ContentProvider.this.query(</span><br><span class="line">                uri, projection, selection, selectionArgs, sortOrder,</span><br><span class="line">                CancellationSignal.fromTransport(cancellationSignal));</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        setCallingPackage(original);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li><p>访问一个ContentProvider需要用到ContentResolver对象，它是一个抽象类，实际上用的是它的实现类ContextImpl的ApplicationContentResolver。</p>
+</li>
+<li><p>访问ContextProvider时一个IPC过程，由于ContentProvider不能跨进程访问。调用ContentResolver的query等方法首先需要从AMS端获取一个ContextProvider的代理对象，这个代理对象实现了IContentProvider接口，它用于代理远端的Binder对象ContextProvider.Trasnport。ContextProvider.Trasnport继承自ContentProviderNative，ContentProviderNative实现了IContentProvider接口。通过ContextProvider.Trasnport的本地代理对象，可以调用ContextProvider.Trasnport的query方法，Trasnport是ContextProvider的内部类，持有ContextProvider的引用，它再去调用ContextProvider的方法并通过IPC过程返回结果。</p>
+</li>
+<li><p>第一次访问ContentProvider的时候，如果它还没有创建，AMS会通过startProcessLock方法调用Process的start方法，通过Zygote去fork一个进程之后调用ActivityThread的main方法，在main方法中创建ActivityThread对象，并调用其attach方法，在此过程创建了Instrumentation对象、Application对象，并创建该进程中对应的ContentProvider并调用其onCreate方法，此后调用Application的onCreate方法，因此ContentProvider的onCreate方法早于Application的onCreate方法执行，这也是四大组件中唯一一个比较特别的。</p>
+</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/12/Android四大组件——BroadCastReceiver的工作过程/" rel="next" title="Android四大组件——BroadCastReceiver的工作过程">
+                <i class="fa fa-chevron-left"></i> Android四大组件——BroadCastReceiver的工作过程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/01/Android进程保活招数概览/" rel="prev" title="Android进程保活招数概览">
+                Android进程保活招数概览 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#源码分析"><span class="nav-number">1.</span> <span class="nav-text">源码分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

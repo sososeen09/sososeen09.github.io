@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="很早就想写一篇Binder的文章了，但是迟迟没写出来，因为Binder机制牵涉到的知识点太多了，有Java层的Binder，也有底层的binder驱动。通常我们在Java层面做应用开发牵涉到Binder的，有AIDL、Messenger等。如何写AIDL、Messenger相关的代码并不难，难点在于理解Binder的原理。如果想要系统地学习Binder，推荐看《Android开发艺术探索》的相关章">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Binder学习概要">
+<meta property="og:url" content="http://yoursite.com/2018/03/18/Binder学习概要/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="很早就想写一篇Binder的文章了，但是迟迟没写出来，因为Binder机制牵涉到的知识点太多了，有Java层的Binder，也有底层的binder驱动。通常我们在Java层面做应用开发牵涉到Binder的，有AIDL、Messenger等。如何写AIDL、Messenger相关的代码并不难，难点在于理解Binder的原理。如果想要系统地学习Binder，推荐看《Android开发艺术探索》的相关章">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-fb7acce231ab846f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T03:39:20.579Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Binder学习概要">
+<meta name="twitter:description" content="很早就想写一篇Binder的文章了，但是迟迟没写出来，因为Binder机制牵涉到的知识点太多了，有Java层的Binder，也有底层的binder驱动。通常我们在Java层面做应用开发牵涉到Binder的，有AIDL、Messenger等。如何写AIDL、Messenger相关的代码并不难，难点在于理解Binder的原理。如果想要系统地学习Binder，推荐看《Android开发艺术探索》的相关章">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/2083810-fb7acce231ab846f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/18/Binder学习概要/"/>
+
+
+
+
+
+  <title>Binder学习概要 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/18/Binder学习概要/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Binder学习概要</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-18T12:03:00+08:00">
+                2018-03-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>很早就想写一篇Binder的文章了，但是迟迟没写出来，因为Binder机制牵涉到的知识点太多了，有Java层的Binder，也有底层的binder驱动。通常我们在Java层面做应用开发牵涉到Binder的，有AIDL、Messenger等。如何写AIDL、Messenger相关的代码并不难，难点在于理解Binder的原理。如果想要系统地学习Binder，推荐看《Android开发艺术探索》的相关章节以及老罗《Android进程间通信（IPC）机制Binder简要介绍和学习计划》系列，分别对应的是Java层的Binder机制和底层的Binder机制。还有一些其它的优秀的文章，文后会有推荐。</p>
+<p>本文不打算深入地介绍Binder 机制的原理，毕竟这不是一两篇文章能介绍的清楚的，而且现在网上也有很多优秀的文章。本文想介绍的是我个人通过对Binder地学习，对Binder机制和Android系统的一些理解。</p>
+<p>限于水平，难免有误，还请指正。</p>
+<h1 id="Binder基本介绍"><a href="#Binder基本介绍" class="headerlink" title="Binder基本介绍"></a>Binder基本介绍</h1><p>Binder是Android系统运行的一个重要基石，做Android开发的应该没有没听说过Binder的吧，那么Binder到底是个什么东西呢？</p>
+<p>Binder，最简单来说就是一个Java类，全路径名是 <code>android.os.Binder</code> ，一般我们看到包名是 <code>android.os</code> 的，就应该想到它是系统运行相关的类。这个Binder类实现了IBinder接口，代表这个类的对象具有跨进程通讯的能力。从IPC角度上讲，Binder是Android中一种跨进程通讯方式。Binder还可以理解为一个虚拟的物理设备，这是因为它是有驱动的，但是又不像一般的硬件那样有物理实体，它的设备驱动是/dev/binder，这个驱动是Android特有的，Linux中没有。从Framework层讲，是ServiceManager与各种manager，比如ActivityManagerService、WindowManagerService和各种ManagerService进行通讯的桥梁；从应用层来说，Binder是客户端和服务端进行通讯的媒介。</p>
+<p>我觉得不管从什么角度来看Binder，Binder的作用就是用来进行跨进程通讯 (IPC) 的。这里，我们需要简单介绍下IPC，以便于更好的理解Binder的作用。</p>
+<h1 id="IPC方式"><a href="#IPC方式" class="headerlink" title="IPC方式"></a>IPC方式</h1><p>任何一个系统都需要有相应的IPC机制，Linux上面可以通过管道、System V IPC，即消息队列/共享内存/信号量，或者Socket的方式来进行跨进程通讯，Android是基于Linux的，也就是说Android也可以使用这些IPC方式，那么Android系统为什么还要再引入Binder这种IPC方式呢？这个问题，我觉得可以从三个方面来回答：使用方便、传输性能、安全。</p>
+<ul>
+<li>使用方便： Binder是基于C/S架构的，利用了面向对象的思想，对于开发者使用来说，很方便。从这个角度来说，共享内存这种方式就不适合，因为它使用太复杂。</li>
+<li>传输性能：Android毕竟是移动设备，移动设备就要考虑内存占用和耗电量的问题，Binder只需要拷贝内存1次，而管道、消息队列、Socket都需要对数据拷贝2次。</li>
+<li>安全：传统IPC没有任何安全措施，完全依赖上层协议来确保。传统IPC访问接入点是开放的，无法建立私有通道。比如命名管道的名称，system V的键值，socket的ip地址或文件名都是开放的，只要知道这些接入点的程序都可以和对端建立连接，不管怎样都无法阻止恶意程序通过猜测接收方地址获得连接。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>IPC</th>
+<th>数据拷贝次数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>共享内存</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Binder</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Socket/管道/消息队列</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p>基于以上这些原因，Android引入了Binder这种IPC方式，基于C/S架构，传输过程只需要1次拷贝，为发送方添加UID/PID身份验证，既支持实名Binder也支持匿名Binder，安全性高。</p>
+<h1 id="Binder中的4种角色"><a href="#Binder中的4种角色" class="headerlink" title="Binder中的4种角色"></a>Binder中的4种角色</h1><ul>
+<li>Client：客户端，使用服务的一端</li>
+<li>Server：服务端，提供服务的一端</li>
+<li>ServerManager：ServiceManager的作用是将字符形式的Binder名字转化成Client中对该Binder的引用，使得Client能够通过Binder名字获得对Server中Binder实体的引用。其实ServiceManager端也是一个Server端，也有自己的Binder实体，对于ServerManager端来说，其它端都是client端。它是一个守护进程，用来管理Server，并向Client提供查询Server接口的能力。</li>
+<li>Binder驱动：驱动负责进程之间Binder通信的建立，Binder在进程之间的传递，Binder引用计数管理，数据包在进程之间的传递和交互等一系列底层支持。</li>
+</ul>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-fb7acce231ab846f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片摘自老罗的Binder简要介绍和学习计划.png"></p>
+<p>Client、Server和Service Manager实现在用户空间中，Binder驱动程序实现在内核空间中。 Client和Server之间的进程间通信通过Binder驱动程序间接实现。Binder驱动程序和Service Manager在Android平台中已经实现，对于我们应用开发者来说，只需要实现自己的Client和Server就行，常见的就是使用AIDL的方式来实现IPC。</p>
+<h1 id="应用开发中的Binder使用"><a href="#应用开发中的Binder使用" class="headerlink" title="应用开发中的Binder使用"></a>应用开发中的Binder使用</h1><p>Binder的那些概念介绍是挺枯燥乏味的，在Android开发中我们无时不刻不在使用Binder，那么我们就结合平时的开发来了解一些使用的Binder机制的地方。</p>
+<p>1 Activity启动</p>
+<p>Activity的启动需要用到ActivityManagerService，但是我们的App进程和ActivityManagerService所在的进程不是同一个进程，所以就需要用到进程间通讯了。在App进程中我们拿到的是ActivityManagerService的一个分身，也就是ActivityManagerProxy，这个ActivityManagerProxy与ActivityManagerService都实现了IActivityManager接口，因此它们具有相同的功能，但是ActivityManagerProxy只是做了一个中转，创建两个Parcel对象，一个用于携带请求的参数，一个用于拿到请求结果，然后调用transact方法，通过Binder驱动，ActivityManagerService的onTransact方法会被调用，然后根据相应的code，调用相应的方法，并把处理结果返回。</p>
+<p><strong>在这个过程中，我们的App进程就是Client，ActivityManagerService所在的进程是Service。</strong></p>
+<p>但是Activity的启动过程还没有完，ActivityManagerService还会调用我们App所在进程的ApplicationThread来最终完成Activity的启动，其实ActivityManagerService拿到的也是ApplicationThread的一个分身ApplicationThreadProxy，通过这个分身，ApplicationThread相应的方法会被调用。</p>
+<p><strong>在这个过程中，我们的App端是Server，ActivityManagerService所在的进程是Client。</strong></p>
+<p>还有一个问题我们要注意，ActivityThread有一个内部类H（一个Hander），ApplicationThread方法内部都会通过这个Handler来发送消息，最终调用到ActivityThread的方法。为什么要这么做呢？</p>
+<p>在分析源码的过程中，很长一段时间，这个问题都困扰着我，直到有一天对Binder的理解加深了，我才明白：<strong>Binder服务端的方法都是运行在Binder线程池的一个线程中的，所以要通过Hander，把方法的调用切换到主线程中来</strong>。</p>
+<p>2 Intent携带数据</p>
+<p>我们都知道Intent可以传递的数据包含：基本类型、String、实现了Serializable接口或者Parcelable接口的类以及对应的数组或者集合类。其实Intent中的数据都是通过Bundle来携带的，那么我们就要有个疑问了，为什么限定只能是这些类型的数据，而不是任意的数据类型呢？</p>
+<p>归根结底，限制这些类型的是Parcel这个类。如果我们查看源码的话就会看到，Bundle其实也是用到了Parcel这个类。</p>
+<p>Parcel ，“包裹的意思”，它的作用就是为了在IPC过程中存放数据。我们要知道一点，进程间传递数据，实际上就是二进制数据，所以对于非基本类型，必然存在着序列化和反序列过程，这也是为什么要求Intent传递的非基本类型数据必须实现Serializable或者Parcelable接口的原因。</p>
+<p>至于Parcel在IPC过程中使用到的地方，我们可以看一段代码，这个是我仿造着AIDL生成的文件，自己手写的一个Binder服务端。看一下Proxy类的add方法，实际上就是先创建两个Parcel对象，一个通过调用 writexxx 方法用于存放请求数据，一个是通过调用 readxxx 方法获取结果。Proxy真正干的就是这些，真正计算的还是服务端Stub的实现类。当Proxy调用 <code>mRemote.transact(TRANSACTION_add, _data, _reply, 0);</code> 方法后，Stub的onTransact方法会被调用，进而调用真正的add方法。</p>
+<p>在这里，我们就可以看到Parcel的一系列 writexxx、readxxx方法的作用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line">public interface ICalculateInterface extends IInterface &#123;</span><br><span class="line"></span><br><span class="line">    public abstract class Stub extends Binder implements ICalculateInterface &#123;</span><br><span class="line">        private static final String DESCRIPTOR = &quot;com.sososeen09.knowledge.ipc.handipc.ICalculateInterface&quot;;</span><br><span class="line"></span><br><span class="line">        public Stub() &#123;</span><br><span class="line">            this.attachInterface(this, DESCRIPTOR);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public IBinder asBinder() &#123;</span><br><span class="line">            return this;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public static ICalculateInterface asInterface(IBinder obj) &#123;</span><br><span class="line">            if (obj == null) &#123;</span><br><span class="line">                return null;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            IInterface iInterface = obj.queryLocalInterface(DESCRIPTOR);</span><br><span class="line"></span><br><span class="line">            if (iInterface != null &amp;&amp; iInterface instanceof ICalculateInterface) &#123;</span><br><span class="line">                return (ICalculateInterface) iInterface;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                return new Proxy(obj);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException &#123;</span><br><span class="line">            switch (code) &#123;</span><br><span class="line">                case INTERFACE_TRANSACTION: &#123;</span><br><span class="line">                    reply.writeString(DESCRIPTOR);</span><br><span class="line">                    return true;</span><br><span class="line">                &#125;</span><br><span class="line">                case TRANSACTION_add: &#123;</span><br><span class="line">                    data.enforceInterface(DESCRIPTOR);</span><br><span class="line">                    int _arg0, _arg1, _result;</span><br><span class="line">                    _arg0 = data.readInt();</span><br><span class="line">                    _arg1 = data.readInt();</span><br><span class="line">                    _result = this.add(_arg0, _arg1);</span><br><span class="line"></span><br><span class="line">                    reply.writeNoException();</span><br><span class="line">                    reply.writeInt(_result);</span><br><span class="line">                    return true;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            return super.onTransact(code, data, reply, flags);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        private static class Proxy implements ICalculateInterface &#123;</span><br><span class="line"></span><br><span class="line">            private IBinder mRemote;</span><br><span class="line"></span><br><span class="line">            public Proxy(IBinder remote) &#123;</span><br><span class="line">                mRemote = remote;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            public String getInterfaceDescriptor() &#123;</span><br><span class="line">                return DESCRIPTOR;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public int add(int a, int b) throws RemoteException &#123;</span><br><span class="line">                Parcel _data = Parcel.obtain();</span><br><span class="line">                Parcel _reply = Parcel.obtain();</span><br><span class="line">                int result;</span><br><span class="line">                try &#123;</span><br><span class="line">                    _data.writeInterfaceToken(DESCRIPTOR);</span><br><span class="line">                    _data.writeInt(a);</span><br><span class="line">                    _data.writeInt(b);</span><br><span class="line"></span><br><span class="line">                    mRemote.transact(TRANSACTION_add, _data, _reply, 0);</span><br><span class="line">                    _reply.readException();</span><br><span class="line"></span><br><span class="line">                    result = _reply.readInt();</span><br><span class="line">                &#125; finally &#123;</span><br><span class="line">                    _data.recycle();</span><br><span class="line">                    _reply.recycle();</span><br><span class="line">                &#125;</span><br><span class="line">                return result;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public IBinder asBinder() &#123;</span><br><span class="line">                return mRemote;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    static final int TRANSACTION_add = (IBinder.FIRST_CALL_TRANSACTION + 0);</span><br><span class="line">    int add(int a, int b) throws RemoteException;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关于Binder的介绍和Java层的使用，先介绍到这里，这些内容会持续更新。</p>
+<h1 id="Binder使用的一些注意事项"><a href="#Binder使用的一些注意事项" class="headerlink" title="Binder使用的一些注意事项"></a>Binder使用的一些注意事项</h1><ul>
+<li>Binder方法是在Binder线程池中被调用的，所以不需要再次new一个线程了，Client调用Server端方法，当前线程会被调起，太耗时的话记得用一个线程来调用。</li>
+<li>Intent携带的数据大小是限制了，不要超过1M，否则就会报一个TransactionTooLargeException的异常。这是因为Binder数据的缓存大小就是1M。有的时候，即使一次携带的数据不到1M，还是可能会报异常，因为存在并发的情况。</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="http://blog.csdn.net/luoshengyang/article/details/6618363" target="_blank" rel="noopener">Android进程间通信（IPC）机制Binder简要介绍和学习计划</a></li>
+<li><a href="http://blog.csdn.net/universus/article/details/6211589" target="_blank" rel="noopener">Android Bander设计与实现 - 设计篇</a></li>
+<li><a href="http://weishu.me/2016/01/12/binder-index-for-newer/" target="_blank" rel="noopener">田维术-Binder学习指南</a></li>
+<li><a href="http://gityuan.com/2015/10/31/binder-prepare/" target="_blank" rel="noopener">小米系统工程师gityuan——Binder系列</a></li>
+<li><a href="http://www.jianshu.com/p/c7bcb4c96b38" target="_blank" rel="noopener">Android面试一天一题（Day 35：神秘的Binder机制</a></li>
+<li><a href="https://www.qcloud.com/community/article/546217" target="_blank" rel="noopener">Binder 总体架构及相关代码浅析</a></li>
+<li><a href="http://blog.csdn.net/qian520ao/article/details/78089877" target="_blank" rel="noopener">Android Binder之应用层总结与分析</a></li>
+<li><a href="https://blog.csdn.net/c10WTiybQ1Ye3/article/details/78433798" target="_blank" rel="noopener">Android Binder之应用层精彩解析</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/29/hello-world/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/01/Activity启动过程分析/" rel="prev" title="Activity启动过程分析">
+                Activity启动过程分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Binder基本介绍"><span class="nav-number">1.</span> <span class="nav-text">Binder基本介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IPC方式"><span class="nav-number">2.</span> <span class="nav-text">IPC方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Binder中的4种角色"><span class="nav-number">3.</span> <span class="nav-text">Binder中的4种角色</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#应用开发中的Binder使用"><span class="nav-number">4.</span> <span class="nav-text">应用开发中的Binder使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Binder使用的一些注意事项"><span class="nav-number">5.</span> <span class="nav-text">Binder使用的一些注意事项</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

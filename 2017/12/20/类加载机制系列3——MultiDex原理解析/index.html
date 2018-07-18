@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="MultiDex的由来Android中由于一个dex文件最多存储65536个方法，也就是一个short类型的范围，所以随着应用的类不断增加，当一个dex文件突破这个方法数的时候就会报出异常。虽然可以通过混淆等方式来减少无用的方法，但是随着APP功能的增多，突破方法数限制还是不可避免的。因此在Android5.0时，Android推出了官方的解决方案：MultiDex。打包的时候，把一个应用分成多个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类加载机制系列3——MultiDex原理解析">
+<meta property="og:url" content="http://yoursite.com/2017/12/20/类加载机制系列3——MultiDex原理解析/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="MultiDex的由来Android中由于一个dex文件最多存储65536个方法，也就是一个short类型的范围，所以随着应用的类不断增加，当一个dex文件突破这个方法数的时候就会报出异常。虽然可以通过混淆等方式来减少无用的方法，但是随着APP功能的增多，突破方法数限制还是不可避免的。因此在Android5.0时，Android推出了官方的解决方案：MultiDex。打包的时候，把一个应用分成多个">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-18T04:21:24.323Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="类加载机制系列3——MultiDex原理解析">
+<meta name="twitter:description" content="MultiDex的由来Android中由于一个dex文件最多存储65536个方法，也就是一个short类型的范围，所以随着应用的类不断增加，当一个dex文件突破这个方法数的时候就会报出异常。虽然可以通过混淆等方式来减少无用的方法，但是随着APP功能的增多，突破方法数限制还是不可避免的。因此在Android5.0时，Android推出了官方的解决方案：MultiDex。打包的时候，把一个应用分成多个">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/20/类加载机制系列3——MultiDex原理解析/"/>
+
+
+
+
+
+  <title>类加载机制系列3——MultiDex原理解析 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/20/类加载机制系列3——MultiDex原理解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">类加载机制系列3——MultiDex原理解析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-20T11:06:00+08:00">
+                2017-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="MultiDex的由来"><a href="#MultiDex的由来" class="headerlink" title="MultiDex的由来"></a>MultiDex的由来</h1><p>Android中由于一个dex文件最多存储65536个方法，也就是一个short类型的范围，所以随着应用的类不断增加，当一个dex文件突破这个方法数的时候就会报出异常。虽然可以通过混淆等方式来减少无用的方法，但是随着APP功能的增多，突破方法数限制还是不可避免的。因此在Android5.0时，Android推出了官方的解决方案：MultiDex。打包的时候，把一个应用分成多个dex，例如：classes.dex、classes2.dex、classes3.dex…，加载的时候把这些dex都追加到DexPathList对应的数组中，这样就解决了方法数的限制。</p>
+<p>5.0后的系统都内置了加载多个dex文件的功能，而在5.0之前，系统只可以加载一个主dex，其它的dex就需要采用一定的手段来加载。这也就是我们今天要讲的MultiDex。</p>
+<p>MultiDex存放在<code>android.support.multidex包下</code>。</p>
+<h1 id="MultiDex的使用"><a href="#MultiDex的使用" class="headerlink" title="MultiDex的使用"></a>MultiDex的使用</h1><p>Gradle构建环境下，在主应用的build.gradle文件夹添加如下配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">defaultConfig &#123;</span><br><span class="line">    ...</span><br><span class="line">    multiDexEnabled true</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile &apos;com.android.support:multidex:1.0.1&apos;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在最新的multidex版本是1.0.2。</p>
+<p>在AndroidManifest.xml中的app节点下，使用<code>MultiDexApplication</code>作为应用入口。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">package android.support.multidex;</span><br><span class="line">...</span><br><span class="line">public class MultiDexApplication extends Application &#123;</span><br><span class="line">  @Override</span><br><span class="line">  protected void attachBaseContext(Context base) &#123;</span><br><span class="line">    super.attachBaseContext(base);</span><br><span class="line">    MultiDex.install(this);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当然了，大部分情况下，我们都会自定义一个自己的Application对应用做一些初始化。这种情况下，可以在我们自定义的Application中的attachBaseContext()方法中调用MultiDex.install()方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 自定义的Applicaiton中</span><br><span class="line">  @Override</span><br><span class="line">  protected void attachBaseContext(Context base) &#123;</span><br><span class="line">    super.attachBaseContext(base);</span><br><span class="line">    MultiDex.install(this);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>需要注意的是：MultiDex.install()方法的调用时机要尽可能的早，防止加载后面的dex文件中的类时报ClassNotFoundException。</p>
+<h1 id="MultiDex源码分析"><a href="#MultiDex源码分析" class="headerlink" title="MultiDex源码分析"></a>MultiDex源码分析</h1><p>分析MultiDex的的入口就是它的静态方法install()。<br>这个方法的作用就是把从应用的APK文件中的dex添加到应用的类加载器PathClassLoader中的DexPathList的Emlement数组中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line">public static void install(Context context) &#123;</span><br><span class="line">    Log.i(TAG, &quot;install&quot;);</span><br><span class="line">    //判断Android系统是否已经支持了MultiDex，如果支持了就不需要再去安装了，直接返回</span><br><span class="line">    if (IS_VM_MULTIDEX_CAPABLE) &#123;</span><br><span class="line">        Log.i(TAG, &quot;VM has multidex support, MultiDex support library is disabled.&quot;);</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 如果Android系统低于MultiDex最低支持的版本就抛出异常</span><br><span class="line">    if (Build.VERSION.SDK_INT &lt; MIN_SDK_VERSION) &#123;</span><br><span class="line">        throw new RuntimeException(&quot;Multi dex installation failed. SDK &quot; + Build.VERSION.SDK_INT</span><br><span class="line">                + &quot; is unsupported. Min SDK version is &quot; + MIN_SDK_VERSION + &quot;.&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    try &#123;</span><br><span class="line">        // 获取应用信息</span><br><span class="line">        ApplicationInfo applicationInfo = getApplicationInfo(context);</span><br><span class="line">        // 如果应用信息为空就返回，比如说运行在一个测试的Context下。</span><br><span class="line">        if (applicationInfo == null) &#123;</span><br><span class="line">            // Looks like running on a test Context, so just return without patching.</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        // 同步方法</span><br><span class="line">        synchronized (installedApk) &#123;</span><br><span class="line">            // 获取已经安装的APK的全路径</span><br><span class="line">            String apkPath = applicationInfo.sourceDir;</span><br><span class="line">            if (installedApk.contains(apkPath)) &#123;</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            // 把路径添加到已经安装的APK路径中</span><br><span class="line">            installedApk.add(apkPath);</span><br><span class="line">            // 如果编译版本大于最大支持版本，报一个警告</span><br><span class="line">            if (Build.VERSION.SDK_INT &gt; MAX_SUPPORTED_SDK_VERSION) &#123;</span><br><span class="line">                Log.w(TAG, &quot;MultiDex is not guaranteed to work in SDK version &quot;</span><br><span class="line">                        + Build.VERSION.SDK_INT + &quot;: SDK version higher than &quot;</span><br><span class="line">                        + MAX_SUPPORTED_SDK_VERSION + &quot; should be backed by &quot;</span><br><span class="line">                        + &quot;runtime with built-in multidex capabilty but it&apos;s not the &quot;</span><br><span class="line">                        + &quot;case here: java.vm.version=\&quot;&quot;</span><br><span class="line">                        + System.getProperty(&quot;java.vm.version&quot;) + &quot;\&quot;&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">            /* The patched class loader is expected to be a descendant of</span><br><span class="line">             * dalvik.system.BaseDexClassLoader. We modify its</span><br><span class="line">             * dalvik.system.DexPathList pathList field to append additional DEX</span><br><span class="line">             * file entries.</span><br><span class="line">             */</span><br><span class="line">            ClassLoader loader;</span><br><span class="line">            try &#123;</span><br><span class="line">                // 获取ClassLoader，实际上是PathClassLoader</span><br><span class="line">                loader = context.getClassLoader();</span><br><span class="line">            &#125; catch (RuntimeException e) &#123;</span><br><span class="line">                /* Ignore those exceptions so that we don&apos;t break tests relying on Context like</span><br><span class="line">                 * a android.test.mock.MockContext or a android.content.ContextWrapper with a</span><br><span class="line">                 * null base Context.</span><br><span class="line">                 */</span><br><span class="line">                Log.w(TAG, &quot;Failure while trying to obtain Context class loader. &quot; +</span><br><span class="line">                        &quot;Must be running in test mode. Skip patching.&quot;, e);</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            // 在某些测试环境下ClassLoader为null</span><br><span class="line">            if (loader == null) &#123;</span><br><span class="line">                // Note, the context class loader is null when running Robolectric tests.</span><br><span class="line">                Log.e(TAG,</span><br><span class="line">                        &quot;Context class loader is null. Must be running in test mode. &quot;</span><br><span class="line">                                + &quot;Skip patching.&quot;);</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            try &#123;</span><br><span class="line">                // 清除老的缓存的Dex目录，来源的缓存目录是&quot;/data/user/0/$&#123;packageName&#125;/files/secondary-dexes&quot;</span><br><span class="line">                clearOldDexDir(context);</span><br><span class="line">            &#125; catch (Throwable t) &#123;</span><br><span class="line">                Log.w(TAG, &quot;Something went wrong when trying to clear old MultiDex extraction, &quot;</span><br><span class="line">                        + &quot;continuing without cleaning.&quot;, t);</span><br><span class="line">            &#125;</span><br><span class="line">            // 新建一个存放dex的目录，路径是&quot;/data/user/0/$&#123;packageName&#125;/code_cache/secondary-dexes&quot;，用来存放优化后的dex文件</span><br><span class="line">            File dexDir = new File(applicationInfo.dataDir, SECONDARY_FOLDER_NAME);</span><br><span class="line">            // 使用MultiDexExtractor这个工具类把APK中的dex抽取到dexDir目录中，返回的files集合有可能为空，表示没有secondaryDex</span><br><span class="line">            // 不强制重新加载，也就是说如果已经抽取过了，可以直接从缓存目录中拿来使用，这么做速度比较快</span><br><span class="line">            List&lt;File&gt; files = MultiDexExtractor.load(context, applicationInfo, dexDir, false);</span><br><span class="line">            if (checkValidZipFiles(files)) &#123;</span><br><span class="line">                // 如果抽取的文件是有效的，就安装secondaryDex</span><br><span class="line">                installSecondaryDexes(loader, dexDir, files);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                Log.w(TAG, &quot;Files were not valid zip files. Forcing a reload.&quot;);</span><br><span class="line">                // Try again, but this time force a reload of the zip file.</span><br><span class="line">                // 如果抽取出的文件是无效的，那么就强制重新加载，这么做的话速度就慢了一点，有一些IO开销</span><br><span class="line">                files = MultiDexExtractor.load(context, applicationInfo, dexDir, true);</span><br><span class="line">                if (checkValidZipFiles(files)) &#123;</span><br><span class="line">                    // 强制加载后，如果文件有效就安装，否则就抛出异常</span><br><span class="line">                    installSecondaryDexes(loader, dexDir, files);</span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    // Second time didn&apos;t work, give up</span><br><span class="line">                    throw new RuntimeException(&quot;Zip files were not valid.&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; catch (Exception e) &#123;</span><br><span class="line">        Log.e(TAG, &quot;Multidex installation failure&quot;, e);</span><br><span class="line">        throw new RuntimeException(&quot;Multi dex installation failed (&quot; + e.getMessage() + &quot;).&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    Log.i(TAG, &quot;install done&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关于dex文件抽取逻辑和校验逻辑我们先不管，我们看一下MultiDex是如何安装secondaryDex文件的。<br>由于不同版本的Android系统，类加载机制有一些不同，所以分为了V19、V14和V4等三种情况下的安装。V19、V14和V4都是MultiDex的private的静态内部类。V19支持Andorid19版本(20是只支持可穿戴设备的)，V14支持14,、15、16、17 和 18版本，V4支持从4到13的版本。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># android.support.multidex.MultiDex</span><br><span class="line">private static void installSecondaryDexes(ClassLoader loader, File dexDir, List&lt;File&gt; files)</span><br><span class="line">        throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException,</span><br><span class="line">        InvocationTargetException, NoSuchMethodException, IOException &#123;</span><br><span class="line">    if (!files.isEmpty()) &#123;</span><br><span class="line">        if (Build.VERSION.SDK_INT &gt;= 19) &#123;</span><br><span class="line">            V19.install(loader, files, dexDir);</span><br><span class="line">        &#125; else if (Build.VERSION.SDK_INT &gt;= 14) &#123;</span><br><span class="line">            V14.install(loader, files, dexDir);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            V4.install(loader, files);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们来看一下V19的源码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Installer for platform versions 19.</span><br><span class="line"> */</span><br><span class="line">private static final class V19 &#123;</span><br><span class="line">    private static void install(ClassLoader loader, List&lt;File&gt; additionalClassPathEntries,</span><br><span class="line">            File optimizedDirectory)</span><br><span class="line">                    throws IllegalArgumentException, IllegalAccessException,</span><br><span class="line">                    NoSuchFieldException, InvocationTargetException, NoSuchMethodException &#123;</span><br><span class="line">        /* The patched class loader is expected to be a descendant of</span><br><span class="line">         * dalvik.system.BaseDexClassLoader. We modify its</span><br><span class="line">         * dalvik.system.DexPathList pathList field to append additional DEX</span><br><span class="line">         * file entries.</span><br><span class="line">         */</span><br><span class="line">        // 传递的loader是PathClassLoader，findFidld()方法是遍历loader及其父类找到pathList字段</span><br><span class="line">        // 实际上就是找到BaseClassLoader中的DexPathList</span><br><span class="line">        Field pathListField = findField(loader, &quot;pathList&quot;);</span><br><span class="line">        // 获取PathClassLoader绑定的DexPathList对象</span><br><span class="line">        Object dexPathList = pathListField.get(loader);</span><br><span class="line">        ArrayList&lt;IOException&gt; suppressedExceptions = new ArrayList&lt;IOException&gt;();</span><br><span class="line">        // 扩展DexPathList对象的Element数组，数组名是dexElements</span><br><span class="line">        // makeDexElements()方法的作用就是调用DexPathList的makeDexElements()方法来创建dex元素</span><br><span class="line">        expandFieldArray(dexPathList, &quot;dexElements&quot;, makeDexElements(dexPathList,</span><br><span class="line">                new ArrayList&lt;File&gt;(additionalClassPathEntries), optimizedDirectory,</span><br><span class="line">                suppressedExceptions));</span><br><span class="line">        // 后面就是添加一些IO异常信息，因为调用DexPathList的makeDexElements会有一些IO操作，相应的可能就会有一些异常情况</span><br><span class="line">        if (suppressedExceptions.size() &gt; 0) &#123;</span><br><span class="line">            for (IOException e : suppressedExceptions) &#123;</span><br><span class="line">                Log.w(TAG, &quot;Exception in makeDexElement&quot;, e);</span><br><span class="line">            &#125;</span><br><span class="line">            Field suppressedExceptionsField =</span><br><span class="line">                    findField(loader, &quot;dexElementsSuppressedExceptions&quot;);</span><br><span class="line">            IOException[] dexElementsSuppressedExceptions =</span><br><span class="line">                    (IOException[]) suppressedExceptionsField.get(loader);</span><br><span class="line">            if (dexElementsSuppressedExceptions == null) &#123;</span><br><span class="line">                dexElementsSuppressedExceptions =</span><br><span class="line">                        suppressedExceptions.toArray(</span><br><span class="line">                                new IOException[suppressedExceptions.size()]);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                IOException[] combined =</span><br><span class="line">                        new IOException[suppressedExceptions.size() +</span><br><span class="line">                                        dexElementsSuppressedExceptions.length];</span><br><span class="line">                suppressedExceptions.toArray(combined);</span><br><span class="line">                System.arraycopy(dexElementsSuppressedExceptions, 0, combined,</span><br><span class="line">                        suppressedExceptions.size(), dexElementsSuppressedExceptions.length);</span><br><span class="line">                dexElementsSuppressedExceptions = combined;</span><br><span class="line">            &#125;</span><br><span class="line">            suppressedExceptionsField.set(loader, dexElementsSuppressedExceptions);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    /**</span><br><span class="line">     * A wrapper around</span><br><span class="line">     * &#123;@code private static final dalvik.system.DexPathList#makeDexElements&#125;.</span><br><span class="line">     */</span><br><span class="line">    // 通过反射的方式调用DexPathList#makeDexElements()方法</span><br><span class="line">    // dexPathList 就是一个DexPathList对象</span><br><span class="line">    private static Object[] makeDexElements(</span><br><span class="line">            Object dexPathList, ArrayList&lt;File&gt; files, File optimizedDirectory,</span><br><span class="line">            ArrayList&lt;IOException&gt; suppressedExceptions)</span><br><span class="line">                    throws IllegalAccessException, InvocationTargetException,</span><br><span class="line">                    NoSuchMethodException &#123;</span><br><span class="line">        // 获取DexPathList的makeDexElements()方法</span><br><span class="line">        Method makeDexElements =</span><br><span class="line">                findMethod(dexPathList, &quot;makeDexElements&quot;, ArrayList.class, File.class,</span><br><span class="line">                        ArrayList.class);</span><br><span class="line">        // 调用makeDexElements()方法，根据外界传递的包含dex文件的源文件和优化后的缓存目录返回一个Element[]数组</span><br><span class="line">        return (Object[]) makeDexElements.invoke(dexPathList, files, optimizedDirectory,</span><br><span class="line">                suppressedExceptions);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>MultiDex的expandFieldArray()方法作用是扩展一个对象中的数组中的元素。实际上就是一个工具方法。简单看一下源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># android.support.multidex.MultiDex</span><br><span class="line">private static void expandFieldArray(Object instance, String fieldName,</span><br><span class="line">        Object[] extraElements) throws NoSuchFieldException, IllegalArgumentException,</span><br><span class="line">        IllegalAccessException &#123;</span><br><span class="line">    Field jlrField = findField(instance, fieldName);</span><br><span class="line">    Object[] original = (Object[]) jlrField.get(instance);</span><br><span class="line">    Object[] combined = (Object[]) Array.newInstance(</span><br><span class="line">            original.getClass().getComponentType(), original.length + extraElements.length);</span><br><span class="line">    System.arraycopy(original, 0, combined, 0, original.length);</span><br><span class="line">    System.arraycopy(extraElements, 0, combined, original.length, extraElements.length);</span><br><span class="line">    jlrField.set(instance, combined);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>V19的install()方法调用完毕之后，就把APK文件中的主dex文件之外的dex文件追加到PathClassLoader（也就是BaseClassLoader）中DexPathListde Element[]数组中。这样在加载一个类的时候就会遍历所有的dex文件，保证了打包的类都能够正常加载。</p>
+<p>至于V14和V4中的install()方法，主要的思想都是一致的，在细节上有一些不同，有兴趣的可以自行查看相关源码。</p>
+<p>小结一下：<br>MultiDex的install()方法实际上是先抽取出APK文件中的.dex文件，然后利用反射把这个.dex文件生成对应的数组，最后把这些dex路径追加到PathClassLoader加载dex的路径中，从而保证了APK中所有.dex文件中类都能够被正确的加载。</p>
+<p>分析完了，MultiDex加载secondartDex的逻辑，我们再来看一下从APK文件中抽取出.dex文件的逻辑。<br>看一下MultiDexExtractor的load()方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"># android.support.multidex.MultiDexExtractor</span><br><span class="line">static List&lt;File&gt; load(Context context, ApplicationInfo applicationInfo, File dexDir,</span><br><span class="line">        boolean forceReload) throws IOException &#123;</span><br><span class="line">    Log.i(TAG, &quot;MultiDexExtractor.load(&quot; + applicationInfo.sourceDir + &quot;, &quot; + forceReload + &quot;)&quot;);</span><br><span class="line">    // sourceDir 路径为&quot;/data/app/&#125;$&#123;packageName&#125;-1/base.apk&quot;</span><br><span class="line">    final File sourceApk = new File(applicationInfo.sourceDir);</span><br><span class="line">    // 获取APK文件的CRC（循环冗余校验）</span><br><span class="line">    long currentCrc = getZipCrc(sourceApk);</span><br><span class="line"></span><br><span class="line">    List&lt;File&gt; files;</span><br><span class="line">    // 如果不需要重新加载并且文件没有被修改过</span><br><span class="line">    // isModified()方法是根据SharedPreference中存放的APK文件上一次修改的时间戳和currentCrc来判断是否修改过文件</span><br><span class="line">    if (!forceReload &amp;&amp; !isModified(context, sourceApk, currentCrc)) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            // 从缓存目录中加载已经抽取过的文件</span><br><span class="line">            files = loadExistingExtractions(context, sourceApk, dexDir);</span><br><span class="line">        &#125; catch (IOException ioe) &#123;</span><br><span class="line">            Log.w(TAG, &quot;Failed to reload existing extracted secondary dex files,&quot;</span><br><span class="line">                    + &quot; falling back to fresh extraction&quot;, ioe);</span><br><span class="line">            // 如果从缓存中加载失败就需要冲APK文件中去加载，这个过程时间会长一点</span><br><span class="line">            files = performExtractions(sourceApk, dexDir);</span><br><span class="line">            // 把抽取信息保存到SharedPreferences中，方便下次使用</span><br><span class="line">            putStoredApkInfo(context, getTimeStamp(sourceApk), currentCrc, files.size() + 1);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        // 如果强制加载或者APK文件已经修改过就重新抽取dex文件</span><br><span class="line">        Log.i(TAG, &quot;Detected that extraction must be performed.&quot;);</span><br><span class="line">        files = performExtractions(sourceApk, dexDir);</span><br><span class="line">        putStoredApkInfo(context, getTimeStamp(sourceApk), currentCrc, files.size() + 1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Log.i(TAG, &quot;load found &quot; + files.size() + &quot; secondary dex files&quot;);</span><br><span class="line">    return files;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>根据前后顺序的话，App第一次运行的时候需要从APK冲抽取dex文件，我们先来看一下MultiDexExtractor的performExtractions()方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"># android.support.multidex.MultiDexExtractor</span><br><span class="line">private static List&lt;File&gt; performExtractions(File sourceApk, File dexDir)</span><br><span class="line">        throws IOException &#123;</span><br><span class="line">    // 抽取出的dex文件名前缀是&quot;$&#123;apkName&#125;.classes&quot;</span><br><span class="line">    final String extractedFilePrefix = sourceApk.getName() + EXTRACTED_NAME_EXT;</span><br><span class="line"></span><br><span class="line">    // Ensure that whatever deletions happen in prepareDexDir only happen if the zip that</span><br><span class="line">    // contains a secondary dex file in there is not consistent with the latest apk.  Otherwise,</span><br><span class="line">    // multi-process race conditions can cause a crash loop where one process deletes the zip</span><br><span class="line">    // while another had created it.</span><br><span class="line">    // 由于这个dexDir缓存目录可能不止一个APK在使用，在抽取一个APK之前如果有缓存过的与APK相关的dex文件就需要先删除掉，如果dexDir目录不存在就需要创建</span><br><span class="line">    prepareDexDir(dexDir, extractedFilePrefix);</span><br><span class="line"></span><br><span class="line">    List&lt;File&gt; files = new ArrayList&lt;File&gt;();</span><br><span class="line"></span><br><span class="line">    final ZipFile apk = new ZipFile(sourceApk);</span><br><span class="line">    try &#123;</span><br><span class="line"></span><br><span class="line">        int secondaryNumber = 2;</span><br><span class="line">        // 获取&quot;classes$&#123;secondaryNumber&#125;.dex&quot;格式的文件</span><br><span class="line">        ZipEntry dexFile = apk.getEntry(DEX_PREFIX + secondaryNumber + DEX_SUFFIX);</span><br><span class="line">        // 如果dexFile不为null就一直遍历</span><br><span class="line">        while (dexFile != null) &#123;</span><br><span class="line">            // 抽取后的文件名是&quot;$&#123;apkName&#125;.classes$&#123;secondaryNumber&#125;.zip&quot;</span><br><span class="line">            String fileName = extractedFilePrefix + secondaryNumber + EXTRACTED_SUFFIX;</span><br><span class="line">            // 创建文件</span><br><span class="line">            File extractedFile = new File(dexDir, fileName);</span><br><span class="line">            // 添加到集合中</span><br><span class="line">            files.add(extractedFile);</span><br><span class="line"></span><br><span class="line">            Log.i(TAG, &quot;Extraction is needed for file &quot; + extractedFile);</span><br><span class="line">            // 抽取过程中存在失败的可能，可以多次尝试，使用isExtractionSuccessful作为是否成功的标志</span><br><span class="line">            int numAttempts = 0;</span><br><span class="line">            boolean isExtractionSuccessful = false;</span><br><span class="line">            while (numAttempts &lt; MAX_EXTRACT_ATTEMPTS &amp;&amp; !isExtractionSuccessful) &#123;</span><br><span class="line">                numAttempts++;</span><br><span class="line"></span><br><span class="line">                // Create a zip file (extractedFile) containing only the secondary dex file</span><br><span class="line">                // (dexFile) from the apk.</span><br><span class="line">                // 抽出去apk中对应序号的dex文件，存放到extractedFile这个zip文件中，只包含它一个</span><br><span class="line">                // extract方法就是一个IO操作</span><br><span class="line">                extract(apk, dexFile, extractedFile, extractedFilePrefix);</span><br><span class="line"></span><br><span class="line">                // Verify that the extracted file is indeed a zip file.   </span><br><span class="line">                // 判断是够抽取成功</span><br><span class="line">                isExtractionSuccessful = verifyZipFile(extractedFile);</span><br><span class="line"></span><br><span class="line">                // Log the sha1 of the extracted zip file</span><br><span class="line">                Log.i(TAG, &quot;Extraction &quot; + (isExtractionSuccessful ? &quot;success&quot; : &quot;failed&quot;) +</span><br><span class="line">                        &quot; - length &quot; + extractedFile.getAbsolutePath() + &quot;: &quot; +</span><br><span class="line">                        extractedFile.length());</span><br><span class="line">                if (!isExtractionSuccessful) &#123;</span><br><span class="line">                    // Delete the extracted file</span><br><span class="line">                    extractedFile.delete();</span><br><span class="line">                    if (extractedFile.exists()) &#123;</span><br><span class="line">                        Log.w(TAG, &quot;Failed to delete corrupted secondary dex &apos;&quot; +</span><br><span class="line">                                extractedFile.getPath() + &quot;&apos;&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            if (!isExtractionSuccessful) &#123;</span><br><span class="line">                throw new IOException(&quot;Could not create zip file &quot; +</span><br><span class="line">                        extractedFile.getAbsolutePath() + &quot; for secondary dex (&quot; +</span><br><span class="line">                        secondaryNumber + &quot;)&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">            // 继续下一个dex的抽取</span><br><span class="line">            secondaryNumber++;</span><br><span class="line">            dexFile = apk.getEntry(DEX_PREFIX + secondaryNumber + DEX_SUFFIX);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            apk.close();</span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            Log.w(TAG, &quot;Failed to close resource&quot;, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return files;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当MultiDexExtractor的performExtractions()方法调用完毕的时候就把APK中所有的dex文件抽取出来，并以一定文件名格式的zip文件保存在缓存目录中。然后再把一些关键的信息通过调用<code>putStoredApkInfo(Context context, long timeStamp, long crc,
+            int totalDexNumber)</code>方法保存到SP中。</p>
+<p>当APK之后再启动的时候就会从缓存目录中去加载已经抽取过的dex文件。我们接着来看一下MultiDexExtractor的loadExistingExtractions()方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"># android.support.multidex.MultiDexExtractor</span><br><span class="line">private static List&lt;File&gt; loadExistingExtractions(Context context, File sourceApk, File dexDir)</span><br><span class="line">        throws IOException &#123;</span><br><span class="line">    Log.i(TAG, &quot;loading existing secondary dex files&quot;);</span><br><span class="line">    // 抽取出的dex文件名前缀是&quot;$&#123;apkName&#125;.classes&quot;</span><br><span class="line">    final String extractedFilePrefix = sourceApk.getName() + EXTRACTED_NAME_EXT;</span><br><span class="line">    // 从SharedPreferences中获取.dex文件的总数量，调用这个方法的前提是已经抽取过dex文件，所以SP中是有值的</span><br><span class="line">    int totalDexNumber = getMultiDexPreferences(context).getInt(KEY_DEX_NUMBER, 1);</span><br><span class="line">    final List&lt;File&gt; files = new ArrayList&lt;File&gt;(totalDexNumber);</span><br><span class="line"></span><br><span class="line">    // 从第2个dex开始遍历，这是因为主dex由Android系统自动加载的，从第2个开始即可</span><br><span class="line">    for (int secondaryNumber = 2; secondaryNumber &lt;= totalDexNumber; secondaryNumber++) &#123;</span><br><span class="line">        // 文件名，格式是&quot;$&#123;apkName&#125;.classes$&#123;secondaryNumber&#125;.zip&quot;</span><br><span class="line">        String fileName = extractedFilePrefix + secondaryNumber + EXTRACTED_SUFFIX;</span><br><span class="line">        // 根据缓存目录和文件名得到抽取后的文件</span><br><span class="line">        File extractedFile = new File(dexDir, fileName);</span><br><span class="line">        // 如果是一个文件就保存到抽取出的文件列表中</span><br><span class="line">        if (extractedFile.isFile()) &#123;</span><br><span class="line">            files.add(extractedFile);</span><br><span class="line">            if (!verifyZipFile(extractedFile)) &#123;</span><br><span class="line">                Log.i(TAG, &quot;Invalid zip file: &quot; + extractedFile);</span><br><span class="line">                throw new IOException(&quot;Invalid ZIP file.&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            throw new IOException(&quot;Missing extracted secondary dex file &apos;&quot; +</span><br><span class="line">                    extractedFile.getPath() + &quot;&apos;&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return files;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>分析到这，MultiDex安装多个dex的原理应该介绍清楚了，无非就是通过一定的方式把dex文件抽取出来，然后把这些dex文件追加到DexPathList的Element[]数组的后面，这个过程要尽可能的早，所以一般是在Application的attachBaseContext()方法中。<br>一些热修复技术，就是通过一定的方式把修复后的dex插入到DexPathList的Element[]数组<strong>前面</strong>，实现了修复后的class抢先加载。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="https://tech.meituan.com/mt-android-auto-split-dex.html" target="_blank" rel="noopener">美团Android DEX自动拆包及动态加载简介</a></li>
+<li><a href="https://neyoufan.github.io/2017/01/20/android/Multidex%E5%8A%A0%E9%80%9F/" title="谈谈MultiDex启动优化" target="_blank" rel="noopener">谈谈MultiDex启动优化</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/24305296" target="_blank" rel="noopener">MultiDex工作原理分析和优化方案</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/20/类加载机制系列2——深入理解Android中的类加载器/" rel="next" title="类加载机制系列2——深入理解Android中的类加载器">
+                <i class="fa fa-chevron-left"></i> 类加载机制系列2——深入理解Android中的类加载器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/29/hello-world/" rel="prev" title="Hello World">
+                Hello World <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MultiDex的由来"><span class="nav-number">1.</span> <span class="nav-text">MultiDex的由来</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MultiDex的使用"><span class="nav-number">2.</span> <span class="nav-text">MultiDex的使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MultiDex源码分析"><span class="nav-number">3.</span> <span class="nav-text">MultiDex源码分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="通常我们在Activity中启动一个另一个Activity，就是调用Activity的startActivity方法，这个最终会调用到Activity的startActivityForResult方法。那你有没有想过Activity的启动到底经历了哪些过程，我们今天就来分析一下。 在具体分析之前，要先说明一下，Activity的启动流程在细节挺繁琐的，比如启动另一个App的Activity或者启动">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Activity启动过程分析">
+<meta property="og:url" content="http://yoursite.com/2018/04/01/Activity启动过程分析/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="通常我们在Activity中启动一个另一个Activity，就是调用Activity的startActivity方法，这个最终会调用到Activity的startActivityForResult方法。那你有没有想过Activity的启动到底经历了哪些过程，我们今天就来分析一下。 在具体分析之前，要先说明一下，Activity的启动流程在细节挺繁琐的，比如启动另一个App的Activity或者启动">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-ca51f7c43a1cc209.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T01:41:07.320Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Activity启动过程分析">
+<meta name="twitter:description" content="通常我们在Activity中启动一个另一个Activity，就是调用Activity的startActivity方法，这个最终会调用到Activity的startActivityForResult方法。那你有没有想过Activity的启动到底经历了哪些过程，我们今天就来分析一下。 在具体分析之前，要先说明一下，Activity的启动流程在细节挺繁琐的，比如启动另一个App的Activity或者启动">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/2083810-ca51f7c43a1cc209.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/01/Activity启动过程分析/"/>
+
+
+
+
+
+  <title>Activity启动过程分析 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/01/Activity启动过程分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Activity启动过程分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-01T13:23:41+08:00">
+                2018-04-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>通常我们在Activity中启动一个另一个Activity，就是调用Activity的startActivity方法，这个最终会调用到Activity的startActivityForResult方法。那你有没有想过Activity的启动到底经历了哪些过程，我们今天就来分析一下。</p>
+<p>在具体分析之前，要先说明一下，Activity的启动流程在细节挺繁琐的，比如启动另一个App的Activity或者启动不同的launchMode的Activity，在细节上都会有不同。我们这次的源码分析着重分析一下流程，为了简单起见，就以分析一个Activity启动app内部另一个standard模式的Activity为主。</p>
+<p>Activity启动另一个Activity之前，当前的Activity先要执行onPause，被启动的Activity才会执行到onResume方法。这中间实际上是会执行4次IPC过程的：</p>
+<ul>
+<li>当前Activity发起启动另一个Activity的请求——&gt;ActivityManagerService</li>
+<li>ActivityManagerService——&gt; 通知App暂停当前Activity</li>
+<li>当前App告知已经暂停了当前的Activity——&gt; ActivityManagerService</li>
+<li>ActivityManagerService ——&gt; 通知App启动新的Activity</li>
+</ul>
+<blockquote>
+<p>注：本次源码分析采用Android7.0，不同版本的源码在细节上会有不同，比如，在Android8.0上ActivityManagerService就改成了以AIDL的方式来写，请不要太纠结API的不同。</p>
+<p>注：本文Activity启动过程源码分析过程比较长，代码较繁琐，请做好心理准备。</p>
+</blockquote>
+<h3 id="Activity启动涉及到的类"><a href="#Activity启动涉及到的类" class="headerlink" title="Activity启动涉及到的类"></a>Activity启动涉及到的类</h3><p>首先要简单介绍一下Activity启动过程涉及到的类，以便于更好的理解这个启动过程。</p>
+<ul>
+<li>ActivityThread：App启动的入口</li>
+<li>ApplicationThread：ActivityThread的内部类，继承Binder，可以进程跨进程通信。</li>
+<li>ApplicationThreadProxy：ApplicationThread的一个本地代理，其它的client端通过这个对象调用server端ApplicationThread中方法。</li>
+<li>Instrumentation：负责发起Activity的启动、并具体负责Activity的创建以及Activity生命周期的回调。一个应用进程只会有一个Instrumentation对象，App内的所有Activity都持有该对象的引用。</li>
+<li>ActivityManagerService：简称AMS，是service端对象，负责管理系统中所有的Activity</li>
+<li>ActivityManagerProxy：是ActivityManagerService的本地代理</li>
+<li>ActivityStack：Activity在AMS的栈管理，用来记录已经启动的Activity的先后关系，状态信息等。通过ActivityStack决定是否需要启动新的进程。</li>
+<li>ActivityRecord：ActivityStack的管理对象，每个Activity在AMS对应一个ActivityRecord，来记录Activity的状态以及其他的管理信息。其实就是服务器端的Activity对象的映像。</li>
+<li>TaskRecord：AMS抽象出来的一个“任务”的概念，是记录ActivityRecord的栈，一个“Task”包含若干个ActivityRecord。AMS用TaskRecord确保Activity启动和退出的顺序。</li>
+</ul>
+<p>介绍完这些，我们开始进入正题</p>
+<h3 id="Activity的启动过程"><a href="#Activity的启动过程" class="headerlink" title="Activity的启动过程"></a>Activity的启动过程</h3><p>Activity启动最终会调用到startActivityForResult方法，我们只需要关注mParent == null中的逻辑即可。mParent代表的是ActivityGroup，其最开始是为了在一个界面中嵌入多个子Activity，在API13的时候就已经废弃了，可以使用Fragment表示一个界面的多个区域。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># android.app.Activity</span><br><span class="line">public void startActivityForResult(@RequiresPermission Intent intent, int requestCode,</span><br><span class="line">                                   @Nullable Bundle options) &#123;</span><br><span class="line">    if (mParent == null) &#123;</span><br><span class="line">        Instrumentation.ActivityResult ar =</span><br><span class="line">                mInstrumentation.execStartActivity(</span><br><span class="line">                        this, mMainThread.getApplicationThread(), mToken, this,</span><br><span class="line">                        intent, requestCode, options);</span><br><span class="line">        if (ar != null) &#123;</span><br><span class="line">            mMainThread.sendActivityResult(</span><br><span class="line">                    mToken, mEmbeddedID, requestCode, ar.getResultCode(),</span><br><span class="line">                    ar.getResultData());</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用了Instrumentation的execStartActivity方法，在这里通过<code>ActivityManagerNative.getDefault()</code>方法获取ActivityManagerService的一个本地代理对象ActivityManagerProxy，然后调用了其startActivity方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># android.app.Instrumentation</span><br><span class="line">public ActivityResult execStartActivity(</span><br><span class="line">        Context who, IBinder contextThread, IBinder token, Activity target,</span><br><span class="line">        Intent intent, int requestCode, Bundle options) &#123;</span><br><span class="line">    IApplicationThread whoThread = (IApplicationThread) contextThread;</span><br><span class="line">    ...</span><br><span class="line">    try &#123;</span><br><span class="line">       ... </span><br><span class="line">        int result = ActivityManagerNative.getDefault()</span><br><span class="line">                .startActivity(whoThread, who.getBasePackageName(), intent,</span><br><span class="line">                        intent.resolveTypeIfNeeded(who.getContentResolver()),</span><br><span class="line">                        token, target != null ? target.mEmbeddedID : null,</span><br><span class="line">                        requestCode, 0, null, options);</span><br><span class="line">        checkStartActivityResult(result, intent);</span><br><span class="line">    &#125; catch (RemoteException e) &#123;</span><br><span class="line">        throw new RuntimeException(&quot;Failure from system&quot;, e);</span><br><span class="line">    &#125;</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们看一下ActivityManagerNative，继承了Binder并实现了IActivityManager接口，ActivityManagerService就是继承了ActivityManagerNative。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public abstract class ActivityManagerNative extends Binder implements IActivityManager</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">public final class ActivityManagerService extends ActivityManagerNative</span><br><span class="line">        implements Watchdog.Monitor, BatteryStatsImpl.BatteryCallback</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">class ActivityManagerProxy implements IActivityManager</span><br></pre></td></tr></table></figure>
+<p>ActivityManagerNative实际上获取的就是其内部类ActivityManagerProxy对象。ActivityManagerProxy只是ActivityManagerService的本地代理对象，其startActivity方法会调用到AMS的startActivity方法。而且要注意，这个startActivity方法会把ApplicationThread对象传递到AMS所在进程，当然了AMS拿到的实际上是ApplicationThread的代理对象ApplicationThreadProxy，AMS就要通过这个代理对象与我们的App进程进行通信。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"># android.app.ActivityManagerNative</span><br><span class="line">private static final Singleton&lt;IActivityManager&gt; gDefault = new Singleton&lt;IActivityManager&gt;() &#123;</span><br><span class="line">    protected IActivityManager create() &#123;</span><br><span class="line">        IBinder b = ServiceManager.getService(&quot;activity&quot;);</span><br><span class="line">        if (false) &#123;</span><br><span class="line">            Log.v(&quot;ActivityManager&quot;, &quot;default service binder = &quot; + b);</span><br><span class="line">        &#125;</span><br><span class="line">        IActivityManager am = asInterface(b);</span><br><span class="line">        if (false) &#123;</span><br><span class="line">            Log.v(&quot;ActivityManager&quot;, &quot;default service = &quot; + am);</span><br><span class="line">        &#125;</span><br><span class="line">        return am;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">static public IActivityManager asInterface(IBinder obj) &#123;</span><br><span class="line">    if (obj == null) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">    IActivityManager in =</span><br><span class="line">            (IActivityManager)obj.queryLocalInterface(descriptor);</span><br><span class="line">    if (in != null) &#123;</span><br><span class="line">        return in;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return new ActivityManagerProxy(obj);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static public IActivityManager getDefault() &#123;</span><br><span class="line">    return gDefault.get();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注：在Android8.0，由于使用AIDL的方式来写ActivityManagerService，ActivityManagerNative已经过期。</p>
+<p>我们接着看一下AMS的startActivity方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityManagerService</span><br><span class="line">public final int startActivity(IApplicationThread caller, String callingPackage,</span><br><span class="line">                               Intent intent, String resolvedType, IBinder resultTo, String resultWho, int requestCode,</span><br><span class="line">                               int startFlags, ProfilerInfo profilerInfo, Bundle bOptions) &#123;</span><br><span class="line">    return startActivityAsUser(caller, callingPackage, intent, resolvedType, resultTo,</span><br><span class="line">            resultWho, requestCode, startFlags, profilerInfo, bOptions,</span><br><span class="line">            UserHandle.getCallingUserId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>startActivity方法紧接着调用了其startActivityAsUser方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public final int startActivityAsUser(IApplicationThread caller, String callingPackage,</span><br><span class="line">                                     Intent intent, String resolvedType, IBinder resultTo, String resultWho, int requestCode,</span><br><span class="line">                                     int startFlags, ProfilerInfo profilerInfo, Bundle bOptions, int userId) &#123;</span><br><span class="line">    enforceNotIsolatedCaller(&quot;startActivity&quot;);</span><br><span class="line">    userId = mUserController.handleIncomingUser(Binder.getCallingPid(), Binder.getCallingUid(),</span><br><span class="line">            userId, false, ALLOW_FULL_ONLY, &quot;startActivity&quot;, null);</span><br><span class="line">    // TODO: Switch to user app stacks here.</span><br><span class="line">    return mActivityStarter.startActivityMayWait(caller, -1, callingPackage, intent,</span><br><span class="line">            resolvedType, null, null, resultTo, resultWho, requestCode, startFlags,</span><br><span class="line">            profilerInfo, null, null, bOptions, false, userId, null, null);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接着调用了ActivityStarter的startActivityMayWait方法，由于方法很长，我们只保留关键的流程部分：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStarter</span><br><span class="line">final int startActivityMayWait(IApplicationThread caller, int callingUid,</span><br><span class="line">        String callingPackage, Intent intent, String resolvedType,</span><br><span class="line">        IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,</span><br><span class="line">        IBinder resultTo, String resultWho, int requestCode, int startFlags,</span><br><span class="line">        ProfilerInfo profilerInfo, IActivityManager.WaitResult outResult, Configuration config,</span><br><span class="line">        Bundle bOptions, boolean ignoreTargetSecurity, int userId,</span><br><span class="line">        IActivityContainer iContainer, TaskRecord inTask) &#123;</span><br><span class="line">   </span><br><span class="line">        ...</span><br><span class="line">        int res = startActivityLocked(caller, intent, ephemeralIntent, resolvedType,</span><br><span class="line">                aInfo, rInfo, voiceSession, voiceInteractor,</span><br><span class="line">                resultTo, resultWho, requestCode, callingPid,</span><br><span class="line">                callingUid, callingPackage, realCallingPid, realCallingUid, startFlags,</span><br><span class="line">                options, ignoreTargetSecurity, componentSpecified, outRecord, container,</span><br><span class="line">                inTask);</span><br><span class="line"></span><br><span class="line">         ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ActivityStarter调用了自身的startActivityLocked方法，这又是一个很长的方法，保留关键的流程如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStarter</span><br><span class="line"></span><br><span class="line">final int startActivityLocked(IApplicationThread caller, Intent intent, Intent ephemeralIntent,</span><br><span class="line">        String resolvedType, ActivityInfo aInfo, ResolveInfo rInfo,</span><br><span class="line">        IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,</span><br><span class="line">        IBinder resultTo, String resultWho, int requestCode, int callingPid, int callingUid,</span><br><span class="line">        String callingPackage, int realCallingPid, int realCallingUid, int startFlags,</span><br><span class="line">        ActivityOptions options, boolean ignoreTargetSecurity, boolean componentSpecified,</span><br><span class="line">        ActivityRecord[] outActivity, ActivityStackSupervisor.ActivityContainer container,</span><br><span class="line">        TaskRecord inTask) &#123;</span><br><span class="line">    int err = ActivityManager.START_SUCCESS;</span><br><span class="line">    ...</span><br><span class="line">    try &#123;</span><br><span class="line">        mService.mWindowManager.deferSurfaceLayout();</span><br><span class="line">        err = startActivityUnchecked(r, sourceRecord, voiceSession, voiceInteractor, startFlags,</span><br><span class="line">                true, options, inTask);</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        mService.mWindowManager.continueSurfaceLayout();</span><br><span class="line">    &#125;</span><br><span class="line">    postStartActivityUncheckedProcessing(r, err, stack.mStackId, mSourceRecord, mTargetStack);</span><br><span class="line">    return err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ActivityStarter又调用了自身的startActivityUnchecked方法，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStarter</span><br><span class="line"></span><br><span class="line">private int startActivityUnchecked(final ActivityRecord r, ActivityRecord sourceRecord,</span><br><span class="line">        IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,</span><br><span class="line">        int startFlags, boolean doResume, ActivityOptions options, TaskRecord inTask) &#123;</span><br><span class="line">    ...</span><br><span class="line">    if (mDoResume) &#123;</span><br><span class="line">        ...</span><br><span class="line">        if (!mTargetStack.isFocusable()</span><br><span class="line">            ...</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            mSupervisor.resumeFocusedStackTopActivityLocked(mTargetStack, mStartActivity,</span><br><span class="line">                    mOptions);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">       ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    return START_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在ActivityStarter中调用了ActivityStackSupervisor的resumeFocusedStackTopActivityLocked方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStackSupervisor</span><br><span class="line"></span><br><span class="line">boolean resumeFocusedStackTopActivityLocked(</span><br><span class="line">        ActivityStack targetStack, ActivityRecord target, ActivityOptions targetOptions) &#123;</span><br><span class="line">    if (targetStack != null &amp;&amp; isFocusedStack(targetStack)) &#123;</span><br><span class="line">        return targetStack.resumeTopActivityUncheckedLocked(target, targetOptions);</span><br><span class="line">    &#125;</span><br><span class="line">    ... </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在ActivityStackSupervisor的resumeFocusedStackTopActivityLocked中又调用了ActivityStack的resumeTopActivityUncheckedLocked方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStack</span><br><span class="line"></span><br><span class="line">boolean resumeTopActivityUncheckedLocked(ActivityRecord prev, ActivityOptions options) &#123;</span><br><span class="line">   ...</span><br><span class="line">    boolean result = false;</span><br><span class="line">    try &#123;</span><br><span class="line">        // Protect against recursion.</span><br><span class="line">        mStackSupervisor.inResumeTopActivity = true;</span><br><span class="line">        ...</span><br><span class="line">        result = resumeTopActivityInnerLocked(prev, options);</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        mStackSupervisor.inResumeTopActivity = false;</span><br><span class="line">    &#125;</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ActivityStack在resumeTopActivityUncheckedLocked又调用了其自身的resumeTopActivityInnerLocked方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStack</span><br><span class="line">private boolean resumeTopActivityInnerLocked(ActivityRecord prev, ActivityOptions options) &#123;</span><br><span class="line">     ..</span><br><span class="line">    // We need to start pausing the current activity so the top one can be resumed...</span><br><span class="line">    ...</span><br><span class="line">    if (mResumedActivity != null) &#123;</span><br><span class="line">        if (DEBUG_STATES) Slog.d(TAG_STATES,</span><br><span class="line">                &quot;resumeTopActivityLocked: Pausing &quot; + mResumedActivity);</span><br><span class="line">        pausing |= startPausingLocked(userLeaving, false, next, dontWaitForPause);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于当前的Activity执行了onResume，所以mResumedActivity != null 条件满足，就会调用startPausingLocked方法先暂停当前的Activity。注意：这个过程必然是一个IPC过程。我们看一下startPausingLocked方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStack</span><br><span class="line">final boolean startPausingLocked(boolean userLeaving, boolean uiSleeping,</span><br><span class="line">        ActivityRecord resuming, boolean dontWait) &#123;</span><br><span class="line"></span><br><span class="line">    ActivityRecord prev = mResumedActivity;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    if (prev.app != null &amp;&amp; prev.app.thread != null) &#123;</span><br><span class="line">        if (DEBUG_PAUSE) Slog.v(TAG_PAUSE, &quot;Enqueueing pending pause: &quot; + prev);</span><br><span class="line">        try &#123;</span><br><span class="line">            ...</span><br><span class="line">            prev.app.thread.schedulePauseActivity(prev.appToken, prev.finishing,</span><br><span class="line">                    userLeaving, prev.configChangeFlags, dontWait);</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">           ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">       ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> prev.app.thread表示的是IApplicationThread对象，在这里就是指的发起启动的Activity所在进程的ApplicationThread的本地代理ApplicationThreadProxy。调用它的schedulePauseActivity方法，很明显是一次IPC过程，最终调用到server端，也就是发起启动的Activity所在进程ApplicationThread的schedulePauseActivity方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># android.app.ActivityThread$$ApplicationThread</span><br><span class="line"></span><br><span class="line">public final void schedulePauseActivity(IBinder token, boolean finished,</span><br><span class="line">        boolean userLeaving, int configChanges, boolean dontReport) &#123;</span><br><span class="line">    int seq = getLifecycleSeq();</span><br><span class="line">    if (DEBUG_ORDER) Slog.d(TAG, &quot;pauseActivity &quot; + ActivityThread.this</span><br><span class="line">            + &quot; operation received seq: &quot; + seq);</span><br><span class="line">    sendMessage(</span><br><span class="line">            finished ? H.PAUSE_ACTIVITY_FINISHING : H.PAUSE_ACTIVITY,</span><br><span class="line">            token,</span><br><span class="line">            (userLeaving ? USER_LEAVING : 0) | (dontReport ? DONT_REPORT : 0),</span><br><span class="line">            configChanges,</span><br><span class="line">            seq);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过Hander的转发，接着会调用到ActivityThread的handlePauseActivity方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># android.app.ActivityThread</span><br><span class="line"></span><br><span class="line">private void handlePauseActivity(IBinder token, boolean finished,</span><br><span class="line">        boolean userLeaving, int configChanges, boolean dontReport, int seq) &#123;</span><br><span class="line">    ActivityClientRecord r = mActivities.get(token);</span><br><span class="line">    ...</span><br><span class="line">    if (r != null) &#123;</span><br><span class="line">    ...</span><br><span class="line">        performPauseActivity(token, finished, r.isPreHoneycomb(), &quot;handlePauseActivity&quot;);</span><br><span class="line">    ...</span><br><span class="line">        // Tell the activity manager we have paused.</span><br><span class="line">        if (!dontReport) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                ActivityManagerNative.getDefault().activityPaused(token);</span><br><span class="line">            &#125; catch (RemoteException ex) &#123;</span><br><span class="line">                throw ex.rethrowFromSystemServer();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        mSomeActivitiesChanged = true;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在ActivityThread的handlePauseActivity中，首先会调用performPauseActivity来暂停当前的Activity，经过层层调用，会调用到Intrumentation的callActivityOnPause方法，最终调用Activity的onPause方法，这一块的流程比较简单，在这里就不再详细分析了，感兴趣的可以自己研究下。</p>
+<p>暂停之后，会调动<code>ActivityManagerNative.getDefault().activityPaused(token)</code>，这个很明显又是一次IPC过程，就是告诉AMS，已经暂停当前的Activity，可以启动新的Activity 了。</p>
+<p>我们来看一下AMS的的activityPaused方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityManagerService</span><br><span class="line">@Override</span><br><span class="line">public final void activityPaused(IBinder token) &#123;</span><br><span class="line">    final long origId = Binder.clearCallingIdentity();</span><br><span class="line">    synchronized(this) &#123;</span><br><span class="line">        ActivityStack stack = ActivityRecord.getStackLocked(token);</span><br><span class="line">        if (stack != null) &#123;</span><br><span class="line">            stack.activityPausedLocked(token, false);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    Binder.restoreCallingIdentity(origId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AMS中的activityPaused又调用了ActivityStack的activityPausedLocked方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStack</span><br><span class="line"></span><br><span class="line">final void activityPausedLocked(IBinder token, boolean timeout) &#123;</span><br><span class="line">    ...</span><br><span class="line">    final ActivityRecord r = isInStackLocked(token);</span><br><span class="line">    if (r != null) &#123;</span><br><span class="line">        mHandler.removeMessages(PAUSE_TIMEOUT_MSG, r);</span><br><span class="line">        if (mPausingActivity == r) &#123;</span><br><span class="line">            if (DEBUG_STATES) Slog.v(TAG_STATES, &quot;Moving to PAUSED: &quot; + r</span><br><span class="line">                    + (timeout ? &quot; (due to timeout)&quot; : &quot; (pause complete)&quot;));</span><br><span class="line">            completePauseLocked(true, null);</span><br><span class="line">            return;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">           ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这个方法中又调用了ActivityStack自身的completePauseLocked方法，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStack</span><br><span class="line">private void completePauseLocked(boolean resumeNext, ActivityRecord resuming) &#123;</span><br><span class="line">    ActivityRecord prev = mPausingActivity;</span><br><span class="line">    if (resumeNext) &#123;</span><br><span class="line">        final ActivityStack topStack = mStackSupervisor.getFocusedStack();</span><br><span class="line">        if (!mService.isSleepingOrShuttingDownLocked()) &#123;</span><br><span class="line">            mStackSupervisor.resumeFocusedStackTopActivityLocked(topStack, prev, null);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">           ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后又调用了ActivityStackSupervisor的resumeFocusedStackTopActivityLocked方法，这视乎又重新调用了一遍，真复杂啊。</p>
+<p>这个流程我们上面讲过了，ActivityStackSupervisor会继续调用ActivityStack的resumeTopActivityUncheckedLocked方法，然后ActivityStack又调用其resumeTopActivityInnerLocked方法，调来调去，又到这个方法里面了，上次在这里是执行了前一个Activity的onPause方法。这次会调用到ActivityStackSupersivor的startSpecificActivityLocked方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStack</span><br><span class="line">private boolean resumeTopActivityInnerLocked(ActivityRecord prev, ActivityOptions options) &#123;</span><br><span class="line">    </span><br><span class="line">    // We need to start pausing the current activity so the top one can be resumed...</span><br><span class="line">    final boolean dontWaitForPause = (next.info.flags &amp; FLAG_RESUME_WHILE_PAUSING) != 0;</span><br><span class="line">    boolean pausing = mStackSupervisor.pauseBackStacks(userLeaving, next, dontWaitForPause);</span><br><span class="line">    if (mResumedActivity != null) &#123;</span><br><span class="line">        if (DEBUG_STATES) Slog.d(TAG_STATES,</span><br><span class="line">                &quot;resumeTopActivityLocked: Pausing &quot; + mResumedActivity);</span><br><span class="line">        pausing |= startPausingLocked(userLeaving, false, next, dontWaitForPause);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">    ActivityStack lastStack = mStackSupervisor.getLastStack();</span><br><span class="line">    if (next.app != null &amp;&amp; next.app.thread != null) &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        ...</span><br><span class="line">        mStackSupervisor.startSpecificActivityLocked(next, true, true);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (DEBUG_STACK) mStackSupervisor.validateTopActivitiesLocked();</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>分析到这里，好像我们的就要开始启动我们的目标Activity了，好激动有木有！</p>
+<p>在ActivityStackSupersivor的startSpecificActivityLocked方法中会判断Activity所在进程是否存在，如果不存在的话就要创建一个新的进程。在这里，我们是Activity启动其App内部的另一个Activity，所以进程肯定是存在的，会走到realStartActivityLocked方法中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStackSupervisor</span><br><span class="line">void startSpecificActivityLocked(ActivityRecord r,</span><br><span class="line">        boolean andResume, boolean checkConfig) &#123;</span><br><span class="line">    ... </span><br><span class="line">    if (app != null &amp;&amp; app.thread != null) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">    ...</span><br><span class="line">            realStartActivityLocked(r, app, andResume, checkConfig);</span><br><span class="line">            return;</span><br><span class="line">        &#125; catch (RemoteException e) &#123;</span><br><span class="line">           ...</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mService.startProcessLocked(r.processName, r.info.applicationInfo, true, 0,</span><br><span class="line">            &quot;activity&quot;, r.intent.getComponent(), false, false, true);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再来看一下ActivityStackSupersivor的realStartActivityLocked方法，这次似乎真的要启动一个Activity了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># com.android.server.am.ActivityStackSupervisor</span><br><span class="line"></span><br><span class="line">final boolean realStartActivityLocked(ActivityRecord r, ProcessRecord app,</span><br><span class="line">        boolean andResume, boolean checkConfig) throws RemoteException &#123;</span><br><span class="line">    ...</span><br><span class="line">    try &#123;</span><br><span class="line"></span><br><span class="line">        app.thread.scheduleLaunchActivity(new Intent(r.intent), r.appToken,</span><br><span class="line">                System.identityHashCode(r), r.info, new Configuration(mService.mConfiguration),</span><br><span class="line">                new Configuration(task.mOverrideConfig), r.compat, r.launchedFromPackage,</span><br><span class="line">                task.voiceInteractor, app.repProcState, r.icicle, r.persistentState, results,</span><br><span class="line">                newIntents, !andResume, mService.isNextTransitionForward(), profilerInfo);</span><br><span class="line">       ...</span><br><span class="line"></span><br><span class="line">    &#125; catch (RemoteException e) &#123;</span><br><span class="line">       ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看了代码，果然，调用了app.thread.scheduleLaunchActivity方法，app.thread我们前面讲过，就是IApplicationThread对象，实际上就是ApplicationThreadProxy对象，经过IPC过程会调用到ApplicationThread的scheduleLaunchActivity方法，我们来看一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># android.app.ActivityThread$$ApplicationThread</span><br><span class="line">@Override</span><br><span class="line">public final void scheduleLaunchActivity(Intent intent, IBinder token, int ident,</span><br><span class="line">        ActivityInfo info, Configuration curConfig, Configuration overrideConfig,</span><br><span class="line">        CompatibilityInfo compatInfo, String referrer, IVoiceInteractor voiceInteractor,</span><br><span class="line">        int procState, Bundle state, PersistableBundle persistentState,</span><br><span class="line">        List&lt;ResultInfo&gt; pendingResults, List&lt;ReferrerIntent&gt; pendingNewIntents,</span><br><span class="line">        boolean notResumed, boolean isForward, ProfilerInfo profilerInfo) &#123;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">    sendMessage(H.LAUNCH_ACTIVITY, r);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过Hander的转发，接着会调用到ActivityThread的handlePauseActivity方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># android.app.ActivityThread</span><br><span class="line">private void handleLaunchActivity(ActivityClientRecord r, Intent customIntent, String reason) &#123;</span><br><span class="line">    ...</span><br><span class="line">    Activity a = performLaunchActivity(r, customIntent);</span><br><span class="line"></span><br><span class="line">    if (a != null) &#123;</span><br><span class="line">    ...</span><br><span class="line">        handleResumeActivity(r.token, false, r.isForward,</span><br><span class="line">                !r.activity.mFinished &amp;&amp; !r.startsNotResumed, r.lastProcessedSeq, reason);</span><br><span class="line">      ...</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">       ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>handlePauseActivity内部调用performLaunchActivity方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"># android.app.ActivityThread</span><br><span class="line">private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) &#123;</span><br><span class="line">    ...</span><br><span class="line">    Activity activity = null;</span><br><span class="line">    try &#123;</span><br><span class="line">        java.lang.ClassLoader cl = r.packageInfo.getClassLoader();</span><br><span class="line">        activity = mInstrumentation.newActivity(</span><br><span class="line">                cl, component.getClassName(), r.intent);</span><br><span class="line">        ...</span><br><span class="line">    &#125; catch (Exception e) &#123;</span><br><span class="line">       ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    try &#123;</span><br><span class="line">        Application app = r.packageInfo.makeApplication(false, mInstrumentation);</span><br><span class="line">        ...</span><br><span class="line">        if (activity != null) &#123;</span><br><span class="line">            Context appContext = createBaseContextForActivity(r, activity);</span><br><span class="line">            ...</span><br><span class="line">            activity.attach(appContext, this, getInstrumentation(), r.token,</span><br><span class="line">                    r.ident, app, r.intent, r.activityInfo, title, r.parent,</span><br><span class="line">                    r.embeddedID, r.lastNonConfigurationInstances, config,</span><br><span class="line">                    r.referrer, r.voiceInteractor, window);</span><br><span class="line"></span><br><span class="line">            ...</span><br><span class="line">            activity.mCalled = false;</span><br><span class="line">            if (r.isPersistable()) &#123;</span><br><span class="line">                mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                mInstrumentation.callActivityOnCreate(activity, r.state);</span><br><span class="line">            &#125;</span><br><span class="line">           ...</span><br><span class="line">            r.activity = activity;</span><br><span class="line">            r.stopped = true;</span><br><span class="line">            if (!r.activity.mFinished) &#123;</span><br><span class="line">                activity.performStart();</span><br><span class="line">                r.stopped = false;</span><br><span class="line">            &#125;</span><br><span class="line">            if (!r.activity.mFinished) &#123;</span><br><span class="line">                if (r.isPersistable()) &#123;</span><br><span class="line">                    if (r.state != null || r.persistentState != null) &#123;</span><br><span class="line">                        mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state,</span><br><span class="line">                                r.persistentState);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; else if (r.state != null) &#123;</span><br><span class="line">                    mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            if (!r.activity.mFinished) &#123;</span><br><span class="line">                activity.mCalled = false;</span><br><span class="line">                if (r.isPersistable()) &#123;</span><br><span class="line">                    mInstrumentation.callActivityOnPostCreate(activity, r.state,</span><br><span class="line">                            r.persistentState);</span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    mInstrumentation.callActivityOnPostCreate(activity, r.state);</span><br><span class="line">                &#125;</span><br><span class="line">                if (!activity.mCalled) &#123;</span><br><span class="line">                    throw new SuperNotCalledException(</span><br><span class="line">                        &quot;Activity &quot; + r.intent.getComponent().toShortString() +</span><br><span class="line">                        &quot; did not call through to super.onPostCreate()&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        r.paused = true;</span><br><span class="line"></span><br><span class="line">        mActivities.put(r.token, r);</span><br><span class="line"></span><br><span class="line">    &#125; catch (SuperNotCalledException e) &#123;</span><br><span class="line">        throw e;</span><br><span class="line"></span><br><span class="line">    &#125; catch (Exception e) &#123;</span><br><span class="line">       ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return activity;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在performLaunchActivity内部，创建了Activity对象，并调用了activity的attach方法，在这个方法中绑定一些属性，并且创建了Activity所属的Window对象。接着Instrumentation会调用callActivityOnCreate、callActivityOnRestoreInstanceState、callActivityOnPostCreate等来完成Activity生命周期的回调。不过有一点很有意思，在这个方法中Activity自己调用了其performStart方法，但这个方法内部又调用了Instrumentation的callActivityOnStart方法，进而又调用了Activity的onStart方法。绕过来绕过去，总之，Activity生命周期方法的调用均是通过Instrumentation来控制的。</p>
+<p>至此，Activity的启动过程算是分析完了，太费脑筋了，需要来一瓶营养快线补补身体。流程太多，不好记，但是有句话说的好 “一图胜千言”，下面我们来看一下Activity启动的一个时序图。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-ca51f7c43a1cc209.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Activity启动过程.png"></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>源码分析过程是比较绕，比较烧脑的过程，不要太纠结去API的调用，尽量侧重流程。分析源码，最好带着问题去分析，不要为了分析而分析，尽量在分析过程中寻找自己想要的答案。比如：</p>
+<ul>
+<li>Activity对象是怎么创建的？</li>
+<li>Window对象是什么时候创建的？</li>
+<li>LayoutInflater什么时候创建的？</li>
+<li>为什么在Activity中的布局中或者Fragment的中View获取的Context都是其所在的Activity对象？</li>
+<li>为什么自定义View一定要有两个参数的构造函数？</li>
+<li>Activity的生命周期方法是被谁回调的？</li>
+<li>Application是什么时候创建的？</li>
+<li>ClassLoader对象是什么时候创建的？</li>
+<li>子线程可以启动Activity、Service吗？</li>
+<li>下拉通知栏，会影响Activity生命周期吗？</li>
+</ul>
+<p>笔者初入Android开发没多久的时候，有次面试，面试官问我在子线程中启动Activity可以吗？我回答可以，因为我试过，但是问我为什么我却不知道。如果那时候看了Activity启动过程的源码，看了Binder机制的话，应该很容易的就回答出来了。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
+<li><a href="http://blog.csdn.net/qian520ao/article/details/78156214#%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B" target="_blank" rel="noopener">Android Launcher 启动 Activity 的工作过程</a></li>
+<li><a href="https://www.jianshu.com/p/6037f6fda285" target="_blank" rel="noopener">【凯子哥带你学Framework】Activity启动过程全解析</a></li>
+<li><a href="https://blog.csdn.net/qq_30379689/article/details/79611217" target="_blank" rel="noopener">Android进阶——Android四大组件启动机制之Activity启动过程</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/18/Binder学习概要/" rel="next" title="Binder学习概要">
+                <i class="fa fa-chevron-left"></i> Binder学习概要
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/04/Hook一个Activity的启动过程/" rel="prev" title="Hook一个Activity的启动过程">
+                Hook一个Activity的启动过程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Activity启动涉及到的类"><span class="nav-number">1.</span> <span class="nav-text">Activity启动涉及到的类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Activity的启动过程"><span class="nav-number">2.</span> <span class="nav-text">Activity的启动过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文以com.android.tools.build:gradle:3.1.2 源码来进行分析，文章对应的项目地址：aop-tech。  Transform API 是在1.5.0-beta1版开始使用，利用Transform API，第三方的插件可以在.class文件转为dex文件之前，对一些.class 文件进行处理。Transform API 简化了这个处理过程，而且使用起来很灵活。 使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Gradle Plugin打包Apk过程中的Transform API">
+<meta property="og:url" content="http://yoursite.com/2018/07/12/Android Gradle Plugin打包Apk过程中的Transform API/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文以com.android.tools.build:gradle:3.1.2 源码来进行分析，文章对应的项目地址：aop-tech。  Transform API 是在1.5.0-beta1版开始使用，利用Transform API，第三方的插件可以在.class文件转为dex文件之前，对一些.class 文件进行处理。Transform API 简化了这个处理过程，而且使用起来很灵活。 使用">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-09a2feedc88f88b8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-c5cb7d8fcabd333d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-7fa9504bbe5ff237.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-7e4d4360b0ffb331.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-a422dfd4590b410f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-f076900e17578724.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-96bd7e87a558f504.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T02:49:20.825Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android Gradle Plugin打包Apk过程中的Transform API">
+<meta name="twitter:description" content="本文以com.android.tools.build:gradle:3.1.2 源码来进行分析，文章对应的项目地址：aop-tech。  Transform API 是在1.5.0-beta1版开始使用，利用Transform API，第三方的插件可以在.class文件转为dex文件之前，对一些.class 文件进行处理。Transform API 简化了这个处理过程，而且使用起来很灵活。 使用">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/2083810-09a2feedc88f88b8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/07/12/Android Gradle Plugin打包Apk过程中的Transform API/"/>
+
+
+
+
+
+  <title>Android Gradle Plugin打包Apk过程中的Transform API | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/12/Android Gradle Plugin打包Apk过程中的Transform API/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android Gradle Plugin打包Apk过程中的Transform API</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-12T12:42:00+08:00">
+                2018-07-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>本文以com.android.tools.build:gradle:3.1.2 源码来进行分析，文章对应的项目地址：<a href="https://github.com/sososeen09/android-blog-demos/tree/master/aop-tech" target="_blank" rel="noopener">aop-tech</a>。</p>
+</blockquote>
+<p>Transform API 是在1.5.0-beta1版开始使用，利用Transform API，第三方的插件可以在.class文件转为dex文件之前，对一些.class 文件进行处理。Transform API 简化了这个处理过程，而且使用起来很灵活。</p>
+<h1 id="使用Transform-API"><a href="#使用Transform-API" class="headerlink" title="使用Transform API"></a>使用Transform API</h1><p>使用Transform API主要是写一个类继承Transform，并把该Transform注入到打包过程中。<br>注入Transform很简单，先获取<code>com.android.build.gradle.AppExtension</code>对象，然后调用它的registerTransform()方法。<br>这个方法实际上是属于BaseExtension的，AppExtension继承自BaseExtension。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#com.android.build.gradle.BaseExtension</span><br><span class="line">public void registerTransform(@NonNull Transform transform, Object... dependencies) &#123;</span><br><span class="line">    transforms.add(transform);</span><br><span class="line">    transformDependencies.add(Arrays.asList(dependencies));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注入Transform对象：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">AppExtension android = project.extensions.getByType(AppExtension)</span><br><span class="line">android.registerTransform(new AJXTransform(project))</span><br></pre></td></tr></table></figure>
+<p>AJXTransform是自定义的Transform类：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">lass AJXTransform extends Transform &#123;</span><br><span class="line">    Project project</span><br><span class="line">    AJXTransform(Project project) &#123;</span><br><span class="line">        this.project = project</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    String getName() &#123;</span><br><span class="line">        return &quot;ajx&quot;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    Set&lt;QualifiedContent.ContentType&gt; getInputTypes() &#123;</span><br><span class="line">        // 输入类型，可以使class文件，也可以是源码文件 ，这是表示输入的class文件</span><br><span class="line">        return ImmutableSet.&lt;QualifiedContent.ContentType&gt; of(QualifiedContent.DefaultContentType.CLASSES)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    Set&lt;? super QualifiedContent.Scope&gt; getScopes() &#123;</span><br><span class="line">        // 作用范围</span><br><span class="line">        return TransformManager.SCOPE_FULL_PROJECT</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    boolean isIncremental() &#123;</span><br><span class="line">        //是否支持增量编译</span><br><span class="line">        return false</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException &#123;</span><br><span class="line">        //在这里对输入输出的class进行处理</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ContentType是一个接口，默认有一个枚举类型DefaultContentType实现了ContentType，包含有CLASSES和RESOURCES类型。</p>
+<ul>
+<li>CLASSES类型表示的是在jar包或者文件夹中的.class文件。</li>
+<li>RESOURCES类型表示的是标准的Java源文件。</li>
+</ul>
+<p>Scope 作用范围</p>
+<table>
+<thead>
+<tr>
+<th>Scope类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PROJECT</td>
+<td>只处理当前的项目</td>
+</tr>
+<tr>
+<td>SUB_PROJECTS</td>
+<td>只处理子项目</td>
+</tr>
+<tr>
+<td>EXTERNAL_LIBRARIES</td>
+<td>只处理外部的依赖库</td>
+</tr>
+<tr>
+<td>TESTED_CODE</td>
+<td>只处理测试代码</td>
+</tr>
+<tr>
+<td>PROVIDED_ONLY</td>
+<td>只处理provided-only的依赖库</td>
+</tr>
+<tr>
+<td>PROJECT_LOCAL_DEPS</td>
+<td>只处理当前项目的本地依赖,例如jar, aar（过期，被EXTERNAL_LIBRARIES替代）</td>
+</tr>
+<tr>
+<td>SUB_PROJECTS_LOCAL_DEPS</td>
+<td>只处理子项目的本地依赖,例如jar, aar（过期，被EXTERNAL_LIBRARIES替代）</td>
+</tr>
+</tbody>
+</table>
+<p>Transform中的getInputTypes()方法和getScopes() 方法返回的是Set集合，因此这些类型是可以进行组合的。在<code>com.android.build.gradle.internal.pipeline.TransformManager</code>中就包含了多种Set集合。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-09a2feedc88f88b8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="TransformManager.png"></p>
+<p>Transform 的 <code>isIncremental()</code> 方法表示是否支持增量编译，返回true的话表示支持，这个时候可以根据 <code>com.android.build.api.transform.TransformInput</code> 来获得更改、移除或者添加的文件目录或者jar包。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public interface TransformInput &#123;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * Returns a collection of &#123;@link JarInput&#125;.</span><br><span class="line">     */</span><br><span class="line">    @NonNull</span><br><span class="line">    Collection&lt;JarInput&gt; getJarInputs();</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * Returns a collection of &#123;@link DirectoryInput&#125;.</span><br><span class="line">     */</span><br><span class="line">    @NonNull</span><br><span class="line">    Collection&lt;DirectoryInput&gt; getDirectoryInputs();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>JarInput有一个方法是<code>getStatus()</code>来获取 <code>com.android.build.api.transform.Status</code>。Status是一个枚举类，包含了NOTCHANGED、ADDED、CHANGED、REMOVED，所以可以根据JarInput的status来对它进行相应的处理，比如添加或者移除。</p>
+<p>DirectoryInput有一个方法<code>getChangedFiles()</code>开获取一个Map<file, status="">集合，所以可以遍历这个Map集合，然后根据File对应的Status来对File进行处理。</file,></p>
+<p>如果不支持增量编译，就在处理.class之前把之前的输出目录中的文件删除。</p>
+<p>获取TransformInput对象是根据 <code>com.android.build.api.transform.TransformInvocation</code> 。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public interface TransformInvocation &#123;</span><br><span class="line">// 返回transform运行的上下文，在android gradle plugin中有唯一的实现类TransformTask</span><br><span class="line">    @NonNull</span><br><span class="line">    Context getContext();</span><br><span class="line"></span><br><span class="line">// 获取transform的输入</span><br><span class="line">    @NonNull</span><br><span class="line">    Collection&lt;TransformInput&gt; getInputs();</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * Returns the referenced-only inputs which are not consumed by this transformation.</span><br><span class="line">     * @return the referenced-only inputs.</span><br><span class="line">     */</span><br><span class="line">    @NonNull Collection&lt;TransformInput&gt; getReferencedInputs();</span><br><span class="line">    /**</span><br><span class="line">     * Returns the list of secondary file changes since last. Only secondary files that this</span><br><span class="line">     * transform can handle incrementally will be part of this change set.</span><br><span class="line">     * @return the list of changes impacting a &#123;@link SecondaryInput&#125;</span><br><span class="line">     */</span><br><span class="line">    @NonNull Collection&lt;SecondaryInput&gt; getSecondaryInputs();</span><br><span class="line"></span><br><span class="line">//TransformOutputProvider用于删除输出目录或者创建文件对应的生成目录</span><br><span class="line">    @Nullable</span><br><span class="line">    TransformOutputProvider getOutputProvider();</span><br><span class="line"></span><br><span class="line">// transform过程是否支持增量编译</span><br><span class="line">    boolean isIncremental();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>TransformInvocation包含了输入、输出相关信息。其输出相关内容是由TransformOutputProvider来做处理。TransformOutputProvider的getContentLocation()方法可以获取文件的输出目录，如果目录存在的话直接返回，如果不存在就会重新创建一个。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// getContentLocation方法相当于创建一个对应名称表示的目录</span><br><span class="line">// 是从0 、1、2开始递增。如果是目录，名称就是对应的数字，如果是jar包就类似0.jar</span><br><span class="line">File outputDir = transformInvocation.outputProvider.getContentLocation(&quot;include&quot;, </span><br><span class="line">         dirInput.contentTypes, dirInput.scopes, Format.DIRECTORY)</span><br><span class="line"></span><br><span class="line">File outputJar = transformInvocation.outputProvider.getContentLocation(jarInput.name</span><br><span class="line">        , jarInput.contentTypes</span><br><span class="line">        , jarInput.scopes</span><br><span class="line">        , Format.JAR)</span><br></pre></td></tr></table></figure>
+<p>在执行编译过程中会生成对应的目录，例如在/app/build/intermediates/transforms目录下生成了一个名为<code>ajx</code>的目录，这个名称就是根据自定义的Transform类<code>getName()</code>方法返回的字符串来的。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-c5cb7d8fcabd333d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="transforms下的ajx目录.png"></p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-7fa9504bbe5ff237.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="transforms下的ajx中内容.png"></p>
+<p>ajx目录下还会有一个名为<code>__content__</code>的.json文件。该文件中展示了ajx中文件目录下的内容</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-7e4d4360b0ffb331.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+<p>其实当你注入一个自定义的Transform的时候还会生成对应的Task，即TransformTask，该Task还会有一个对应的名称，例如：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-a422dfd4590b410f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="TransformTask名称.png"></p>
+<p>这个名称生成过程是在 TransformManager 的 <code>addTransform()</code> 中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">public &lt;T extends Transform&gt; Optional&lt;TransformTask&gt; addTransform(</span><br><span class="line">            @NonNull TaskFactory taskFactory,</span><br><span class="line">            @NonNull TransformVariantScope scope,</span><br><span class="line">            @NonNull T transform,</span><br><span class="line">            @Nullable TransformTask.ConfigActionCallback&lt;T&gt; callback) &#123;</span><br><span class="line">...</span><br><span class="line">        String taskName = scope.getTaskName(getTaskNamePrefix(transform));</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static String getTaskNamePrefix(@NonNull Transform transform) &#123;</span><br><span class="line">    StringBuilder sb = new StringBuilder(100);</span><br><span class="line">    sb.append(&quot;transform&quot;);</span><br><span class="line"></span><br><span class="line">    sb.append(</span><br><span class="line">            transform</span><br><span class="line">                    .getInputTypes()</span><br><span class="line">                    .stream()</span><br><span class="line">                    .map(</span><br><span class="line">                            inputType -&gt;</span><br><span class="line">                                    CaseFormat.UPPER_UNDERSCORE.to(</span><br><span class="line">                                            CaseFormat.UPPER_CAMEL, inputType.name()))</span><br><span class="line">                    .sorted() // Keep the order stable.</span><br><span class="line">                    .collect(Collectors.joining(&quot;And&quot;)));</span><br><span class="line">    sb.append(&quot;With&quot;);</span><br><span class="line">    StringHelper.appendCapitalized(sb, transform.getName());</span><br><span class="line">    sb.append(&quot;For&quot;);</span><br><span class="line"></span><br><span class="line">    return sb.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Transform中，其<code>transform()</code> 方法是重头戏，需要对输入的文件进行处理，然后放到输出目录中。</p>
+<p>例如，我在<a href="https://github.com/sososeen09/android-blog-demos/tree/master/aop-tech" target="_blank" rel="noopener">aop-tech</a>中就是自定义一个Transform子类，然后在transform过程把输入的目录中的.class文件或者jar包中的.class 文件使用aspectj进行处理。如果对aspectj不太了解的，可以查看我之前写的一篇文章：<a href="https://www.jianshu.com/p/c66f4e3113b3" target="_blank" rel="noopener">AOP开发——AspectJ的使用</a>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException &#123;</span><br><span class="line">    TransformTask transformTask = (TransformTask) transformInvocation.context</span><br><span class="line">    //VariantCache 就是保存一些跟当前variant相关的一些缓存，以及在支持增量编译的情况下存储一些信息</span><br><span class="line">    VariantCache variantCache = new VariantCache(ajxProcedure.project, ajxProcedure.ajxCache, transformTask.variantName)</span><br><span class="line"></span><br><span class="line">    if (transformInvocation.isIncremental()) &#123;</span><br><span class="line">        //TODO 增量</span><br><span class="line">        print(&quot;====================增量编译=================&quot;)</span><br><span class="line">    &#125;else &#123;</span><br><span class="line">        print(&quot;====================非增量编译=================&quot;)</span><br><span class="line">        //非增量,需要删除输出目录</span><br><span class="line">        transformInvocation.outputProvider.deleteAll()</span><br><span class="line">        variantCache.reset()</span><br><span class="line"></span><br><span class="line">        AJXFileProcess ajxFileProcess = new AJXFileProcess(project, variantCache, transformInvocation)</span><br><span class="line">        ajxFileProcess.proceed()</span><br><span class="line">        AJXTaskProcess ajxTaskProcess = new AJXTaskProcess(project, variantCache, transformInvocation)</span><br><span class="line">        ajxTaskProcess.proceed()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="Transform中的transform-方法是如何被执行的"><a href="#Transform中的transform-方法是如何被执行的" class="headerlink" title="Transform中的transform()方法是如何被执行的"></a>Transform中的transform()方法是如何被执行的</h1><p>我们在前面讲到的调用<code>android.registerTransform(transform)</code>注册方法，实际上只是把Transform对象放到了一个List集合中。那么什么时候用到这个集合呢？也就是说Transform的transform()方法是什么时候被执行的呢？</p>
+<p>在这里可以先告诉你答案，Transform的transform()方法是在TransformTask的transform()方法中执行的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"># com.android.build.gradle.internal.pipeline.TransformTask</span><br><span class="line">@TaskAction</span><br><span class="line">void transform(final IncrementalTaskInputs incrementalTaskInputs)</span><br><span class="line">        throws IOException, TransformException, InterruptedException &#123;</span><br><span class="line">    ...</span><br><span class="line">    recorder.record(</span><br><span class="line">            ExecutionType.TASK_TRANSFORM,</span><br><span class="line">            executionInfo,</span><br><span class="line">            getProject().getPath(),</span><br><span class="line">            getVariantName(),</span><br><span class="line">            new Recorder.Block&lt;Void&gt;() &#123;</span><br><span class="line">                @Override</span><br><span class="line">                public Void call() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">                    transform.transform(</span><br><span class="line">                            new TransformInvocationBuilder(TransformTask.this)</span><br><span class="line">                                    .addInputs(consumedInputs.getValue())</span><br><span class="line">                                    .addReferencedInputs(referencedInputs.getValue())</span><br><span class="line">                                    .addSecondaryInputs(changedSecondaryInputs.getValue())</span><br><span class="line">                                    .addOutputProvider(</span><br><span class="line">                                            outputStream != null</span><br><span class="line">                                                    ? outputStream.asOutput()</span><br><span class="line">                                                    : null)</span><br><span class="line">                                    .setIncrementalMode(isIncremental.getValue())</span><br><span class="line">                                    .build());</span><br><span class="line"></span><br><span class="line">                    if (outputStream != null) &#123;</span><br><span class="line">                        outputStream.save();</span><br><span class="line">                    &#125;</span><br><span class="line">                    return null;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实际上每个Transform都会有一个对应的TransformTask，TransformTask本质上就是表示Gradle中的一个Task，那么一个Task在执行的时候其<code>@TaskAction</code>注解的方法会被执行，也就是<code>com.android.build.gradle.internal.pipeline.TransformTask#transform()</code>方法会被执行，在该方法中会调用该TransformTask对应的Transform对象的transform()方法。</p>
+<p>写过Gradle插件的都知道，在build.gradle中apply 插件后其apply(project)方法就会调用。例如我们在一个app中应用的是<code>apply plugin: &#39;com.andorid.application&#39;</code> ，这个实际上引入的就是AppPlugin，其apply()方法会被调用。关于这个源码过程我们就不多说了，我们只讲一个这个过程，感兴趣的可以查看文章末尾的相关文章。</p>
+<p>-&gt;com.android.build.gradle.BasePlugin#apply()<br>-&gt;com.android.build.gradle.BasePlugin#createTasks()<br>-&gt;com.android.build.gradle.BasePlugin#createAndroidTasks()<br>-&gt;com.android.build.gradle.internal.VariantManager#createAndroidTasks()<br>-&gt;com.android.build.gradle.internal.VariantManager#createTasksForVariantData()<br>-&gt;com.android.build.gradle.internal.ApplicationTaskManager#createTasksForVariantScope() <strong>//该方法中干的事很多，可以重点关注</strong><br>-&gt;com.android.build.gradle.internal.ApplicationTaskManager#addCompileTask()<br>-&gt;com.android.build.gradle.internal.TaskManager#createPostCompilationTasks() <strong>//在这个方法中会调用AppExtension的getTransforms()方法，也就是我们之前注册的transform</strong><br>-&gt; com.android.build.gradle.internal.pipeline.TransformManager#addTransform() <strong>//在这个方法中创建了TransformTask</strong></p>
+<p>在上面的这些流程中TaskManager的<strong>createPostCompilationTasks()</strong>需要重点关注，在该方法中对Apk打包过程中的各种Transform进行处理，创建对应了TransformTask并构建隐式的依赖关系。</p>
+<p>到此TransformTask是创建完毕，TransformTask相当于是对我们自定义的Transform进行的包装。</p>
+<p>那么这个TransformTask是什么时候执行呢？<br>我们可以显式地使用Gradle命令去执行一个Task，这是没问题的。但为什么我们执行<code>gradle assemble</code>命令的时候，TransformTask也会执行呢？这个就牵涉到Task的依赖关系了。假设TaskA依赖TaskB，那么如果我们要执行TaskA，那么在TaskA执行之前TaskB就会执行。但是要注意一点就是，假设TaskA依赖TaskB和TaskC，那么只能保证TaskA执行之前TaskB和TaskC都执行了，并不能保证TaskB和TaskC的执行顺序。</p>
+<p>构建Task的依赖关系可以显式的调用其 <code>dependsOn()</code> 方法。 但是我在查看Transform API的过程中发现这个TransformTask之间并没有显式地调用<code>dependsOn()</code> 方法来保证依赖关系，难道这个TransformTask的执行顺序是任意的吗？如果是任意的，比如一个task是dexMerger是要把每个class编译成的dex合成为一个dex，而此时输入目录中还没有dex存在，该任务不就失败了吗？android gradle plugin 的开发者当然不会让这种情况存在了。</p>
+<p>实际情况是Task除了显式地通过dependsOn来指定Task依赖，其实还可以<strong>使用Task依赖推断来判断依赖关系，Gradle通过使用一个Task的输出作为另一个Task的输入，就可以推断出依赖关系。</strong><br>在Transform API中，使用的是 TransformStream 来连接TransformTask的依赖关系，进行可以控制Transform的执行顺序。<br>计算TransformTask的输入输出是在 TransformManager 的 addTransform() 方法中。<br>通过输入输出已经隐式地确定了TransformTask的依赖关系。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"># com.android.build.gradle.internal.pipeline.TransformManager</span><br><span class="line">public &lt;T extends Transform&gt; Optional&lt;TransformTask&gt; addTransform(</span><br><span class="line">        @NonNull TaskFactory taskFactory,</span><br><span class="line">        @NonNull TransformVariantScope scope,</span><br><span class="line">        @NonNull T transform,</span><br><span class="line">        @Nullable TransformTask.ConfigActionCallback&lt;T&gt; callback) &#123;</span><br><span class="line">...</span><br><span class="line">    List&lt;TransformStream&gt; inputStreams = Lists.newArrayList();</span><br><span class="line">    String taskName = scope.getTaskName(getTaskNamePrefix(transform));</span><br><span class="line"></span><br><span class="line">    // get referenced-only streams</span><br><span class="line">    List&lt;TransformStream&gt; referencedStreams = grabReferencedStreams(transform);</span><br><span class="line"></span><br><span class="line">    // find input streams, and compute output streams for the transform.</span><br><span class="line">    // 通过之前添加的Transform来计算输入，并计算输出</span><br><span class="line">    IntermediateStream outputStream = findTransformStreams(</span><br><span class="line">            transform,</span><br><span class="line">            scope,</span><br><span class="line">            inputStreams,</span><br><span class="line">            taskName,</span><br><span class="line">            scope.getGlobalScope().getBuildDir());</span><br><span class="line">   ...</span><br><span class="line">    transforms.add(transform);</span><br><span class="line"></span><br><span class="line">    // create the task...</span><br><span class="line">    // 在创建Task的过程中传入了输入和输出，上一个Task的输出是该Task的输入，这就保证了Task的一个隐式的依赖关系</span><br><span class="line">    TransformTask task =</span><br><span class="line">            taskFactory.create(</span><br><span class="line">                    new TransformTask.ConfigAction&lt;&gt;(</span><br><span class="line">                            scope.getFullVariantName(),</span><br><span class="line">                            taskName,</span><br><span class="line">                            transform,</span><br><span class="line">                            inputStreams,</span><br><span class="line">                            referencedStreams,</span><br><span class="line">                            outputStream,</span><br><span class="line">                            recorder,</span><br><span class="line">                            callback));</span><br><span class="line"></span><br><span class="line">    return Optional.ofNullable(task);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以通过以上分析也可以当我们自定义Plugin要注入多个Transform的时候，按照添加顺序来保证依赖关系，先添加的Transform先执行。对于下面的例子，transformA的<code>transform()</code>方法会先于transformB执行。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android.registerTransform(transformA);</span><br><span class="line">android.registerTransform(transformB);</span><br></pre></td></tr></table></figure></p>
+<h1 id="Android-Gradle-Plugin中的Transform子类"><a href="#Android-Gradle-Plugin中的Transform子类" class="headerlink" title="Android Gradle Plugin中的Transform子类"></a>Android Gradle Plugin中的Transform子类</h1><p>Android Gradle Plugin中有多个Transform子类，在编写自己的Transform类的时候可以作为一个参考。<br><img src="https://upload-images.jianshu.io/upload_images/2083810-f076900e17578724.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Transform子类.png"></p>
+<p>可以在图中看到，Google已经在使用kotlin写Gradle插件了。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>自定义Transform并注入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">class TransformPlugin implements Plugin&lt;Project&gt; &#123;</span><br><span class="line">    @Override</span><br><span class="line">    void apply(Project project) &#123;</span><br><span class="line">        project.android.registerTransform(new ClassTransform(project))</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class ClassTransform extends Transform &#123;</span><br></pre></td></tr></table></figure>
+<p>Transform API的执行有顺序，每一个Transform都对应一个TransformTask和TransformStream，通过输入输出隐式的构成Task依赖关系。开发者自定义的Transform按照注册顺序执行。</p>
+<h1 id="补充——源码调试"><a href="#补充——源码调试" class="headerlink" title="补充——源码调试"></a>补充——源码调试</h1><p>在之前的一篇文章<a href="https://www.jianshu.com/p/b86330a877db" target="_blank" rel="noopener">启用Gradle远程调试</a>中介绍了如何调试Gradle插件，实际上使用该方式也可以用来调试查看Android Gradle Plugin的执行流程。这个时候最好要找到有能下载到源码的版本，比如3.1.2。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">buildscript &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        google()</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies &#123;</span><br><span class="line"> ...</span><br><span class="line">        classpath &apos;com.android.tools.build:gradle:3.1.2&apos;</span><br><span class="line">...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以下是App或者Library插件对应的类的继承关系图<br><img src="https://upload-images.jianshu.io/upload_images/2083810-96bd7e87a558f504.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>如果你想要调试app打包过程，可以在 AppPlugin 的 <code>apply()</code> 方法中打断点。它直接调用了其父类 BasePlugin 的 <code>apply()</code> 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#com.android.build.gradle.AppPlugin</span><br><span class="line">@Override</span><br><span class="line">public void apply(@NonNull Project project) &#123;</span><br><span class="line">    super.apply(project);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="相关文章"><a href="#相关文章" class="headerlink" title="相关文章"></a>相关文章</h1><ul>
+<li><a href="http://tools.android.com/tech-docs/new-build-system/transform-api" target="_blank" rel="noopener">‎New Build System‎:Transform API</a></li>
+<li><a href="https://www.jianshu.com/p/37df81365edf" target="_blank" rel="noopener">如何理解 Transform API</a></li>
+<li><a href="https://mp.weixin.qq.com/s?__biz=MzIwMTAzMTMxMg==&amp;mid=2649492752&amp;idx=1&amp;sn=1d1ad65c63667d96b72452a492cbde58" target="_blank" rel="noopener">Android Gradle Plugin 源码解析（上）</a></li>
+<li><a href="https://mp.weixin.qq.com/s?__biz=MzIwMTAzMTMxMg==&amp;mid=2649492778&amp;idx=1&amp;sn=bf18cd9b7e4fb5f08b1a698836807304" target="_blank" rel="noopener">Android Gradle Plugin 源码解析（下）</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/02/AOP开发——AspectJ的使用/" rel="next" title="AOP开发——AspectJ的使用">
+                <i class="fa fa-chevron-left"></i> AOP开发——AspectJ的使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/18/网络协议相关知识介绍/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用Transform-API"><span class="nav-number">1.</span> <span class="nav-text">使用Transform API</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Transform中的transform-方法是如何被执行的"><span class="nav-number">2.</span> <span class="nav-text">Transform中的transform()方法是如何被执行的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Android-Gradle-Plugin中的Transform子类"><span class="nav-number">3.</span> <span class="nav-text">Android Gradle Plugin中的Transform子类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#补充——源码调试"><span class="nav-number">5.</span> <span class="nav-text">补充——源码调试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关文章"><span class="nav-number">6.</span> <span class="nav-text">相关文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

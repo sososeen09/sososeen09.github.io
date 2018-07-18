@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文的分析基于OkHttp3.4，不展示完整的代码示例，具体可以查看这个官方例子或者项目中的samples。  OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对于底层真正实现网络请求的OkHttp关注的不是很多。最近探究了一下OkHttp的源码，对OkHttp">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重识OkHttp——更深入了解如何使用">
+<meta property="og:url" content="http://yoursite.com/2016/11/14/重识OkHttp——更深入了解如何使用/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文的分析基于OkHttp3.4，不展示完整的代码示例，具体可以查看这个官方例子或者项目中的samples。  OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对于底层真正实现网络请求的OkHttp关注的不是很多。最近探究了一下OkHttp的源码，对OkHttp">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-256d5a86abb5e29b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T01:53:14.202Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="重识OkHttp——更深入了解如何使用">
+<meta name="twitter:description" content="本文的分析基于OkHttp3.4，不展示完整的代码示例，具体可以查看这个官方例子或者项目中的samples。  OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对于底层真正实现网络请求的OkHttp关注的不是很多。最近探究了一下OkHttp的源码，对OkHttp">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/2083810-256d5a86abb5e29b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/11/14/重识OkHttp——更深入了解如何使用/"/>
+
+
+
+
+
+  <title>重识OkHttp——更深入了解如何使用 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/11/14/重识OkHttp——更深入了解如何使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">重识OkHttp——更深入了解如何使用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-14T13:41:41+08:00">
+                2016-11-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>本文的分析基于<a href="https://github.com/square/okhttp/tree/okhttp_34" target="_blank" rel="noopener">OkHttp3.4</a>，不展示完整的代码示例，具体可以查看<a href="https://github.com/square/okhttp/wiki/Recipes" target="_blank" rel="noopener">这个官方例子</a>或者项目中的<strong>samples</strong>。</p>
+</blockquote>
+<p>OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对于底层真正实现网络请求的OkHttp关注的不是很多。最近探究了一下OkHttp的源码，对OkHttp的使用有了一些新的认识，在此做一下总结。</p>
+<h1 id="1-OkHttp的优点"><a href="#1-OkHttp的优点" class="headerlink" title="1 OkHttp的优点"></a>1 OkHttp的优点</h1><p>OkHttp作为当前Android端最火热的网络请求框架，必然有很多的优点。</p>
+<ul>
+<li>支持HTTP/2 协议，允许连接到同一个主机地址的所有请求共享Socket。这必然会提高请求效率。</li>
+<li>在HTTP/2协议不可用的情况下，通过连接池减少请求的延迟。</li>
+<li>GZip透明压缩减少传输的数据包大小。</li>
+<li>响应缓存，避免同一个重复的网络请求。</li>
+</ul>
+<h1 id="2-网络处理3要素"><a href="#2-网络处理3要素" class="headerlink" title="2 网络处理3要素"></a>2 网络处理3要素</h1><p>对于客户端来讲，我们关注的就是把正确的请求发送到服务端并拿到结果来进行处理。在OkHttp中，我认为可以分为3个部分：</p>
+<ul>
+<li>Request类封装客户端发送的请求，包括请求的url，请求方法method（主要是GET和POST方法）、请求头header以及请求体requestBody；</li>
+<li>Response类封装了服务器响应的数据，包括code、message、body、header等。</li>
+<li>OkHttpClient负责发送请求Request并通过同步或者异步的方式返回服务器的响应Response，就好比是一个浏览器。</li>
+</ul>
+<p>OkHttp中通过建造者模式来构建OkHttpClient、Request和Response。对于客户端来讲，我们不需要过多关注Response是如何构建的，因为这个是OkHttp对响应结果进行了封装处理。我们只关注请求Request和客户端OkHttpClient如何构建即可。</p>
+<h1 id="2-1-请求Request"><a href="#2-1-请求Request" class="headerlink" title="2.1 请求Request"></a>2.1 请求Request</h1><p>Request采用建造者模式来配置url，请求方法method、header、tag和cacheControl。</p>
+<ul>
+<li>设置url。可以是String类型、URL类型和HttpUrl类型。最终都是用到HttpUrl类型。</li>
+<li>设置method，包含get、post方法等。默认的是get方法。post方法要传RequestBody，类似的还有delete、put、patch。</li>
+<li>设置header，方法有addHeader(String name, String value)、 removeHeader(String name)、header(String name, String value)、headers(Headers headers)。headers(Headers headers)调用之后其它的header都会被移除，只添加这一个header。而header(String name, String value)方法调用之后，其它与这个name同名的header都会被移除，只保留这一个header。</li>
+<li>设置tag，设置tag可以用来取消这一请求。如果未指定tag或者tag为null，那么这个request本身就会当做是一个tag用来被取消请求。</li>
+<li>设置cacheControl，这个是设置到请求头中。用来替换其它name是”Cache-Control”的header。如果cacheControl是空的话就会移除请求头中name是”Cache-Control”的header。</li>
+</ul>
+<p><img src="http://upload-images.jianshu.io/upload_images/2083810-256d5a86abb5e29b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Request.png"></p>
+<p>OkHttp采用POST方法向服务器发送一个请求体，在OkHttp中这个请求体是RequestBody。这个请求体可以是：</p>
+<ul>
+<li>String类型</li>
+<li>Stream流类型</li>
+<li>File文件类型</li>
+<li>Form表单形式的key-value类型</li>
+<li>类似Html文件上传表单的复杂请求体类型（多块请求）。</li>
+</ul>
+<p>RequestBody有几个静态方法用于创建不同类型的请求体：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//创建String类型的请求体</span><br><span class="line">public static RequestBody create(MediaType contentType, String content)</span><br><span class="line"></span><br><span class="line">//创建文件类型的请求体</span><br><span class="line"> public static RequestBody create(final MediaType contentType, final File file)</span><br></pre></td></tr></table></figure>
+<p>最终都是相当于重写了RequestBody的两个抽象方法来写入流，如果传递流类型的参数，只要重写这两个抽象方法即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//对应的是name为Content-Type的header</span><br><span class="line">public abstract MediaType contentType();</span><br><span class="line"></span><br><span class="line">//这个BufferedSink位于Okio包下，提供高效的写入。</span><br><span class="line">public abstract void writeTo(BufferedSink sink) throws IOException;</span><br><span class="line"></span><br><span class="line">//在写入的时候可以传递内容的大小，如果不知道就返回-1即可。</span><br><span class="line">public long contentLength() throws IOException &#123;  return -1;&#125;</span><br></pre></td></tr></table></figure>
+<p>例如，我们提交一个String：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">String postBody = &quot;&quot;</span><br><span class="line">        + &quot;Releases\n&quot;</span><br><span class="line">        + &quot;--------\n&quot;</span><br><span class="line">        + &quot;\n&quot;</span><br><span class="line">        + &quot; * _1.0_ May 6, 2013\n&quot;</span><br><span class="line">        + &quot; * _1.1_ June 15, 2013\n&quot;</span><br><span class="line">        + &quot; * _1.2_ August 11, 2013\n&quot;;</span><br><span class="line"></span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;https://api.github.com/markdown/raw&quot;)</span><br><span class="line">        .post(RequestBody.create(MEDIA_TYPE_MARKDOWN, postBody))</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
+<p>提交File：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">File file = new File(&quot;README.md&quot;);</span><br><span class="line"></span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;https://api.github.com/markdown/raw&quot;)</span><br><span class="line">        .post(RequestBody.create(MEDIA_TYPE_MARKDOWN, file))</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
+<p>提交流：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">RequestBody requestBody = new RequestBody() &#123;</span><br><span class="line">       @Override</span><br><span class="line">        public MediaType contentType() &#123;</span><br><span class="line">             return MEDIA_TYPE_MARKDOWN;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">         public void writeTo(BufferedSink sink) throws IOException &#123;</span><br><span class="line">              sink.writeUtf8(&quot;Numbers\n&quot;);</span><br><span class="line">              sink.writeUtf8(&quot;-------\n&quot;);</span><br><span class="line">              for (int i = 2; i &lt;= 997; i++) &#123;</span><br><span class="line">                     sink.writeUtf8(String.format(&quot; * %s = %s\n&quot;, i, factor(i)));</span><br><span class="line">               &#125;</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">          private String factor(int n) &#123;</span><br><span class="line">                for (int i = 2; i &lt; n; i++) &#123;</span><br><span class="line">                     int x = n / i;</span><br><span class="line">                     if (x * i == n) return factor(x) + &quot; × &quot; + i;</span><br><span class="line">                 &#125;</span><br><span class="line">                return Integer.toString(n);</span><br><span class="line">                &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;https://api.github.com/markdown/raw&quot;)</span><br><span class="line">        .post(requestBody)</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
+<p>对于提交表单和分块请求，OkHttp提供了两个RequestBody的子类，<strong>FormBody</strong>和<strong>MultipartBody</strong></p>
+<h3 id="2-1-1-表单FormBody"><a href="#2-1-1-表单FormBody" class="headerlink" title="2.1.1 表单FormBody"></a>2.1.1 表单FormBody</h3><p>FormBody也是采用建造者模式， 这个很简单，添加key-value形式的键值对即可。<br>添加键值对有两个方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//采用OkHttp默认的编码</span><br><span class="line">public Builder add(String name, String value) </span><br><span class="line"></span><br><span class="line">//采用用户要求的编码</span><br><span class="line">public Builder addEncoded(String name, String value)</span><br></pre></td></tr></table></figure>
+<p>例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">RequestBody formBody = new FormBody.Builder()</span><br><span class="line">                      .add(&quot;search&quot;, &quot;Jurassic Park&quot;)</span><br><span class="line">                      .build();</span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">                      .url(&quot;https://en.wikipedia.org/w/index.php&quot;)</span><br><span class="line">                      .post(formBody)</span><br><span class="line">                      .build();</span><br></pre></td></tr></table></figure>
+<h3 id="2-1-2-分块MultipartBody"><a href="#2-1-2-分块MultipartBody" class="headerlink" title="2.1.2 分块MultipartBody"></a>2.1.2 分块MultipartBody</h3><p>MultipartBody也是采用建造者模式，MultipartBody.Builder可以构建兼容Html文件上传表单的复杂请求体。每一部分的多块请求体都是它自身的请求体，并且可以定义它自己的请求头。如果存在的话，这些请求头用来描述这部分的请求体。例如Content-Disposition、Content-Length 和 Content-Type如果可用就会被自动添加到头。</p>
+<p>MIME类型有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public static final MediaType MIXED = MediaType.parse(&quot;multipart/mixed&quot;);</span><br><span class="line"></span><br><span class="line">public static final MediaType ALTERNATIVE = MediaType.parse(&quot;multipart/alternative&quot;);</span><br><span class="line"></span><br><span class="line">public static final MediaType DIGEST = MediaType.parse(&quot;multipart/digest&quot;);</span><br><span class="line"></span><br><span class="line">public static final MediaType PARALLEL = MediaType.parse(&quot;multipart/parallel&quot;);</span><br></pre></td></tr></table></figure>
+<p>有几个主要的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">//设置MIME类型，如MIXED（默认的）</span><br><span class="line">  public Builder setType(MediaType type) &#123;&#125;</span><br><span class="line"></span><br><span class="line">//添加请求体</span><br><span class="line">  public Builder addPart(RequestBody body) &#123;</span><br><span class="line">    return addPart(Part.create(body));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">//添加包含header的请求体</span><br><span class="line">  public Builder addPart(Headers headers, RequestBody body) &#123;</span><br><span class="line">    return addPart(Part.create(headers, body));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //请求体添加表单</span><br><span class="line">  public Builder addFormDataPart(String name, String value) &#123;</span><br><span class="line">    return addPart(Part.createFormData(name, value));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //请求体中包含文件</span><br><span class="line">  public Builder addFormDataPart(String name, String filename, RequestBody body) &#123;</span><br><span class="line">    return addPart(Part.createFormData(name, filename, body));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //添加自己定义的part</span><br><span class="line">  public Builder addPart(Part part) &#123;</span><br><span class="line">    if (part == null) throw new NullPointerException(&quot;part == null&quot;);</span><br><span class="line">    parts.add(part);</span><br><span class="line">    return this;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>例如提交一个图片文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">RequestBody requestBody = new MultipartBody.Builder()</span><br><span class="line">         .setType(MultipartBody.FORM)</span><br><span class="line">        .addFormDataPart(&quot;title&quot;, &quot;Square Logo&quot;)</span><br><span class="line">        .addFormDataPart(&quot;image&quot;, &quot;logo-square.png&quot;,</span><br><span class="line">         RequestBody.create(MEDIA_TYPE_PNG, new File(&quot;website/static/logo-square.png&quot;)))</span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line"> Request request = new Request.Builder()</span><br><span class="line">         .header(&quot;Authorization&quot;, &quot;Client-ID &quot; + IMGUR_CLIENT_ID)</span><br><span class="line">         .url(&quot;https://api.imgur.com/3/image&quot;)</span><br><span class="line">         .post(requestBody)</span><br><span class="line">         .build();</span><br></pre></td></tr></table></figure>
+<h1 id="2-2-客户端OkHttpClient"><a href="#2-2-客户端OkHttpClient" class="headerlink" title="2.2 客户端OkHttpClient"></a>2.2 客户端OkHttpClient</h1><p>OkHttpClient采用建造者模式，通过Builder可以配置连接超时时间、读写时间，是否缓存、是否重连，还可以设置各种拦截器interceptor等。<br>建议在一个App中，OkHttpClient保持一个实例。一个OkHttpClient支持一定数量的并发，请求同一个主机最大并发是5，所有的并发最大是64。这个与OkHttp中的调度器Dispatcher有关，可以设置并发数。本文不对Dispatcher进行讨论。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient okHttpClient=new OkHttpClient.Builder().build();</span><br><span class="line"></span><br><span class="line">//如果不需要我们额外配置，可以使用默认的配置</span><br><span class="line">OkHttpClient okHttpClient1 = new OkHttpClient();</span><br></pre></td></tr></table></figure>
+<p>一个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">int cacheSize = 10 * 1024 * 1024; // 10 MiB</span><br><span class="line">File cacheDirectory = new File(getCacheDir(), &quot;OkHttpCache&quot;);</span><br><span class="line">Cache cache = new Cache(cacheDirectory, cacheSize);</span><br><span class="line"></span><br><span class="line">OkHttpClient client = new OkHttpClient.Builder()</span><br><span class="line">        .connectTimeout(60, TimeUnit.SECONDS)//连接超时时间</span><br><span class="line">        .readTimeout(60, TimeUnit.SECONDS)//读的时间</span><br><span class="line">        .writeTimeout(60, TimeUnit.SECONDS)//写的时间</span><br><span class="line">        .cache(cache)//配置缓存</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
+<p>OkHttpClient支持单独配置，例如原来设置不同的请求时间，可以通过OkHttpClient的newBuilder()方法来重新构造一个OkHttpClient。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient client = new OkHttpClient();</span><br><span class="line"></span><br><span class="line">//读的时间设置为500ms</span><br><span class="line">OkHttpClient copy = client.newBuilder()</span><br><span class="line">                          .readTimeout(500, TimeUnit.MILLISECONDS)</span><br><span class="line">                          .build();</span><br><span class="line"></span><br><span class="line">//读的时间设置为3000ms</span><br><span class="line">OkHttpClient copy = client.newBuilder()</span><br><span class="line">                          .readTimeout(3000, TimeUnit.MILLISECONDS)</span><br><span class="line">                          .build();</span><br></pre></td></tr></table></figure>
+<h1 id="3-同步请求和异步请求"><a href="#3-同步请求和异步请求" class="headerlink" title="3 同步请求和异步请求"></a>3 同步请求和异步请求</h1><p>上面已经讲了如何创建Request和OkHttpClient，剩下的就是发送请求并得到服务器的响应了。OkHttp发送请求可分为同步和异步。OkHttpClient首先通过Request构建一个Call，通过这个Call去执行同步或者异步请求。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#OkHttpClient</span><br><span class="line">public Call newCall(Request request)</span><br></pre></td></tr></table></figure>
+<p>同步方式，调用Call的execute()方法，返回Response，会阻塞当前线程：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response = client.newCall(request).execute();</span><br></pre></td></tr></table></figure>
+<p>异步方式，调用Call的enqueue(CallBack callBack)方法，会在另一个线程中返回结果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">client.newCall(request).enqueue(new Callback() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void onFailure(Call call, IOException e) &#123;</span><br><span class="line">              //处理错误的回调</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onResponse(Call call, Response response) throws IOException &#123;</span><br><span class="line">              //处理正确的回调</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<h1 id="4-其他"><a href="#4-其他" class="headerlink" title="4 其他"></a>4 其他</h1><h2 id="4-1-配置响应缓存"><a href="#4-1-配置响应缓存" class="headerlink" title="4.1 配置响应缓存"></a>4.1 配置响应缓存</h2><p>为了缓存响应，需要一个可读写并且设置大小Size的缓存目录。缓存目录需要私有，其它不信任的应用不能访问这个文件。<br>如果同时有多个缓存访问同一个缓存目录会报错。所以最好只在App中初始化一次OkHttpClient，给这个实例配置缓存，在整个App生命周期内都用这一个缓存。否则几个缓存会相互影响，导致缓存出错，引起程序崩溃。<br>响应缓存采用Http头来配置，你可以添加这样的请求头<strong>Cache-Control: max-stale=3600</strong>。 <strong>max-age</strong>指的是客户端可以接收生存期不大于指定时间（以<strong>秒</strong>为单位）的响应。<br>为了防止响应使用缓存，可以用<strong>CacheControl.FORCE_NETWORK</strong>。为了防止使用网络，采用 <strong>CacheControl.FORCE_CACHE</strong>。</p>
+<blockquote>
+<p>注意:如果使用FORCE_CACHE禁止使用网络，而响应又没有缓存存在，OkHttp会报<strong>504 Unsatisfiable Request </strong>响应错误。</p>
+</blockquote>
+<h2 id="4-2-取消请求"><a href="#4-2-取消请求" class="headerlink" title="4.2 取消请求"></a>4.2 取消请求</h2><p>调用Call.cancel()方法可以立即取消一个网络请求。如果当前线程正在写request或者读response会报IO异常。如果不再需要网络请求，采用这种方法是比较方便的。例如在App中返回了上一页。无论是同步还是异步的请求都可以被取消。</p>
+<h2 id="4-3-Response读取响应结果"><a href="#4-3-Response读取响应结果" class="headerlink" title="4.3 Response读取响应结果"></a>4.3 Response读取响应结果</h2><p>可以通过Response的code来判断请求是否成功，如果服务器返回的有数据，可以通过Response的body得到一个ResponseBody读取。<br>如果采用ResponseBody的string()方法会一次性把数据读取到内存中，如果数据超过1MB可能会报内存溢出，所以对于超过1MB的数据，建议采用流的方式去读取，如ResponseBody的byteStream()方法。</p>
+<p><strong>需要说明的是：</strong></p>
+<ul>
+<li>如果ResponseBody的内容不读取的话，不会触发IO流的读取操作</li>
+<li>内容读取之后，这个body需要关闭。</li>
+</ul>
+<h1 id="5-总结"><a href="#5-总结" class="headerlink" title="5 总结"></a>5 总结</h1><p>OkHttp中的很多类都用到了建造者模式，可以根据需要灵活配置。采用建造者模式的有：</p>
+<ul>
+<li>OkHttpClient.Builder</li>
+<li>Request.Builder</li>
+<li>FormBody.Builder</li>
+<li>MultipartBody.Builder</li>
+<li>Response.Builder</li>
+</ul>
+<p>如果单独使用OkHttp进行网络请求，通常需要开发者自己再封装一下，如果不想重复造轮子，Github上面的有一些优秀开源库可以拿来使用（本文只列出star较多的几个）：</p>
+<ul>
+<li><a href="https://github.com/hongyangAndroid" target="_blank" rel="noopener">hongyangAndroid</a>/<strong><a href="https://github.com/hongyangAndroid/okhttputils" target="_blank" rel="noopener">okhttputils</a></strong>（曾经在项目中用过）</li>
+<li><a href="https://github.com/jeasonlzy" target="_blank" rel="noopener">jeasonlzy</a>/<strong><a href="https://github.com/jeasonlzy/okhttp-OkGo" target="_blank" rel="noopener">okhttp-OkGo</a></strong></li>
+<li><a href="https://github.com/yanzhenjie" target="_blank" rel="noopener">yanzhenjie</a>/<strong><a href="https://github.com/yanzhenjie/NoHttp" target="_blank" rel="noopener">NoHttp</a></strong></li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://github.com/square/okhttp/wiki" target="_blank" rel="noopener">OkHttp官方Wiki文档</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/30/都是套路——Dagger2没有想象的那么难/" rel="next" title="都是套路——Dagger2没有想象的那么难">
+                <i class="fa fa-chevron-left"></i> 都是套路——Dagger2没有想象的那么难
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/11/21/重识OkHttp——探究源码设计/" rel="prev" title="重识OkHttp——探究源码设计">
+                重识OkHttp——探究源码设计 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-OkHttp的优点"><span class="nav-number">1.</span> <span class="nav-text">1 OkHttp的优点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-网络处理3要素"><span class="nav-number">2.</span> <span class="nav-text">2 网络处理3要素</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-1-请求Request"><span class="nav-number">3.</span> <span class="nav-text">2.1 请求Request</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-1-表单FormBody"><span class="nav-number">3.0.1.</span> <span class="nav-text">2.1.1 表单FormBody</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-2-分块MultipartBody"><span class="nav-number">3.0.2.</span> <span class="nav-text">2.1.2 分块MultipartBody</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-2-客户端OkHttpClient"><span class="nav-number">4.</span> <span class="nav-text">2.2 客户端OkHttpClient</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-同步请求和异步请求"><span class="nav-number">5.</span> <span class="nav-text">3 同步请求和异步请求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-其他"><span class="nav-number">6.</span> <span class="nav-text">4 其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-配置响应缓存"><span class="nav-number">6.1.</span> <span class="nav-text">4.1 配置响应缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-取消请求"><span class="nav-number">6.2.</span> <span class="nav-text">4.2 取消请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-Response读取响应结果"><span class="nav-number">6.3.</span> <span class="nav-text">4.3 Response读取响应结果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-总结"><span class="nav-number">7.</span> <span class="nav-text">5 总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

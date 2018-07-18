@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言 阅读本文的时候，配合demo进行演示，效果更佳哦~项目地址：apk-build  现在绝大部分人应该是使用Android Studio进行app的开发，通常我们运行一个app，直接点击 run 按钮或者使用gradle 命令 ./gradlew assembleDebug 等就可以构建出一个apk文件，那么这个apk文件到底是怎么生成的呢？ 本文通过命令行工具构建一个完整的app，来演示ap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apk文件构建流程">
+<meta property="og:url" content="http://yoursite.com/2018/06/14/Apk文件构建流程/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="前言 阅读本文的时候，配合demo进行演示，效果更佳哦~项目地址：apk-build  现在绝大部分人应该是使用Android Studio进行app的开发，通常我们运行一个app，直接点击 run 按钮或者使用gradle 命令 ./gradlew assembleDebug 等就可以构建出一个apk文件，那么这个apk文件到底是怎么生成的呢？ 本文通过命令行工具构建一个完整的app，来演示ap">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-f699764e629cd8da.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-8c096ab632984fa8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-5976b83696dbde73.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-e3125b22ec2985a5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-c99a4d5484f4fd85.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-647dff1b7f55c817.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-f2155149561bb281.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-ee481e4eb0a9527d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-2206e15b531b845e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-07-18T02:58:14.070Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apk文件构建流程">
+<meta name="twitter:description" content="前言 阅读本文的时候，配合demo进行演示，效果更佳哦~项目地址：apk-build  现在绝大部分人应该是使用Android Studio进行app的开发，通常我们运行一个app，直接点击 run 按钮或者使用gradle 命令 ./gradlew assembleDebug 等就可以构建出一个apk文件，那么这个apk文件到底是怎么生成的呢？ 本文通过命令行工具构建一个完整的app，来演示ap">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/2083810-f699764e629cd8da.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/14/Apk文件构建流程/"/>
+
+
+
+
+
+  <title>Apk文件构建流程 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/14/Apk文件构建流程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Apk文件构建流程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-14T16:45:00+08:00">
+                2018-06-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><blockquote>
+<p>阅读本文的时候，配合demo进行演示，效果更佳哦~<br>项目地址：<a href="https://github.com/sososeen09/android-blog-demos/tree/master/apk-build" target="_blank" rel="noopener">apk-build</a></p>
+</blockquote>
+<p>现在绝大部分人应该是使用Android Studio进行app的开发，通常我们运行一个app，直接点击 <code>run</code> 按钮或者使用gradle 命令 <code>./gradlew assembleDebug</code> 等就可以构建出一个apk文件，那么这个apk文件到底是怎么生成的呢？</p>
+<p>本文通过命令行工具构建一个完整的app，来演示app的打包过程，借此来了解一下app的构建流程。由于网上已经有很多相关的文章，本文不会对基本的打包流程做过多详细的分析，有兴趣的读者可以查看文末的相关文章。</p>
+<h1 id="基本的打包流程"><a href="#基本的打包流程" class="headerlink" title="基本的打包流程"></a>基本的打包流程</h1><p>首先来一张Android官网比较经典的打包流程图，这张图比较早了，但是依然具有指导意义。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-f699764e629cd8da.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="apk打包流程.png"></p>
+<p>从这张图上看，构建一个基本的app，主要需要经历7个过程</p>
+<ol>
+<li><p>java文件生成过程，</p>
+<ul>
+<li>通过aapt工具生成R.java文件，输入文件是res目录下的文件和AndroidManifest.xml文件</li>
+<li>通过aidl工具把.aidl文件生成java文件</li>
+<li><p>其实还有apt的方式生成java文件<br>使用<code>android gradle plugin</code> 打包，在build/generated目录下存放的就是这些生成的java文件。<br><img src="https://upload-images.jianshu.io/upload_images/2083810-8c096ab632984fa8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="java generated.png"></p>
+<p>aapt工具存放在/android-sdk/build-tools/$version/ 目录下。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-5976b83696dbde73.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="aapt存放目录"></p>
+</li>
+</ul>
+</li>
+<li><p>通过aapt工具来生成生成资源索引文件，一般来说生成的文件名是resources.ap<em>，使用<code>android gradle plugin</code> 打包，这个文件命名一般是 `resources</em>${buildVariant}.ap_`，例如<br><img src="https://upload-images.jianshu.io/upload_images/2083810-e3125b22ec2985a5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="资源索引文件.png"></p>
+</li>
+<li><p>使用javac命令编译java文件<br>就是使用jdk中的javac工具，做java开发的应该都知道怎么使用。</p>
+</li>
+<li><p>通过dx工具生成dex文件，dx工具与aapt存放目录一致。</p>
+</li>
+<li><p>通过apkbuilder打包apk，可以在/android-sdk/tools/lib目录下找到sdklib.jar，执行其 com.android.sdklib.build.ApkBuilderMain的main方法<br><img src="https://upload-images.jianshu.io/upload_images/2083810-c99a4d5484f4fd85.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="sdklib.jar.png"></p>
+</li>
+<li><p>签名，可以使用jarsigner工具签名和apksigner工具签名。jarsigner是Java本生自带的一个工具，他可以对jar进行签名的。而apksigner是后面专门为了Android应用程序apk进行签名的工具，他们两的签名算法没什么区别，主要是签名时使用的文件不一样。jarsigner工具签名时使用的是keystore文件，apksigner工具签名时使用的是pk8,x509.pem文件。<br>想要了解更多内容可以查看一位大神的文章<a href="https://blog.csdn.net/jiangwei0910410003/article/details/50402000" target="_blank" rel="noopener">Android签名机制之—签名过程详解</a></p>
+</li>
+<li>zipaligin，它位于/android-sdk/build-tools/$build-tools-version 目录，是一个zip文件整理工具用来优化apk文件。它的主要工作是将apk包进行对齐处理，使apk包中的所有资源文件距离文件起始偏移为4字节整数倍，这样通过内存映射访问apk文件时速度会更快。</li>
+</ol>
+<blockquote>
+<p>注意：关于apk签名和zipaligin这块，如果使用不同的工具签名，zipaligin和签名的顺序是不一致的。例如，如果使用apksigner，那么zipaligin就必须是在签名之前进行。如果使用jarsigner，zipaligin就必须是在签名之后进行。具体可查看官网介绍：<a href="https://developer.android.google.cn/studio/command-line/apksigner" target="_blank" rel="noopener">https://developer.android.google.cn/studio/command-line/apksigner</a></p>
+</blockquote>
+<h1 id="demo演示"><a href="#demo演示" class="headerlink" title="demo演示"></a>demo演示</h1><p>在<a href="https://github.com/sososeen09/android-blog-demos/tree/master/apk-build" target="_blank" rel="noopener">apk-build</a>中，分别通过shell脚本和gradle打包的方式来演示构建apk的过程。同时，为了增加一些知识点，demo中演示了通过类加载机制实现代码热修复的一个基本过程。</p>
+<p>例如，有如下代码，被除数为0，对于一个已经安装的apk，执行divide()方法肯定会crash。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">//修复前</span><br><span class="line">public class SimpleMathUtils &#123;</span><br><span class="line">	public static String divide()&#123;</span><br><span class="line">		int a=10/0;</span><br><span class="line">		return &quot;the divide result is  &quot;+a;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//修复后</span><br><span class="line">public class SimpleMathUtils &#123;</span><br><span class="line">	public static String divide()&#123;</span><br><span class="line">		int a=10/1;</span><br><span class="line">		return &quot;the divide result is  &quot;+a;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改代码后，把被除数改为1，通过javac命令生成class文件，然后再通过dex命令把class文件生成为dex文件，名称为fixed.dex。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">javac -encoding UTF-8 -g -target 1.7 -source 1.7 -d bin src/main/java/com/sososeen09/multidexbuild/SimpleMathUtils.java</span><br><span class="line">cd bin</span><br><span class="line">dx --dex --output=fixed.dex com/sososeen09/multidexbuild/SimpleMathUtils.class</span><br></pre></td></tr></table></figure>
+<p>简单起见，我把修复好的dex文件存放在一个目录中了<br><img src="https://upload-images.jianshu.io/upload_images/2083810-647dff1b7f55c817.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="需要被打包进apk中的文件.png"></p>
+<p>打包的时候把assets目录中的内容复制到apk文件中对应的assets目录下。</p>
+<p>整个构建前后的文件目录是这样的，bin目录下是构建过程中的产物，gen目录下是生成的R.java文件。<br><img src="https://upload-images.jianshu.io/upload_images/2083810-f2155149561bb281.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="构建前后的文件目录.png"></p>
+<p>把打包后的apk文件拖入到AS中，可以看到assets目录中的内容已经复制到apk中了。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-ee481e4eb0a9527d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="打包后的apk文件.png"></p>
+<p>运行效果图，如下：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2083810-2206e15b531b845e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="运行效果图..png"></p>
+<p>直接点击getResult按钮会crash，因为 <code>10/0</code>，运行期肯定会报错。点击fix 按钮之后通过热修复的方式把代码做了更改，把代码中的 <code>10/0</code> 改成了 <code>10/1</code>，然后再点击 getResult 按钮的时候就没问题了。</p>
+<p>相关代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">public void fix(View view) &#123;</span><br><span class="line">    tvFix.setText(&quot;fixing...&quot;);</span><br><span class="line">    File originDex = null;</span><br><span class="line">    try &#123;</span><br><span class="line">        originDex = copyFileFromAssets(&quot;fixed.dex&quot;, getCacheDir().getAbsolutePath());</span><br><span class="line">    &#125; catch (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (originDex != null) &#123;</span><br><span class="line">        File dexOptimizeDir = getDir(&quot;dex&quot;, Context.MODE_PRIVATE);</span><br><span class="line">        String dexOutputPath = dexOptimizeDir.getAbsolutePath();</span><br><span class="line">        PathClassLoader pathClassLoader = (PathClassLoader) getClassLoader();</span><br><span class="line">        DexClassLoader dexClassLoader = new DexClassLoader(originDex.getAbsolutePath(), dexOutputPath, null,</span><br><span class="line">                pathClassLoader);</span><br><span class="line"></span><br><span class="line">        try &#123;</span><br><span class="line">            // 获取DexClassLoader对象的pathList对象，DexPathList</span><br><span class="line">            Object dexPathListWithDexClassLoader = ReflectUtils.findField(dexClassLoader, &quot;pathList&quot;).get(dexClassLoader);</span><br><span class="line"></span><br><span class="line">            // 获取DexPathList对象Element[]数组，对应的字段名是dexElements</span><br><span class="line">            Field dexElements = ReflectUtils.findField(dexPathListWithDexClassLoader, &quot;dexElements&quot;);</span><br><span class="line">            Object[] elements = (Object[]) dexElements.get(dexPathListWithDexClassLoader);</span><br><span class="line"></span><br><span class="line">            // 获取PathClassLoader对象的pathList对象，DexPathList</span><br><span class="line">            Object dexPathListWithPathClassLoader = ReflectUtils.findField(pathClassLoader, &quot;pathList&quot;).get(pathClassLoader);</span><br><span class="line"></span><br><span class="line">            //把之前获取的Element[]数组插入到PathClassLoader对象对应的DexPathList的Element数组中</span><br><span class="line">            ReflectUtils.insertFieldArray(dexPathListWithPathClassLoader, &quot;dexElements&quot;, elements);</span><br><span class="line"></span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            // TODO Auto-generated catch block</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    tvFix.setText(&quot;done!&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private File copyFileFromAssets(String assetName, String dexOutputDir) throws IOException &#123;</span><br><span class="line">    File originDex = null;</span><br><span class="line">    AssetManager assets = getAssets();</span><br><span class="line">    InputStream open = assets.open(assetName);</span><br><span class="line">    originDex = new File(dexOutputDir, assetName);</span><br><span class="line">    FileOutputStream fileOutputStream = new FileOutputStream(originDex);</span><br><span class="line">    byte[] bytes = new byte[1024];</span><br><span class="line">    int len = 0;</span><br><span class="line">    while ((len = open.read(bytes)) != -1) &#123;</span><br><span class="line">        fileOutputStream.write(bytes, 0, len);</span><br><span class="line">    &#125;</span><br><span class="line">    fileOutputStream.close();</span><br><span class="line">    open.close();</span><br><span class="line"></span><br><span class="line">    return originDex;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>热修复就是基于类加载机制，把修复好的dex插入到app的PathClassLoader关联的dex数组的前部，这样的话根据类加载机制，就会先找到修复好的class，进而实现了修复的目的。</p>
+<p>关于类加载机制，可以阅读相关文章：</p>
+<ul>
+<li><a href="https://www.jianshu.com/p/2026b01fb965" target="_blank" rel="noopener">类加载机制系列1——深入理解Java中的类加载器</a></li>
+<li><a href="https://www.jianshu.com/p/7193600024e7" target="_blank" rel="noopener">类加载机制系列2——深入理解Android中的类加载器</a></li>
+<li><a href="https://www.jianshu.com/p/07200780dc83" target="_blank" rel="noopener">类加载机制系列3——MultiDex原理解析</a></li>
+</ul>
+<h1 id="gradle打包处理添加assets过程"><a href="#gradle打包处理添加assets过程" class="headerlink" title="gradle打包处理添加assets过程"></a>gradle打包处理添加assets过程</h1><p>如果我们使用android gradle plugin打包，为了要把外部assets目录下的文件打包到apk的assets目录中，需要hook gradle的打包流程。给出相关代码，也可以亲自研究一下项目<a href="https://github.com/sososeen09/android-blog-demos/tree/master/apk-build" target="_blank" rel="noopener">apk-build</a>。</p>
+<p>在build.gradle中创建一个类实现Plugin接口：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">class AssetPlugin implements Plugin&lt;Project&gt; &#123;</span><br><span class="line">    @Override</span><br><span class="line">    void apply(Project project) &#123;</span><br><span class="line">        project.afterEvaluate &#123;</span><br><span class="line">            project.android.applicationVariants.each &#123; ApplicationVariant variant -&gt;</span><br><span class="line">                String variantName = variant.name.capitalize()</span><br><span class="line">                def packageTask = project.tasks.getByName(&quot;package$&#123;variantName&#125;&quot;)</span><br><span class="line">                project.logger.quiet(&quot;packageTask: &quot; + packageTask.class)</span><br><span class="line">                project.logger.quiet(&quot;packageTask assets path: &quot; + packageTask.assets.asPath)</span><br><span class="line">                packageTask.doFirst &#123;</span><br><span class="line">                    project.copy &#123; param -&gt;</span><br><span class="line">                        from &quot;../multidexbuild/assets&quot;</span><br><span class="line">                        //很坑的一点是，2.3.3下是packageTask.assets，到3.0就变成packageTask.assets.asPath</span><br><span class="line">                        into &quot;$&#123;packageTask.assets.asPath&#125;&quot;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后在build.gradle中引入插件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply plugin: AssetPlugin</span><br></pre></td></tr></table></figure>
+<p>想要了解gradle可以查看我之前写过的一个gradle系列文章<a href="https://www.jianshu.com/p/0bde7097abaf" target="_blank" rel="noopener">Gradle学习</a>。<br>关于gradle打包apk的过程，这里就不多做介绍了，感兴趣的可以自行了解。如果想要深入研究，推荐研究一下<a href="https://github.com/typ0520/fastdex" target="_blank" rel="noopener">fastdex</a>，是我司的大神写的，一定会让你深受启发。<br>也可以阅读他写的相关文章：<a href="https://www.jianshu.com/p/53923d8f241c" target="_blank" rel="noopener">加快apk的构建速度，如何把编译时间从130秒降到17秒</a></p>
+<h1 id="apk打包shell脚本"><a href="#apk打包shell脚本" class="headerlink" title="apk打包shell脚本"></a>apk打包shell脚本</h1><p>为了方便起见，写了一个构建apk文件的脚本 <a href="https://github.com/sososeen09/android-blog-demos/blob/master/apk-build/apk-build-with-shell/build.sh" target="_blank" rel="noopener">build.sh</a>，<br>如果要再自己本机上运行一下脚本，需要更改配置的android sdk目录。</p>
+<blockquote>
+<p>注意:使用命令行打包，注意需要配置好环境变量，确保adb、dx、aapt等命令都可以正常使用</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line">echo &apos;init...&apos;</span><br><span class="line">project_dir=$(pwd)</span><br><span class="line"></span><br><span class="line">echo &quot;project_dir: $&#123;project_dir&#125;&quot;</span><br><span class="line"></span><br><span class="line"># 需要更改为自己的android sdk存放的目录</span><br><span class="line">sdk_folder=/works/android/android-sdk-macosx</span><br><span class="line">platform_folder=$&#123;sdk_folder&#125;/platforms/android-26</span><br><span class="line">android_jar=$&#123;platform_folder&#125;/android.jar</span><br><span class="line"></span><br><span class="line"># 使用通配符，因为有的命名是sdklib-26.0.0-dev.jar这样的形式</span><br><span class="line">sdklib_jar=$&#123;sdk_folder&#125;/tools/lib/sdklib*.jar</span><br><span class="line"></span><br><span class="line">src=$&#123;project_dir&#125;/src/main</span><br><span class="line">bin=$&#123;project_dir&#125;/bin</span><br><span class="line">libs=$&#123;project_dir&#125;/libs</span><br><span class="line"></span><br><span class="line">java_source_folder=$&#123;src&#125;/java</span><br><span class="line"></span><br><span class="line">if [ -d gen ];then</span><br><span class="line">	rm -rf gen</span><br><span class="line">fi</span><br><span class="line">if [ -d bin ];then</span><br><span class="line">	rm -rf bin</span><br><span class="line">fi</span><br><span class="line">mkdir gen</span><br><span class="line">mkdir bin</span><br><span class="line"></span><br><span class="line">#1.生成R文件</span><br><span class="line">echo &apos;generate R.java file&apos;</span><br><span class="line">aapt package -f -m -J ./gen -S $&#123;src&#125;/res -M $&#123;src&#125;/AndroidManifest.xml -I $&#123;android_jar&#125;</span><br><span class="line"></span><br><span class="line">#2.生成资源索引文件</span><br><span class="line">echo &apos;generate resourses index file&apos;</span><br><span class="line">aapt package -f -M $&#123;src&#125;/AndroidManifest.xml -S $&#123;src&#125;/res -I $&#123;android_jar&#125; -F bin/resources.ap_</span><br><span class="line"></span><br><span class="line">#3.编译java文件</span><br><span class="line">echo &apos;compile java file&apos;</span><br><span class="line">javac -encoding UTF-8 -g -target 1.7 -source 1.7 -cp $&#123;android_jar&#125; -d bin $&#123;java_source_folder&#125;/com/sososeen09/multidexbuild/*.java $&#123;java_source_folder&#125;/com/sososeen09/multidexbuild/utils/*.java gen/com/sososeen09/multidexbuild/*.java</span><br><span class="line"># javac -encoding UTF-8 -g -target 1.7 -source 1.7 -cp $android_jar -d bin src/ gen/</span><br><span class="line"></span><br><span class="line">#4.生成dex文件,这里我们把MainActivity打包到主dex中，utils打包到secondaryDex中</span><br><span class="line"># --minimal-main-dex 表示只把maindexlist.txt中指定的类打包到主dex中</span><br><span class="line">#  --set-max-idx-number=2000  表示指定没个dex的最大方法数目是2001，最大65535</span><br><span class="line">echo &apos;generate dex file&apos;</span><br><span class="line">dx --dex --output=bin/ --multi-dex --main-dex-list=maindexlist.txt --minimal-main-dex bin/</span><br><span class="line"></span><br><span class="line">#5.打包apk</span><br><span class="line">echo &apos;generate apk file&apos;</span><br><span class="line">java -cp $&#123;sdklib_jar&#125; com.android.sdklib.build.ApkBuilderMain bin/app-debug-unsigned.apk -v -u -z bin/resources.ap_ -f bin/classes.dex -rf src</span><br><span class="line"></span><br><span class="line">#6.通过aapt工具把secondarydex copy到apk中</span><br><span class="line">echo &apos;aapt add dex into apk&apos;</span><br><span class="line">cd bin</span><br><span class="line">aapt add -f app-debug-unsigned.apk classes2.dex</span><br><span class="line">cd ..</span><br><span class="line"></span><br><span class="line">#7.把assets的内容加进去</span><br><span class="line">echo &apos;put some file into apk assets&apos;</span><br><span class="line">aapt add -f bin/app-debug-unsigned.apk assets/ic_launcher-web.png assets/fixed.dex</span><br><span class="line"></span><br><span class="line">#8 签名</span><br><span class="line">echo &apos;sign apk&apos;</span><br><span class="line">java -jar auto-sign/signapk.jar auto-sign/testkey.x509.pem auto-sign/testkey.pk8 ./bin/app-debug-unsigned.apk ./bin/app-debug.apk</span><br><span class="line"></span><br><span class="line">#9 打印方法数</span><br><span class="line">dexdump -f bin/app-debug.apk | grep method_ids_size</span><br></pre></td></tr></table></figure>
+<h1 id="相关文章"><a href="#相关文章" class="headerlink" title="相关文章"></a>相关文章</h1><ul>
+<li><a href="https://blog.csdn.net/chenkai19920410/article/details/60589100" target="_blank" rel="noopener">自己动手生成Android Apk</a></li>
+<li><a href="https://blog.csdn.net/jason0539/article/details/44917745" target="_blank" rel="noopener">android Apk打包过程概述_android是如何打包apk的</a></li>
+<li><a href="http://blog.csdn.net/chichoxian/article/details/8760456" target="_blank" rel="noopener">dx使用出现的错误总结</a></li>
+<li><a href="https://segmentfault.com/a/1190000004062952" target="_blank" rel="noopener">Android动态加载入门 简单加载模式</a></li>
+<li><a href="http://blog.csdn.net/jiangwei0910410003/article/details/50740026" target="_blank" rel="noopener">如何使用Ant脚本编译出Jar和Apk包</a></li>
+<li><a href="https://dev.qq.com/topic/5913db5c29d8be2a14b64da8" target="_blank" rel="noopener">dex分包变形记</a></li>
+<li><a href="http://blog.csdn.net/gaozhan_csdn/article/details/52024497" target="_blank" rel="noopener">multidex分包续：将指定的类打包到主dex中</a></li>
+<li><a href="http://blog.csdn.net/mynameishuangshuai/article/details/52703029" target="_blank" rel="noopener">彻底掌握Android多分包技术MultiDex-用Ant和Gradle分别构建（一）</a></li>
+<li><a href="https://www.zybuluo.com/linux1s1s/note/309503" target="_blank" rel="noopener">Android 打包系列-基本打包流程</a></li>
+<li><a href="https://blog.csdn.net/jiangwei0910410003/article/details/50402000" target="_blank" rel="noopener">Android签名机制之—签名过程详解</a></li>
+<li><a href="https://developer.android.google.cn/studio/command-line/zipalign" target="_blank" rel="noopener">https://developer.android.google.cn/studio/command-line/zipalign</a></li>
+<li><a href="https://www.jianshu.com/p/53923d8f241c" target="_blank" rel="noopener">加快apk的构建速度，如何把编译时间从130秒降到17秒</a> </li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/19/LayoutInflater——你应该知道的一点知识/" rel="next" title="LayoutInflater——你应该知道的一点知识">
+                <i class="fa fa-chevron-left"></i> LayoutInflater——你应该知道的一点知识
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/06/22/启用Gradle远程调试/" rel="prev" title="启用Gradle远程调试">
+                启用Gradle远程调试 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本的打包流程"><span class="nav-number">2.</span> <span class="nav-text">基本的打包流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#demo演示"><span class="nav-number">3.</span> <span class="nav-text">demo演示</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#gradle打包处理添加assets过程"><span class="nav-number">4.</span> <span class="nav-text">gradle打包处理添加assets过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#apk打包shell脚本"><span class="nav-number">5.</span> <span class="nav-text">apk打包shell脚本</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关文章"><span class="nav-number">6.</span> <span class="nav-text">相关文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
