@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="zh-Hans">
+<html class="theme-next pisces use-motion" lang="zh-Hans">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Http," />
 
 
 
@@ -80,14 +80,15 @@
 
 
 <meta name="description" content="本文的分析基于OkHttp3.4，不展示完整的代码示例，具体可以查看这个官方例子或者项目中的samples。  OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对于底层真正实现网络请求的OkHttp关注的不是很多。最近探究了一下OkHttp的源码，对OkHttp">
+<meta name="keywords" content="Http">
 <meta property="og:type" content="article">
 <meta property="og:title" content="重识OkHttp——更深入了解如何使用">
 <meta property="og:url" content="http://yoursite.com/2016/11/14/重识OkHttp——更深入了解如何使用/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="sososeen09 的博客">
 <meta property="og:description" content="本文的分析基于OkHttp3.4，不展示完整的代码示例，具体可以查看这个官方例子或者项目中的samples。  OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对于底层真正实现网络请求的OkHttp关注的不是很多。最近探究了一下OkHttp的源码，对OkHttp">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2083810-256d5a86abb5e29b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2018-07-18T01:53:14.202Z">
+<meta property="og:updated_time" content="2019-03-05T11:28:01.754Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="重识OkHttp——更深入了解如何使用">
 <meta name="twitter:description" content="本文的分析基于OkHttp3.4，不展示完整的代码示例，具体可以查看这个官方例子或者项目中的samples。  OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对于底层真正实现网络请求的OkHttp关注的不是很多。最近探究了一下OkHttp的源码，对OkHttp">
@@ -99,7 +100,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Pisces',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -127,7 +128,7 @@
 
 
 
-  <title>重识OkHttp——更深入了解如何使用 | Hexo</title>
+  <title>重识OkHttp——更深入了解如何使用 | sososeen09 的博客</title>
   
 
 
@@ -157,7 +158,7 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Hexo</span>
+        <span class="site-title">sososeen09 的博客</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
@@ -267,13 +268,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/11/14/重识OkHttp——更深入了解如何使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -303,6 +304,28 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -441,6 +464,12 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/Http/" rel="tag"># Http</a>
+          
+        </div>
+      
 
       
       
@@ -528,8 +557,12 @@
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">John Doe</p>
-              <p class="site-description motion-element" itemprop="description"></p>
+              <img class="site-author-image" itemprop="image"
+                src="/images/ic_avatar.jpeg"
+                alt="sososeen09" />
+            
+              <p class="site-author-name" itemprop="name">sososeen09</p>
+              <p class="site-description motion-element" itemprop="description">未来的不可知是前进的原动力</p>
           </div>
 
           <nav class="site-state motion-element">
@@ -546,15 +579,24 @@
             
 
             
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
 
             
               
               
               <div class="site-state-item site-state-tags">
-                
-                  <span class="site-state-item-count">1</span>
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">标签</span>
-                
+                </a>
               </div>
             
 
@@ -562,6 +604,22 @@
 
           
 
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/sososeen09" target="_blank" title="Github">
+                      
+                        <i class="fa fa-fw fa-globe"></i>Github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.jianshu.com/u/16925b46816d" target="_blank" title="简书">
+                      
+                        <i class="fa fa-fw fa-globe"></i>简书</a>
+                  </span>
+                
+            </div>
           
 
           
@@ -605,11 +663,11 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">John Doe</span>
+  <span class="author" itemprop="copyrightHolder">sososeen09</span>
 
   
 </div>
@@ -623,7 +681,7 @@
 
 
 
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
 
 
 
@@ -722,6 +780,13 @@
 
   
   
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
 
   
   <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>

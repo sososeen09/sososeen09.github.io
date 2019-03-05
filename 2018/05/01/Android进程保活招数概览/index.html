@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="zh-Hans">
+<html class="theme-next pisces use-motion" lang="zh-Hans">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -83,7 +83,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android进程保活招数概览">
 <meta property="og:url" content="http://yoursite.com/2018/05/01/Android进程保活招数概览/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="sososeen09 的博客">
 <meta property="og:description" content="Android中的进程保活应该分为两个方面：  提高进程的优先级，减少被系统杀死的可能性 在进程已经被杀死的情况下，通过一些手段来重新启动应用进程  本文针对这两方面来进程阐述，并给出相应的示例。其实主要也是在前人的基础上做了一个总结，并进行了一些实践。  阅读本文的时候，可以先clone一份代码 android-process-daemon，这样的话可能理解更清晰。  进程等级与Low Memo">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2083810-12de25557189a20b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
@@ -101,7 +101,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Pisces',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -129,7 +129,7 @@
 
 
 
-  <title>Android进程保活招数概览 | Hexo</title>
+  <title>Android进程保活招数概览 | sososeen09 的博客</title>
   
 
 
@@ -159,7 +159,7 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Hexo</span>
+        <span class="site-title">sososeen09 的博客</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
@@ -269,13 +269,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/01/Android进程保活招数概览/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -572,8 +572,12 @@
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">John Doe</p>
-              <p class="site-description motion-element" itemprop="description"></p>
+              <img class="site-author-image" itemprop="image"
+                src="/images/ic_avatar.jpeg"
+                alt="sososeen09" />
+            
+              <p class="site-author-name" itemprop="name">sososeen09</p>
+              <p class="site-description motion-element" itemprop="description">未来的不可知是前进的原动力</p>
           </div>
 
           <nav class="site-state motion-element">
@@ -590,15 +594,24 @@
             
 
             
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
 
             
               
               
               <div class="site-state-item site-state-tags">
-                
-                  <span class="site-state-item-count">1</span>
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">标签</span>
-                
+                </a>
               </div>
             
 
@@ -606,6 +619,22 @@
 
           
 
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/sososeen09" target="_blank" title="Github">
+                      
+                        <i class="fa fa-fw fa-globe"></i>Github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.jianshu.com/u/16925b46816d" target="_blank" title="简书">
+                      
+                        <i class="fa fa-fw fa-globe"></i>简书</a>
+                  </span>
+                
+            </div>
           
 
           
@@ -649,11 +678,11 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">John Doe</span>
+  <span class="author" itemprop="copyrightHolder">sososeen09</span>
 
   
 </div>
@@ -667,7 +696,7 @@
 
 
 
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
 
 
 
@@ -766,6 +795,13 @@
 
   
   
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
 
   
   <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>

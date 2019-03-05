@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="zh-Hans">
+<html class="theme-next pisces use-motion" lang="zh-Hans">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -79,13 +79,16 @@
 
 
 
+<meta name="description" content="未来的不可知是前进的原动力">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
+<meta property="og:title" content="sososeen09 的博客">
 <meta property="og:url" content="http://yoursite.com/page/4/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="sososeen09 的博客">
+<meta property="og:description" content="未来的不可知是前进的原动力">
 <meta property="og:locale" content="zh-Hans">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="sososeen09 的博客">
+<meta name="twitter:description" content="未来的不可知是前进的原动力">
 
 
 
@@ -93,7 +96,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Pisces',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -121,7 +124,7 @@
 
 
 
-  <title>Hexo</title>
+  <title>sososeen09 的博客</title>
   
 
 
@@ -152,7 +155,7 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Hexo</span>
+        <span class="site-title">sososeen09 的博客</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
@@ -262,13 +265,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/22/浅析Activity中View的生命周期方法回调/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -330,72 +333,18 @@
       
         
           
-            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>Activity有生命周期，同样的，View从添加到界面到从界面中移除也有一个生命周期，在<a href="https://developer.android.google.cn/reference/android/view/View.html" target="_blank" rel="noopener">官方文档</a>中介绍了自定义View需要重写的一些方法，可以认为这些方法就是View的生命周期方法。</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2083810-82ee9f1ceb9c6b95.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="View的生命周期方法.png"></p>
-<p>本文就介绍一下这些方法调用的顺序流程以及与Activity的生命周期结合之后的顺序流程。</p>
-<h1 id="View的生命周期"><a href="#View的生命周期" class="headerlink" title="View的生命周期"></a>View的生命周期</h1><h2 id="从Activity启动到退出，这个View-的过程是这样的。"><a href="#从Activity启动到退出，这个View-的过程是这样的。" class="headerlink" title="从Activity启动到退出，这个View 的过程是这样的。"></a>从Activity启动到退出，这个View 的过程是这样的。</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">D/ViewLifeTestView: ViewLifeTestView: construct </span><br><span class="line">D/ViewLifeTestView: onFinishInflate: </span><br><span class="line">D/ViewLifeTestView: onAttachedToWindow: </span><br><span class="line">D/ViewLifeTestView: onWindowVisibilityChanged: visiable</span><br><span class="line">D/ViewLifeTestView: onMeasure: </span><br><span class="line">D/ViewLifeTestView: onMeasure: </span><br><span class="line">D/ViewLifeTestView: onSizeChanged: </span><br><span class="line">D/ViewLifeTestView: onLayout: </span><br><span class="line">D/ViewLifeTestView: onDraw: </span><br><span class="line">D/ViewLifeTestView: onWindowFocusChanged: true</span><br><span class="line">D/ViewLifeTestView: onWindowVisibilityChanged: gone</span><br><span class="line">D/ViewLifeTestView: onWindowFocusChanged: false</span><br><span class="line">D/ViewLifeTestView: onDetachedFromWindow:</span><br></pre></td></tr></table></figure>
-<p><img src="http://upload-images.jianshu.io/upload_images/2083810-e496916704fa4dfa.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Paste_Image.png"></p>
-<p><strong>在Activity的onCreate()方法中调用setContentView方法，Activity显示到界面时的View的回调</strong></p>
-<ol>
-<li>构造方法，这是肯定的，View也是一个Java类。</li>
-<li>onFinishInflate，这个一般是通过LayoutInflater进行填充的时候会走这个方法。如果我们是直接在代码中new出来的View进行添加，是不会走这个方法的。</li>
-<li>onAttachedToWindow，这个方法表明现在这个View已经跟它对应的Window已经绑定了</li>
-<li>onWindowVisibilitChanged(int visibility) ，这个值等于 View.VISIBLE，代表View所在的Window已经可见了。</li>
-<li>onMeasure，开始测量。我们发现，这个measure过程是在Window可见的情况下才会去调用了，仔细想想这个也不难理解，如果你都不准备显示，我何必去花精力测量你呢。这个测量过程可能会多次调用。</li>
-<li>onSizeChanged ，测量之后会回调这个方法。onSizeChanged，顾名思义就是当尺寸发生变化的时候会调用。一般是第一次测量之后调用，后面再测量，如果尺寸没变化就不会再去调用了。</li>
-<li>onLayout，测量时候就进行布局，这个时候如果是View的话一般不用去管，因为具体放在哪个位置是由父控件去控制的，如果是ViewGroup，就需要去确定子View的位置。</li>
-<li>onDraw，确定完位置和宽高，就可以进行绘制了。</li>
-<li>onWindowFocusChanged(boolean hasWindowFocus)，为true这个说明View所绑定的Window开始获取焦点</li>
-</ol>
-<p><strong>当按back键退出当前Activity后，走下面几个方法</strong></p>
-<ol>
-<li>onWindowVisibilitChanged(int visibility) ，这个值等于 View.GONE，此时Window已经不可见了</li>
-<li>onWindowFocusChanged(boolean hasWindowFocus)，这个也变为false，说明已经没有焦点了。有一点比较奇怪，为什么是先不可见才是没有焦点的呢？</li>
-<li>onDetachedFromWindow， 当前View与它对应的Window解除绑定。</li>
-</ol>
-<h1 id="Activity和View的生命周期结合"><a href="#Activity和View的生命周期结合" class="headerlink" title="Activity和View的生命周期结合"></a>Activity和View的生命周期结合</h1><p>当Activity和View的生命周期结合，我们会发现一些有意思的东西。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">D/ViewLifeTestActivity: onCreate: </span><br><span class="line">D/ViewLifeTestActivity: onWindowAttributesChanged: </span><br><span class="line">...</span><br><span class="line">D/ViewLifeTestView: ViewLifeTestView: construct </span><br><span class="line">D/ViewLifeTestView: onFinishInflate: </span><br><span class="line">D/ViewLifeTestActivity: onStart: </span><br><span class="line">D/ViewLifeTestActivity: onWindowAttributesChanged: </span><br><span class="line">D/ViewLifeTestActivity: onResume: </span><br><span class="line">D/ViewLifeTestActivity: onAttachedToWindow: </span><br><span class="line">D/ViewLifeTestView: onAttachedToWindow: </span><br><span class="line">D/ViewLifeTestView: onWindowVisibilityChanged: visiable</span><br><span class="line">D/ViewLifeTestView: onMeasure: </span><br><span class="line">D/ViewLifeTestView: onMeasure: </span><br><span class="line">D/ViewLifeTestView: onSizeChanged: </span><br><span class="line">D/ViewLifeTestView: onLayout: </span><br><span class="line">D/ViewLifeTestView: onDraw: </span><br><span class="line">D/ViewLifeTestActivity: onWindowFocusChanged hashFocus: true</span><br><span class="line">D/ViewLifeTestView: onWindowFocusChanged: true</span><br><span class="line">D/ViewLifeTestView: onTouchEvent: </span><br><span class="line">D/ViewLifeTestActivity: onPause: </span><br><span class="line">D/ViewLifeTestView: onWindowVisibilityChanged: gone</span><br><span class="line">D/ViewLifeTestActivity: onWindowFocusChanged hashFocus: false</span><br><span class="line">D/ViewLifeTestView: onWindowFocusChanged: false</span><br><span class="line">D/ViewLifeTestActivity: onStop: </span><br><span class="line">D/ViewLifeTestActivity: onDestroy: </span><br><span class="line">D/ViewLifeTestView: onDetachedFromWindow: </span><br><span class="line">D/ViewLifeTestActivity: onDetachedFromWindow:</span><br></pre></td></tr></table></figure>
-<p><strong>结合与Activity的启动过程可以看到</strong></p>
-<ol>
-<li><strong>Activity</strong> 调用onCreate方法，这个时候我们setContentView加载了带View的布局</li>
-<li><strong>Activity</strong> 调用onWindowAttributesChanged 方法，而且这个方法连续调用多次</li>
-<li><figure class="highlight plain"><figcaption><span>``` 调用构造方法</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">4. ``` View ``` 调用onFinishInflate方法，说明这个时候View已经填充完毕，但是这个时候还没开始触发绘制过程</span><br><span class="line">5. **Activity** 调用onstart方法</span><br><span class="line">6. **Activity** 再次调用 onWindowAttributesChanged 方法，说明这个方法在onResume之前会多次调用</span><br><span class="line">7. **Activity** 调用onResume，我们一般认为当Activity调用onResume的时候，整个Activit已经可以和用户进行交互了，但事实上可能并不是这样，后面解释原因。</span><br><span class="line">8. **Activity** 调用onAttachedToWindow，说明跟Window进行了绑定。发现了吗，Activity在onResume之后才跟Window进行了绑定。</span><br><span class="line">9. ``` View ``` 调用onAttachedToWindow，View开始跟Window进行绑定，这个过程肯定是在Activity绑定之后才进行的。</span><br><span class="line">10. ``` View ``` 调用 onWindowVisibilityChanged(int visibility)，参数变为 `View.VISIABLE`，说明Window已经可见了，这个时候我们发现一个问题就是其实onResume的时候似乎并不代表Activity中的View已经可见了。</span><br><span class="line">11. ``` View ``` 调用onMeasure，开始测量</span><br><span class="line">12. ``` View ``` 调用onSizeChanged，表示测量完成，尺寸发生了变化</span><br><span class="line">13. ``` View ``` 调用onLayout，开始摆放位置</span><br><span class="line">14. ``` View ``` 调用 onDraw，开始绘制</span><br><span class="line">15. **Activity** 调用onWindowFocusChanged(boolean hasFocus)，此时为true，代表窗体已经获取了焦点</span><br><span class="line">16. ``` View ``` 调用 onWindowFocusChanged(boolean hasWindowFocus)，此时为true，代表当前的控件获取了Window焦点，当调用这个方法后说明当前Activity中的View才是真正的可见了。</span><br><span class="line"></span><br><span class="line">**当退出当前的Activity的时候**</span><br><span class="line"></span><br><span class="line">1.  **Activity** 调用 onPause</span><br><span class="line">2. ``` View ``` 调用 onWindowVisibilityChanged(int visibility)，参数变为 `View.GONE`，View中对应的Window隐藏</span><br><span class="line">3.  **Activity** 调用onWindowFocusChanged(boolean hasFocus)，此时为false，说明Actvity所在的Window已经失去焦点</span><br><span class="line">4.  **Activity** 调用 onStop，此时Activity已经切换到后台</span><br><span class="line">5.  **Activity** 调用 onDestory，此时Activity开始准备销毁，实际上调用onDestory并不代表Activity已经销毁了。</span><br><span class="line">6. ``` View ``` 调用 onDetachedFromWindow，此时View 与Window解除绑定</span><br><span class="line">7.  **Activity** 调用 onDetathedFromWindow ，此时Activity 与Window 解除绑定</span><br><span class="line"></span><br><span class="line">当View进行与Window解除绑定之后，View即将被销毁。我们可以在 View 的  `onDetachedFromWindow` 方法中可以做一些资源的释放，防止内存泄漏。</span><br><span class="line"></span><br><span class="line"># Activity的onWindowFocusChanged(boolean hasFocus)</span><br><span class="line"></span><br><span class="line">从上面的分析我们可以知道，一个Activity启动后onCreate、onStart、onResume等过程后，Activity并不是真正可见的，只有当 onWindowFocusChanged 方法最后调用并且参数为true的时候Activity才是真正的可见，这个时候才可以和用户进行交互。</span><br><span class="line"></span><br><span class="line">我们可以这 onWindowFocusChanged 可以做一些事情。比如， 获取布局中的控件的尺寸。</span><br><span class="line"></span><br><span class="line">从 Activity 中的 onWindowFoucusChanged 方法介绍来看，当包含 View的 Window 获得或者失去焦点就会调用这个方法。而且要注意，它和View的焦点是有区别的。为了接收键盘事件，View和Window都必须获得焦点。而当一个显示在你的Window上面的Window获取输入焦点的时候，你自己的Window失去了焦点，但是这个View本身的焦点不会改变。例如，弹出一个PopopWindow。</span><br><span class="line"></span><br><span class="line">下面是 Activity 的 `onWindowFocusChanged` 方法介绍。</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<h1 id="Activity"><a href="#Activity" class="headerlink" title="Activity"></a>Activity</h1><p>/**</p>
-<ul>
-<li>Called when the window containing this view gains or loses focus.  Note</li>
-<li>that this is separate from view focus: to receive key events, both</li>
-<li>your view and its window must have focus.  If a window is displayed</li>
-<li>on top of yours that takes input focus, then your own window will lose</li>
-<li>focus but the view focus will remain unchanged.<br>*</li>
-<li>@param hasWindowFocus True if the window containing this view now has</li>
-<li>focus, false otherwise.<br>*/<br>public void onWindowFocusChanged(boolean hasWindowFocus) {<br>InputMethodManager imm = InputMethodManager.peekInstance();<br>if (!hasWindowFocus) {<br>if (isPressed()) {<br>  setPressed(false);<br>}<br>if (imm != null &amp;&amp; (mPrivateFlags &amp; PFLAG_FOCUSED) != 0) {<br>  imm.focusOut(this);<br>}<br>removeLongPressCallback();<br>removeTapCallback();<br>onFocusLost();<br>} else if (imm != null &amp;&amp; (mPrivateFlags &amp; PFLAG_FOCUSED) != 0) {<br>imm.focusIn(this);<br>}<br>refreshDrawableState();<br>}</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">在 Activity 的 `onResume`  方法中，可以看到有这么一段注释。意思就是提醒大家 这个`onResume` 并不是提醒你这个Activty对用户可见的最佳指示器。例如一个系统Window如键盘可能是处在前面。采用```onWindowFocusChanged```可以确定当前的Activity对用户可见并且是可交互的。</span><br></pre></td></tr></table></figure>
-<p>/**</p>
-<ul>
-<li>Called after {@link #onRestoreInstanceState}, {@link #onRestart}, or</li>
-<li>{@link #onPause}, for your activity to start interacting with the user.</li>
-<li>This is a good place to begin animations, open exclusive-access devices</li>
-<li>(such as the camera), etc.<br>*</li>
-<li><p>Keep in mind that onResume is not the best indicator that your activity</p></li>
-<li>is visible to the user; a system window such as the keyguard may be in</li>
-<li>front.  Use {@link #onWindowFocusChanged} to know for certain that your</li>
-<li>activity is visible to the user (for example, to resume a game).<br>*</li>
-<li><p><em>Derived classes must call through to the super class’s</em></p></li>
-<li>implementation of this method.  If they do not, an exception will be</li>
-<li>thrown.<p></p></li>
-</ul>
-<p>```</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
-<li>熟知 View 的生命周期方法，可加深我们对于View的理解，在开发中也可以根据这个生命周期方法的回调时机来写出更加合理高效的自定义View，例如在 View 的 <code>onDetachedFromWindow</code> 方法中释放资源。</li>
-<li>Activity还有其它的生命周期方法，比如 <code>onSaveInstanceState(Bundle outState)</code> ， <code>onRestoreInstanceState(Bundle savedInstanceState)</code> 等，限于篇幅和主题，本文并没有介绍这些方法，但是其实这些方法在 Activity 的生命周期方法中也是很重要的。</li>
-<li>通常认为Activity的 <code>onResume</code> 方法调用之后，就可以与用户交互，通过本文的分析可知，这种说法并不准确。只有在 Activity 的 <code>onWindowFocusChanged(boolean hasFocus)</code> 调用，并且参数为true的时候，才是真正可以和用户交互的时机。</li>
-<li>Activity 和 View 的很多生命周期回调方法都牵涉到 Window，这个Window 是Android 系统中的一个抽象类，它有一个唯一的子类叫作 PhoneWindow，  它具体有什么作用，在以后的文章中会介绍到它。</li>
-</ol>
+          前言Activity有生命周期，同样的，View从添加到界面到从界面中移除也有一个生命周期，在官方文档中介绍了自定义View需要重写的一些方法，可以认为这些方法就是View的生命周期方法。
 
-          
+本文就介绍一下这些方法调用的顺序流程以及与Activity的生命周期结合之后的顺序流程。
+View的生命周期
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/07/22/浅析Activity中View的生命周期方法回调/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -445,13 +394,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/19/采用Gson解析含有多种JsonObject的复杂Json/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -513,55 +462,18 @@
       
         
           
-            <blockquote>
-<p>本文对应的项目是<a href="https://github.com/sososeen09/MultiTypeJsonParser" target="_blank" rel="noopener">MultiTypeJsonParser</a> ，项目地址 <a href="https://github.com/sososeen09/MultiTypeJsonParser" target="_blank" rel="noopener">https://github.com/sososeen09/MultiTypeJsonParser</a></p>
-</blockquote>
-<h1 id="前奏"><a href="#前奏" class="headerlink" title="前奏"></a>前奏</h1><p>使用 <a href="https://github.com/google/gson" target="_blank" rel="noopener">Gson</a> 去解析 json 应该是很常见的，大部分的情况下我们只要创建一个 Gson 对象，然后根据 json 和对应的 Java 类去解析就可以了。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Gson gson = new Gson();</span><br><span class="line">Person person = gson.form(json,Person.class);</span><br></pre></td></tr></table></figure>
-<p>但是对于比较复杂的 json，比如下面这种， attributes 对应的 jsonObject 中的字段是完全不一样的，这个时候再简单的用上面的方法就解析不了了。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;total&quot;: 2,</span><br><span class="line">    &quot;list&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;type&quot;: &quot;address&quot;,</span><br><span class="line">            &quot;attributes&quot;: &#123;</span><br><span class="line">                &quot;street&quot;: &quot;NanJing Road&quot;,</span><br><span class="line">                &quot;city&quot;: &quot;ShangHai&quot;,</span><br><span class="line">                &quot;country&quot;: &quot;China&quot;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;type&quot;: &quot;name&quot;,</span><br><span class="line">            &quot;attributes&quot;: &#123;</span><br><span class="line">                &quot;first-name&quot;: &quot;Su&quot;,</span><br><span class="line">                &quot;last-name&quot;: &quot;Tu&quot;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>当然了，我们说一步到位的方式解决不了，但用一点笨方法还是可以的。比如先手动解析拿到 <strong>attributes</strong> 对应的 jsonObject，根据与它同级 <strong>type</strong> 对应的 <strong>value</strong> 就可以判断这一段 jsonObject 对应的 Java 类是哪个，最后就采用 <figure class="highlight plain"><figcaption><span>方法解析出 **attributes** 对应的 Java 对象。</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
-<p>ListInfoWithType listInfoWithType = new ListInfoWithType();</p>
-<p>//创建 org.json 包下的 JSONObject 对象<br>JSONObject jsonObject = new JSONObject(TestJson.TEST_JSON_1);<br>int total = jsonObject.getInt(“total”);</p>
-<p>//创建 org.json 包下的 JSONArray 对象<br>JSONArray jsonArray = jsonObject.getJSONArray(“list”);<br>Gson gson = new Gson();<br>List<attributewithtype> list = new ArrayList&lt;&gt;();</attributewithtype></p>
-<p>//遍历<br>for (int i = 0; i &lt; jsonArray.length(); i++) {<br>    JSONObject innerJsonObject = jsonArray.getJSONObject(i);<br>    Class&lt;? extends Attribute&gt; clazz;<br>    String type = innerJsonObject.getString(“type”);<br>    if (TextUtils.equals(type, “address”)) {<br>        clazz = AddressAttribute.class;<br>    } else if (TextUtils.equals(type, “name”)) {<br>        clazz = NameAttribute.class;<br>    } else {<br>        //有未知的类型就跳过<br>        continue;<br>    }<br>    AttributeWithType attributeWithType = new AttributeWithType();</p>
-<p>//采用Gson解析<br>    Attribute attribute = gson.fromJson(innerJsonObject.getString(“attributes”), clazz);<br>    attributeWithType.setType(type);<br>    attributeWithType.setAttributes(attribute);<br>    list.add(attributeWithType);<br>}</p>
-<p>listInfoWithType.setTotal(total);<br>listInfoWithType.setList(list);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">虽然这样能实现整个 json 的反序列化，但是这种方式比较麻烦，而且一点也不优雅，如果项目中存在很多这样的情况，就会做很多重复的体力劳动。</span><br><span class="line">如何更优雅、更通用的解决这类问题，在网上没有找到答案，只好去深入研究一下Gson了。带着这样的目的，翻看了[Gson的文档](https://github.com/google/gson/blob/master/UserGuide.md)，发现了一句话</span><br><span class="line">&gt; Gson can work with arbitrary Java objects including pre-existing objects that you do not have source code of.</span><br><span class="line"></span><br><span class="line">这句话说 Gson 可以处理任意的 Java 对象。那么对于上面讲的那种反序列化情况来讲， Gson 应该也能做到。通过研究 Gson 的文档，发现可以通过自定义JsonDeserializer的方式来实现解析这种 jsonObject 类型不同的情况。</span><br><span class="line"></span><br><span class="line">我们知道，大部分情况下 Gson 是通过直接 **new** 出来的方式来创建，不过也可以采用 **GsonBuilder** 这个类去生成 Gson。</span><br></pre></td></tr></table></figure></p>
-<p>  Gson gson = new GsonBuilder()<br>   .registerTypeAdapter(Id.class, new IdTypeAdapter())<br>   .enableComplexMapKeySerialization()<br>   .serializeNulls()<br>   .setDateFormat(DateFormat.LONG)<br>   .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)<br>   .setPrettyPrinting()<br>   .setVersion(1.0)<br>   .create();</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">**GsonBuilder** 通过 **registerTypeAdapter()**方法，对目标类进行注册。当序列化或者反序列化目标类的时候就会调用我们注册的typeAdapter， 这样就实现了人工干预 Gson 的序列化和反序列化过程。</span><br><span class="line"></span><br><span class="line"> GsonBuilder 的 registerTypeAdapte() 方法的第二个参数是 Object 类型，也就意味着我们可以注册多种类型的 typeAdapter，目前支持的类型有 JsonSerializer、JsonDeserializer、InstanceCreator、TypeAdapter。</span><br></pre></td></tr></table></figure>
-<p>  public GsonBuilder registerTypeAdapter(Type type, Object typeAdapter)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">经过一番捣鼓，写了一个工具类，对于上面的那个复杂 json，用了不到10行代码就搞定，而且比较优雅和通用。</span><br></pre></td></tr></table></figure></p>
-<p>MultiTypeJsonParser<attribute> multiTypeJsonParser = new MultiTypeJsonParser.Builder<attribute>()<br>        .registerTypeElementName(“type”)<br>        .registerTargetClass(Attribute.class)<br>        .registerTargetUpperLevelClass(AttributeWithType.class)<br>        .registerTypeElementValueWithClassType(“address”, AddressAttribute.class)<br>        .registerTypeElementValueWithClassType(“name”, NameAttribute.class)<br>        .build();</attribute></attribute></p>
-<p>ListInfoWithType listInfoWithType = multiTypeJsonParser.fromJson(TestJson.TEST_JSON_1, ListInfoWithType.class);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">本文就简单分析一下如何通过自定义 JsonDeserializer 来实现一个通用的工具类用于解析复杂类型 json。对于以后碰到相似问题，这种处理方法可以提供一种解决问题的思路。具体的代码和实例，可以查看[项目](https://github.com/sososeen09/MultiTypeJsonParser)。如果对您的思路有一些启发，欢迎交流和Star。</span><br><span class="line"></span><br><span class="line"># JsonDeserializer介绍</span><br><span class="line"></span><br><span class="line"> JsonDeserializer 是一个接口，使用的时候需要实现这个接口并在 GsonBuilder 中对具体的类型去注册。当反序列化到对应的类的时候就会调用这个自定义 JsonDeserializer 的 deserialize() 方法。下面对这个方法的几个参数做一下解释，以便于更好的理解Gson解析的过程。</span><br></pre></td></tr></table></figure></p>
-<p>public interface JsonDeserializer<t> {<br>  public T deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)<br>      throws JsonParseException;<br>}</t></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## JsonElement </span><br><span class="line"></span><br><span class="line">  JsonElement代表 在 Gson 中的代表一个元素。它是一个抽象类，有4个子类：JsonObject、JsonArray、JsonPrimitive、JsonNull。</span><br><span class="line">1.**JsonObject**  表示的是包含name-value型的 json 字符串，其中 name 是字符串，而 value 可以是其它类型的 JsonElement 元素。在json中用 **“&#123;&#125;”** 包裹起来的一个整体就是JsonObject。例如</span><br></pre></td></tr></table></figure>
-<p>// “attributes” 是name，后面跟着的{}内容是它对应的value，而这个value就是一个JsonObject<br>  “attributes”: {<br>                  “first-name”: “Su”,<br>                  “last-name”: “Tu”<br>                 }</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">2.**JsonArray** 这个类在 Gson 中代表一个数组类型，一个数组就是JsonElement的集合，这个集合中每一个类型都可能不同。这是一个有序的集合，意味着元素的添加顺序是被维持着的。上面例子中list对应的 **“[]”** 包裹起来的json就是JsonArray。</span><br><span class="line"></span><br><span class="line">3.**JsonPrimitive ** 这个可以认为是json中的原始类型的值，包含Java的8个基本类型和它们对应的包装类型，也包含 String 类型。比如上面 &quot;first-name&quot; 对应的 &quot;Su&quot; 就是一个 String 类型的 JsonPrimitive 。</span><br><span class="line"></span><br><span class="line">4.**JsonNull**  通过名字也可以猜到，这个代表的是 null 值。</span><br><span class="line"></span><br><span class="line">## Type</span><br><span class="line"></span><br><span class="line">Type是Java中的所有类型的顶层接口，它的子类有 GenericArrayType、ParameterizedType、TypeVariable、WildcardType，这个都是在java.lang.reflect包下面的类。另外，我们最熟悉的一个类 Class 也实现了 Type 接口。</span><br><span class="line"></span><br><span class="line">一般来讲，调用 GsonBuilder 的 registerTypeAdapter() 去注册，第一个参数使用 Class 类型就可以了。</span><br><span class="line"></span><br><span class="line">## JsonDeserializationContext</span><br><span class="line"></span><br><span class="line">这个类是在反序列过程中，由其它类调用我们自定义的 JsonDeserialization 的 deserialize() 方法时传递过来的，在 Gson 中它唯一的一个实现是TreeTypeAdapter 中的一个私有的内部类 GsonContextImpl 。可以在自定义的 JsonDeserializer 的 deserialize() 中去调用 JsonDeserializationContext 的 deserialize() 方法去获得一个对象。</span><br><span class="line"></span><br><span class="line">**但是要记住，如果传递到 JsonDeserializationContext 中的 json 与 JsonDeserializer 中的 json 一样的话，可能会导致死循环调用。**</span><br><span class="line"></span><br><span class="line"># 思路分析</span><br><span class="line">## 创建JavaBean</span><br><span class="line"></span><br><span class="line">还是以最上面的那个 json 进行分析，在 **list** 对应 JsonArray ，其中的两个 JsonObject 中，**attributes** 对应的 JsonObject 字段完全不一样，但是为了统一，在写 JavaBean 的时候可以给它们设置一个共同的父类，尽管它是空的。</span><br></pre></td></tr></table></figure>
-<p>public class Attribute {<br>      …<br>}</p>
-<p>public class AddressAttribute extends Attribute {<br>    private String street;<br>    private String city;<br>    private String country;<br>… 省略get/set<br>}</p>
-<p>public class NameAttribute extends Attribute {<br>    @SerializedName(“first-name”)<br>    private String firstname;<br>    @SerializedName(“last-name”)<br>    private String lastname;<br>…省略get/set<br>}</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">设置 Attribute 这个 SuperClass 只是为了在 GsonBuilder 去注册，当具体解析的时候我们会根据type 对应的类型去找到对应的Class。</span><br></pre></td></tr></table></figure>
-<p> gsonBuilder.registerTypeAdapter(Attribute.class, new AttributeJsonDeserializer());<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">到了这里我们就应该想到，type 对应的 value 肯定是要与具体的 JavaBean 对应起来的。比如在这里就是</span><br></pre></td></tr></table></figure></p>
-<p>“address”——AddressAttribute.class<br>“name”——NameAttribute.class<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">如果 type 是 **&quot;address&quot;** ，那么我们就可以用 gson 去拿 AddressAttribute.class 和对应的 json 去解析。</span><br></pre></td></tr></table></figure></p>
-<p>Attribute attribute = gson.form(addressJson,AddressAttribute.class);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## 如何把 json 准确的转为对应的 JavaBean </span><br><span class="line">我们注册的是父类 Attribute ，当反序列化需要解析 Attribute 的时候就会把对应的 json 作为参数回调自定义的 JsonDeserializer 。我们就可以在下面这个方法中写自己的逻辑得到我们需要的  Attribute 对象了。</span><br></pre></td></tr></table></figure></p>
-<p> public Attribute deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">但是细心的朋友应该会发现了，这个时候传递的 json 有可能是这样的</span><br></pre></td></tr></table></figure></p>
-<p>{<br>   “street”: “NanJing Road”,<br>   “city”: “ShangHai”,<br>   “country”: “China”<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">也有可能是这样的</span><br></pre></td></tr></table></figure></p>
-<p>{<br>   “first-name”: “Su”,<br>   “last-name”: “Tu”<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">我们怎么知道该解析成 AddressAttribute 还是 NameAttribute  ？？？</span><br><span class="line"></span><br><span class="line">我们想想，具体解析成哪个，我们肯定是需要知道 type 对应的 value 。而这个 type 是与 attributes 同级的字段，照着刚才这样肯定是没希望拿到这个 value 的。</span><br><span class="line"></span><br><span class="line">我们再想想，能够知道这个 type 对应的 value 是什么的肯定是 attributes 上一层级的 json 。</span><br></pre></td></tr></table></figure></p>
-<p>{<br>   “type”: “name”,<br>   “attributes”: {<br>                          …<br>                 }<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">那么我们可不可以在 GsonBuilder 中再去注册一个 typeAdapter 来解析这个外层的 json 呢？当然可以。</span><br></pre></td></tr></table></figure></p>
-<p>gsonBuilder.registerTypeAdapter(AttributeWithType.class, new AttributeWithTypeJsonDeserializer());<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">这个 AttributeWithType 就是外层的 json 对应的 JavaBean</span><br></pre></td></tr></table></figure></p>
-<p>public class AttributeWithType {<br>    private String type;<br>    private Attribute attributes;<br>     …<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">在反序列化 AttributeWithType 这个类的时候，我们可以获得这个 type 对应的 value，然后把这个 value 传递给里层的 Attribute 对应的 JsonDeserializer。这样就可以根据 value 是 “address” 或者 “name” 去对 AddresAttribute 或者 NameAttribute 进行反序列化了。</span><br><span class="line"></span><br><span class="line">## 有一个坑</span><br><span class="line">前面那我们讲过，调用 JsonDeserializationContext 的方法应该注意死循环。在具体的实践中，我虽然没有调用 JsonDeserializationContext 的方法，但是依然出现了死循环的情况。就是因为我是这么用的。</span><br></pre></td></tr></table></figure></p>
-<p> AttributeWithType attributeWithType = gson.fromJson(json, AttributeWithType.class);</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">乍一看没什么问题啊，问题就出在这个 gson 身上。这个 gson 是已经注册过解析 AttributeWithType 的 GsonBuilder 创建的。 gson.fromJson() 方法中的 json 是 AttributeWithType 对应的反序列化的 json，gson.fromJson() 内部会再次调用 AttributeWithType 对应的 JsonDeserializer 中的 deserialize() 方法，从而导致死循环。</span><br><span class="line"></span><br><span class="line">避免死循环的方式就是用GsonBuilder新建一个 gson ，这个GsonBuilder不再注册  AttributeWithType  ，而只去注册  Attribute 去解析。</span><br><span class="line"></span><br><span class="line"># 为了更好更通用</span><br><span class="line">1.在项目中，可能还会存在另一种格式的json，外部没有单独的type元素，而是与其它的元素放在同一个JsonObject中。这样的格式更省事，不需要注册外层的typeAdaper即可。</span><br></pre></td></tr></table></figure>
-<p>{<br>    “total”: 2,<br>    “list”: [<br>        {<br>            “type”: “address”,<br>            “street”: “NanJing Road”,<br>            “city”: “ShangHai”,<br>            “country”: “China”<br>        },<br>        {<br>            “type”: “name”,<br>            “first-name”: “Su”,<br>            “last-name”: “Tu”<br>        }<br>    ]<br>}</p>
-<p>MultiTypeJsonParser<attribute> multiTypeJsonParser = new MultiTypeJsonParser.Builder<attribute>()<br>        .registerTypeElementName(“type”)<br>        .registerTargetClass(Attribute.class)<br>// 如果所要解析的 jsonObejct 中已经含有能够表示自身类型的字段，不需要注册外层 Type，这样更省事<br>//        .registerTargetUpperLevelClass(AttributeWithType.class)<br>        .registerTypeElementValueWithClassType(“address”, AddressAttribute.class)<br>        .registerTypeElementValueWithClassType(“name”, NameAttribute.class)<br>        .build();</attribute></attribute></p>
-<p>ListInfoWithType listInfoWithType = multiTypeJsonParser.fromJson(TestJson.TEST_JSON_1, ListInfoWithType.class);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">2.如果在解析过程中发现有些类型没有注册到 MultiTypeJsonParser 的 Builder 中，解析的时候碰到相应的 jsonObject 就直接返回null。比如下面这样的json中，&quot;type&quot; 对应的 &quot;parents&quot; 如果没有注册，那么反序列化的时候这个 json 所代表的对象就为 null 。</span><br></pre></td></tr></table></figure></p>
-<p> {<br>        “type”: “parents”,<br>        “attributes”: {<br>          “mather”: “mi lan”,<br>          “father”: “lin ken”<br>        }<br> }<br>```</p>
-<p>在Android中我们反序列这样的 json 后一般会把得到的对象的设置到列表控件上，如果后端返回的 json 中包含之前未注册的类型，为了程序不至于 crash，需要对反序列化的 null 对象进行过滤，项目中提供了一个工具类 ListItemFilter 可以过滤集合中为 null 的元素。</p>
-<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>对于如何优雅的解析这种类型不同的 JsonObject ，刚开始我是缺少思路的，在网上也没有查到合适的文档。但是通过查看 Gson 的文档和源码，通过自己的理解和分析，逐步的完成了这个过程。我的一个感触就是，多去看看官方的使用文档应该比盲目去搜索解决方案更好。</p>
-<p>代码是最好的文档，本文只简单介绍了一些实现思路，文中贴出的一些代码是为了讲述方便，与项目中的代码可能会有有些区别。具体的使用可以看<a href="https://github.com/sososeen09/MultiTypeJsonParser" target="_blank" rel="noopener">项目</a>中的例子。</p>
-<p>如果有问题，欢迎提 issue 或留言，如果对您有所帮助，欢迎Star。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://github.com/google/gson/blob/master/UserGuide.md" target="_blank" rel="noopener">Gson官方文档</a></p>
-
           
+本文对应的项目是MultiTypeJsonParser ，项目地址 https://github.com/sososeen09/MultiTypeJsonParser
+
+前奏使用 Gson 去解析 json 应该是很常见的，大部分的情况下我们只要创建一个 Gson 对象，然后根据 json 和对应
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/06/19/采用Gson解析含有多种JsonObject的复杂Json/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -611,13 +523,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/11/21/重识OkHttp——探究源码设计/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -650,6 +562,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -679,57 +613,21 @@
       
         
           
-            <blockquote>
-<p>本文是重试OkHttp系列的第2篇，依然是基于<a href="https://github.com/square/okhttp/tree/okhttp_34" target="_blank" rel="noopener">OkHttp3.4</a>。上一篇<a href="http://www.jianshu.com/p/c70d0ce5400c" target="_blank" rel="noopener">重识OkHttp——更深入了解如何使用</a>算是对OkHttp的基本使用做了一个简单的总结，本篇会深入源码内部，探究OkHttp是如何工作的。</p>
-</blockquote>
-<p>#1 客户端完整的请求</p>
-<p>OkHttp发送一个请求需要4步：</p>
-<ul>
-<li>构建OkHttpClient</li>
-<li>构建Request</li>
-<li>创建一个Call</li>
-<li>执行Call的同步或者异步方法，处理响应。</li>
-</ul>
-<p>我们只以一个简单的异步get请求来举例：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">//创建OkHttpClient</span><br><span class="line">OkHttpClient client = new OkHttpClient.Builder().build();</span><br><span class="line"></span><br><span class="line">//创建Request</span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;http://publicobject.com/helloworld.txt&quot;) </span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line">//创建Call</span><br><span class="line">Call call = client.newCall(request);</span><br><span class="line"></span><br><span class="line">//执行Call的异步方法</span><br><span class="line"> call.enqueue(new Callback() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void onFailure(Call call, IOException e) &#123;</span><br><span class="line">                //做一些请求失败的处理</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onResponse(Call call, Response response) throws IOException &#123;</span><br><span class="line">              //做一些请求成功的处理</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
-<p>Request和OkHttpClient都是我们自己创建的，不再讨论了。就从这个Call来展开讨论。</p>
-<h1 id="探究源码"><a href="#探究源码" class="headerlink" title="探究源码"></a>探究源码</h1><h2 id="Call的实现类RealCall"><a href="#Call的实现类RealCall" class="headerlink" title="Call的实现类RealCall"></a>Call的实现类RealCall</h2><p>Call是一个准备执行的请求，它是一个接口。含有一个内部接口Factory 用于生成Call。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public interface Call &#123;</span><br><span class="line">//返回当前Call的Request</span><br><span class="line">  Request request();</span><br><span class="line">//同步请求</span><br><span class="line">  Response execute() throws IOException;</span><br><span class="line">//异步请求</span><br><span class="line">  void enqueue(Callback responseCallback);</span><br><span class="line">//取消请求</span><br><span class="line">  void cancel();</span><br><span class="line">//判断是否执行过</span><br><span class="line">  boolean isExecuted();</span><br><span class="line">//判断是否取消了</span><br><span class="line">  boolean isCanceled();</span><br><span class="line"></span><br><span class="line">  interface Factory &#123;</span><br><span class="line">    Call newCall(Request request);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>OkHttpClient实现了Call.Factory接口，所以有一个newCall方法，这个方法中干了这么个事：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#OkHttpClient</span><br><span class="line">  @Override public Call newCall(Request request) &#123;</span><br><span class="line">    return new RealCall(this, request);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">#RealCall的构造方法</span><br><span class="line">  protected RealCall(OkHttpClient client, Request originalRequest) &#123;</span><br><span class="line">    this.client = client;</span><br><span class="line">    this.originalRequest = originalRequest;</span><br><span class="line">    this.retryAndFollowUpInterceptor = new RetryAndFollowUpInterceptor(client);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到，返回了一个RealCall，这个RealCall是OkHttp中Call的唯一实现类。说明我们执行请求，是通过RealCall发出的。<br>在RealCall的构造方法中，我们还创建了一个拦截器RetryAndFollowUpInterceptor，通过名字我们可以猜测一下这个拦截器的作用是重试和跟进，这个负责是否断线重连和重定向，可以看到这个拦截器跟OkHttpClient有关联，我们可以在配置OkHttpClient的时候配置断线重连等，默认的都是true。</p>
-<blockquote>
-<p>在OkHttp中以Real为前缀的类，都是真正干活的类</p>
-</blockquote>
-<h2 id="RealCall的enqueue-Callback-callBack-方法"><a href="#RealCall的enqueue-Callback-callBack-方法" class="headerlink" title="RealCall的enqueue( Callback callBack)方法"></a>RealCall的enqueue( Callback callBack)方法</h2><p>OkHttpClient的newCall方法只是创建了一个RealCall，RealCall的enqueue方法传递了一个CallBack用于处理回调，那我们看看这个方法都干了些什么:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#RealCall</span><br><span class="line">  @Override public void enqueue(Callback responseCallback) &#123;</span><br><span class="line">    synchronized (this) &#123;</span><br><span class="line"> //同一个Call只能执行一次，否则会报错。</span><br><span class="line">      if (executed) throw new IllegalStateException(&quot;Already Executed&quot;);</span><br><span class="line">      executed = true;</span><br><span class="line">    &#125;</span><br><span class="line">    client.dispatcher().enqueue(new AsyncCall(responseCallback));</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>从上面可以看出，同一个Call只能执行一次，否则会报错。<br>client.dispatcher()返回的是与OkHttpClient绑定的一个Dispatcher。这个Dispatcher用来管理请求的调度。在上一篇<a href="http://www.jianshu.com/p/c70d0ce5400c" target="_blank" rel="noopener">重识OkHttp——更深入了解如何使用</a>中我们简单的也提到过这个类。这个类主要是用来管理异步请求的调度，同步请求中虽然也参与了，但只是简单的统计正在执行的Call并在Call执行完毕之后做相应的处理。</p>
-<p>AsyncCall是RealCall的内部类，继承了NamedRunnable，实际上也是一个Runnable实现类。这个AsyncCall 包装了Callback。它的run()方法中最终会调用它自己的execute()方法。后面我们会讲到AsyncCall的execute()方法。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#NamedRunnable</span><br><span class="line">  @Override public final void run() &#123;</span><br><span class="line">    String oldName = Thread.currentThread().getName();</span><br><span class="line">    Thread.currentThread().setName(name);</span><br><span class="line">    try &#123;</span><br><span class="line">      execute();</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      Thread.currentThread().setName(oldName);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  protected abstract void execute();</span><br></pre></td></tr></table></figure>
-<p>RealCall的enqueue( Callback callBack)实际上最后调用了Dispatcher的enqueue(AsyncCall call)方法。</p>
-<h2 id="Dispatcher的enqueue方法"><a href="#Dispatcher的enqueue方法" class="headerlink" title="Dispatcher的enqueue方法"></a>Dispatcher的enqueue方法</h2><p>Dispatcher的enqueue方法是这样的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#Dispatcher</span><br><span class="line">  synchronized void enqueue(AsyncCall call) &#123;</span><br><span class="line">//判断是否可以执行当前这个Call</span><br><span class="line">    if (runningAsyncCalls.size() &lt; maxRequests &amp;&amp; runningCallsForHost(call) &lt; maxRequestsPerHost) &#123;</span><br><span class="line">//满足条件，添加到代表执行的Call的集合中，并开始执行</span><br><span class="line">      runningAsyncCalls.add(call);</span><br><span class="line">      executorService().execute(call);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">//不满足条件，添加到等待的集合中</span><br><span class="line">      readyAsyncCalls.add(call);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>这个方法中首先会判断当前正在执行的Call的数量以及访问同一个主机地址的Call的数量是否在限定范围内。Dispatcher默认的Call的并发数是64，同一个主机地址的并发数是5。这个并发数可以更改。<br>如果满足条件，就向代表当前正在执行的Call的集合中添加该Call，并且去执行它。否则就会向等待的集合中添加该Call，等待被执行。</p>
-<p>executorService()返回的是ExecutorService对象，调用ExecutorService的execute(call)方法实际上最后调用的就是AsyncCall 的execute()方法。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">#RealCall.AsyncCall</span><br><span class="line">   @Override protected void execute() &#123;</span><br><span class="line">      boolean signalledCallback = false;</span><br><span class="line">      try &#123;</span><br><span class="line">//最核心的方法，调用之后返回Response</span><br><span class="line">        Response response = getResponseWithInterceptorChain();</span><br><span class="line">        if (retryAndFollowUpInterceptor.isCanceled()) &#123;</span><br><span class="line">          signalledCallback = true;</span><br><span class="line">          responseCallback.onFailure(RealCall.this, new IOException(&quot;Canceled&quot;));</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">          signalledCallback = true;</span><br><span class="line">          responseCallback.onResponse(RealCall.this, response);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; catch (IOException e) &#123;</span><br><span class="line">        if (signalledCallback) &#123;</span><br><span class="line">          // Do not signal the callback twice!</span><br><span class="line">          Platform.get().log(INFO, &quot;Callback failure for &quot; + toLoggableString(), e);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">          responseCallback.onFailure(RealCall.this, e);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; finally &#123;</span><br><span class="line">        client.dispatcher().finished(this);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>在这个execute()方法中，能获得返回Response，之后做回调处理，Dispatcher也会对Call进行管理。核心的方法就是getResponseWithInterceptorChain()。</p>
-<h2 id="核心方法getResponseWithInterceptorChain"><a href="#核心方法getResponseWithInterceptorChain" class="headerlink" title="核心方法getResponseWithInterceptorChain()"></a>核心方法getResponseWithInterceptorChain()</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"> private Response getResponseWithInterceptorChain() throws IOException &#123;</span><br><span class="line">    // Build a full stack of interceptors.</span><br><span class="line">    List&lt;Interceptor&gt; interceptors = new ArrayList&lt;&gt;();</span><br><span class="line">//添加开发者用户自己定义的拦截器。</span><br><span class="line">    interceptors.addAll(client.interceptors());</span><br><span class="line"></span><br><span class="line">//添加失败重连和重定向的拦截器</span><br><span class="line">    interceptors.add(retryAndFollowUpInterceptor);</span><br><span class="line"></span><br><span class="line">//这个拦截器主要是添加一些请求头和其它信息，同时对返回的响应做一些响应头或其它处理。</span><br><span class="line">    interceptors.add(new BridgeInterceptor(client.cookieJar()));</span><br><span class="line"></span><br><span class="line">//添加缓存拦截器，根据不同的缓存策略做相应的处理。</span><br><span class="line">    interceptors.add(new CacheInterceptor(client.internalCache()));</span><br><span class="line">/**</span><br><span class="line"> * 添加连接拦截器，与服务器建立Socket连接。</span><br><span class="line"> * 其他的拦截器都会对Request和Response进行一些操作，这个拦截器不会。</span><br><span class="line"> */</span><br><span class="line">    interceptors.add(new ConnectInterceptor(client));</span><br><span class="line">/**</span><br><span class="line"> * 默认retryAndFollowUpInterceptor.isForWebSocket()为false，</span><br><span class="line"> * 所以会添加网络拦截器networkInterceptors()，</span><br><span class="line"> * 这个拦截器也是在配置OkHttpClient的时候开发者添加的。</span><br><span class="line"> * 这个拦截器工作的时候肯定已经联网了。</span><br><span class="line"> */</span><br><span class="line">    if (!retryAndFollowUpInterceptor.isForWebSocket()) &#123;</span><br><span class="line">      interceptors.addAll(client.networkInterceptors());</span><br><span class="line">    &#125;</span><br><span class="line">/**</span><br><span class="line"> * 添加CallServerInterceptor拦截器，它主要就是IO操作了， 本质就是Socket的网络IO操作。 </span><br><span class="line"> * 对服务器：写入请求头，如果有请求体的话写入请求体。</span><br><span class="line"> * 拿到响应之后处理响应头、code、message、body等。</span><br><span class="line"> */</span><br><span class="line">    interceptors.add(new CallServerInterceptor(</span><br><span class="line">        retryAndFollowUpInterceptor.isForWebSocket()));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> // 创建一个RealInterceptorChain，用它来开始处理请求。</span><br><span class="line">    Interceptor.Chain chain = new RealInterceptorChain(</span><br><span class="line">        interceptors, null, null, null, 0, originalRequest);</span><br><span class="line">    return chain.proceed(originalRequest);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>在这个getResponseWithInterceptorChain()方法中，有大量的Interceptors，有开发者自己定义的Interceptor也有OkHttp自己的Interceptor。这些Interceptor都存入到了ArrayList集合，我们在这里就可以大胆猜测一下这个Interceptor应该是顺序执行的。最后创建了一个RealInterceptorChain，通过调用它的proceed(request)方法开始处理原始的request，然后我们就拿到了我们想要的Response。</p>
-<p>RealInterceptorChain是Interceptor.Chain的实现类，看这个Real前缀就知道它干的绝对是重要的事。它是一个具体的拦截器链，我们存放在List<interceptor> interceptors集合中的拦截器之间的传递都要靠它。<br>它的proceed(request)最终会调用到四个参数的重载方法：</interceptor></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"> public Response proceed(Request request, StreamAllocation streamAllocation, HttpStream httpStream,</span><br><span class="line">      Connection connection) throws IOException &#123;</span><br><span class="line">  ...</span><br><span class="line">//下面的代码能够调用拦截器链中的下一个拦截器Interceptor</span><br><span class="line">    // Call the next interceptor in the chain.</span><br><span class="line">//创建一个新的RealInterceptorChain用于把Request传递给下一个Interceptor去处理</span><br><span class="line">    RealInterceptorChain next = new RealInterceptorChain(</span><br><span class="line">        interceptors, streamAllocation, httpStream, connection, index + 1, request);</span><br><span class="line">    Interceptor interceptor = interceptors.get(index);</span><br><span class="line">    Response response = interceptor.intercept(next);</span><br><span class="line">  ...</span><br><span class="line">    return response;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>上述代码部分就是这个方法的核心，能够把Request依次传递给下一个Interceptor去处理。<br>拦截器Interceptor的设计真是很赞，每一个Interceptor在发送Request的时候只处理自己那一部分Request，然后通过RealInterceptorChain的带动传递给下一个Interceptor进行处理，最后一个Interceptor发送完请求得到服务器的响应Response，经过自己的处理之后返回给它之前的那个Interceptor进行处理，依次进行，最后一个处理完毕的Response返回给开发者用户。<br>形象一点，Interceptor就像是生产线上的工人，Request是物料，Response是产品，RealInterceptorChain是一节一节的传送带。每个工人同时负责处理自己那一部分的Request和Response，由传送带进行传递，各司其职，最后完成一件对用户来讲完美的产品。</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2083810-b7337609283fad43.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="拦截器流程.png"></p>
-<p>我第一次看OkHttp3.4源码的的时候真是一脸懵逼继而叹为观止。后来看了其它文章，才知道原来这个设计模式叫作<strong>责任链模式</strong>。在<em>Android源码设计模式解析与实战</em>这本书中介绍了Android的事件分发处理采用的也是责任链模式。</p>
-<p>具体到每个拦截器都是怎么处理Request和Response的，最好自己去看一下，我们就不展开讨论了。</p>
-<h1 id="同步请求"><a href="#同步请求" class="headerlink" title="同步请求"></a>同步请求</h1><p>看了异步请求的调用，同步请求的分析就比较简单了，因为最终调用的还是getResponseWithInterceptorChain()这个核心方法。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#RealCall</span><br><span class="line">  @Override public Response execute() throws IOException &#123;</span><br><span class="line">    synchronized (this) &#123;</span><br><span class="line">  //同一个Call只能执行一次，否则会报错。</span><br><span class="line">      if (executed) throw new IllegalStateException(&quot;Already Executed&quot;);</span><br><span class="line">      executed = true;</span><br><span class="line">    &#125;</span><br><span class="line">    try &#123;</span><br><span class="line">//Dispatcher.execute(Call call)方法，只是把当前正在执行的Call添加到代表执行中的集合去。</span><br><span class="line">      client.dispatcher().executed(this);</span><br><span class="line">//核心的方法就是调用的这个getResponseWithInterceptorChain()方法返回响应Response。</span><br><span class="line">      Response result = getResponseWithInterceptorChain();</span><br><span class="line">      if (result == null) throw new IOException(&quot;Canceled&quot;);</span><br><span class="line">      return result;</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">//下面的方法只是代表对一个Call结束之后做的处理。</span><br><span class="line">      client.dispatcher().finished(this);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本文对OkHttp一个完整的请求过程做了简单的说明，限于篇幅有些地方讲的不是很详细，有兴趣的读者可以自己去探索一下这个流程，尤其是在拦截器那一部分，掌握好了之后对我们平时灵活运用OkHttp会有很大帮助，如配置我们自定义的缓存拦截器，或者在拦截器中监听下载进度，网上也有很多文章可供参考。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考:"></a>参考:</h1><ul>
-<li><a href="http://gold.xitu.io/post/581311cabf22ec0068826aff" target="_blank" rel="noopener">从OKHttp框架看代码设计</a></li>
-<li><a href="http://blog.piasy.com/2016/07/11/Understand-OkHttp/" target="_blank" rel="noopener">拆轮子系列：拆 OkHttp</a></li>
-</ul>
-
           
+本文是重试OkHttp系列的第2篇，依然是基于OkHttp3.4。上一篇重识OkHttp——更深入了解如何使用算是对OkHttp的基本使用做了一个简单的总结，本篇会深入源码内部，探究OkHttp是如何工作的。
+
+#1 客户端完整的请求
+OkHttp发送一个请求需要4步：
+
+构建OkHttpClie
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/11/21/重识OkHttp——探究源码设计/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -779,13 +677,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/11/14/重识OkHttp——更深入了解如何使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -818,6 +716,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -847,103 +767,18 @@
       
         
           
-            <blockquote>
-<p>本文的分析基于<a href="https://github.com/square/okhttp/tree/okhttp_34" target="_blank" rel="noopener">OkHttp3.4</a>，不展示完整的代码示例，具体可以查看<a href="https://github.com/square/okhttp/wiki/Recipes" target="_blank" rel="noopener">这个官方例子</a>或者项目中的<strong>samples</strong>。</p>
-</blockquote>
-<p>OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对于底层真正实现网络请求的OkHttp关注的不是很多。最近探究了一下OkHttp的源码，对OkHttp的使用有了一些新的认识，在此做一下总结。</p>
-<h1 id="1-OkHttp的优点"><a href="#1-OkHttp的优点" class="headerlink" title="1 OkHttp的优点"></a>1 OkHttp的优点</h1><p>OkHttp作为当前Android端最火热的网络请求框架，必然有很多的优点。</p>
-<ul>
-<li>支持HTTP/2 协议，允许连接到同一个主机地址的所有请求共享Socket。这必然会提高请求效率。</li>
-<li>在HTTP/2协议不可用的情况下，通过连接池减少请求的延迟。</li>
-<li>GZip透明压缩减少传输的数据包大小。</li>
-<li>响应缓存，避免同一个重复的网络请求。</li>
-</ul>
-<h1 id="2-网络处理3要素"><a href="#2-网络处理3要素" class="headerlink" title="2 网络处理3要素"></a>2 网络处理3要素</h1><p>对于客户端来讲，我们关注的就是把正确的请求发送到服务端并拿到结果来进行处理。在OkHttp中，我认为可以分为3个部分：</p>
-<ul>
-<li>Request类封装客户端发送的请求，包括请求的url，请求方法method（主要是GET和POST方法）、请求头header以及请求体requestBody；</li>
-<li>Response类封装了服务器响应的数据，包括code、message、body、header等。</li>
-<li>OkHttpClient负责发送请求Request并通过同步或者异步的方式返回服务器的响应Response，就好比是一个浏览器。</li>
-</ul>
-<p>OkHttp中通过建造者模式来构建OkHttpClient、Request和Response。对于客户端来讲，我们不需要过多关注Response是如何构建的，因为这个是OkHttp对响应结果进行了封装处理。我们只关注请求Request和客户端OkHttpClient如何构建即可。</p>
-<h1 id="2-1-请求Request"><a href="#2-1-请求Request" class="headerlink" title="2.1 请求Request"></a>2.1 请求Request</h1><p>Request采用建造者模式来配置url，请求方法method、header、tag和cacheControl。</p>
-<ul>
-<li>设置url。可以是String类型、URL类型和HttpUrl类型。最终都是用到HttpUrl类型。</li>
-<li>设置method，包含get、post方法等。默认的是get方法。post方法要传RequestBody，类似的还有delete、put、patch。</li>
-<li>设置header，方法有addHeader(String name, String value)、 removeHeader(String name)、header(String name, String value)、headers(Headers headers)。headers(Headers headers)调用之后其它的header都会被移除，只添加这一个header。而header(String name, String value)方法调用之后，其它与这个name同名的header都会被移除，只保留这一个header。</li>
-<li>设置tag，设置tag可以用来取消这一请求。如果未指定tag或者tag为null，那么这个request本身就会当做是一个tag用来被取消请求。</li>
-<li>设置cacheControl，这个是设置到请求头中。用来替换其它name是”Cache-Control”的header。如果cacheControl是空的话就会移除请求头中name是”Cache-Control”的header。</li>
-</ul>
-<p><img src="http://upload-images.jianshu.io/upload_images/2083810-256d5a86abb5e29b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Request.png"></p>
-<p>OkHttp采用POST方法向服务器发送一个请求体，在OkHttp中这个请求体是RequestBody。这个请求体可以是：</p>
-<ul>
-<li>String类型</li>
-<li>Stream流类型</li>
-<li>File文件类型</li>
-<li>Form表单形式的key-value类型</li>
-<li>类似Html文件上传表单的复杂请求体类型（多块请求）。</li>
-</ul>
-<p>RequestBody有几个静态方法用于创建不同类型的请求体：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//创建String类型的请求体</span><br><span class="line">public static RequestBody create(MediaType contentType, String content)</span><br><span class="line"></span><br><span class="line">//创建文件类型的请求体</span><br><span class="line"> public static RequestBody create(final MediaType contentType, final File file)</span><br></pre></td></tr></table></figure>
-<p>最终都是相当于重写了RequestBody的两个抽象方法来写入流，如果传递流类型的参数，只要重写这两个抽象方法即可。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//对应的是name为Content-Type的header</span><br><span class="line">public abstract MediaType contentType();</span><br><span class="line"></span><br><span class="line">//这个BufferedSink位于Okio包下，提供高效的写入。</span><br><span class="line">public abstract void writeTo(BufferedSink sink) throws IOException;</span><br><span class="line"></span><br><span class="line">//在写入的时候可以传递内容的大小，如果不知道就返回-1即可。</span><br><span class="line">public long contentLength() throws IOException &#123;  return -1;&#125;</span><br></pre></td></tr></table></figure>
-<p>例如，我们提交一个String：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">String postBody = &quot;&quot;</span><br><span class="line">        + &quot;Releases\n&quot;</span><br><span class="line">        + &quot;--------\n&quot;</span><br><span class="line">        + &quot;\n&quot;</span><br><span class="line">        + &quot; * _1.0_ May 6, 2013\n&quot;</span><br><span class="line">        + &quot; * _1.1_ June 15, 2013\n&quot;</span><br><span class="line">        + &quot; * _1.2_ August 11, 2013\n&quot;;</span><br><span class="line"></span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;https://api.github.com/markdown/raw&quot;)</span><br><span class="line">        .post(RequestBody.create(MEDIA_TYPE_MARKDOWN, postBody))</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
-<p>提交File：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">File file = new File(&quot;README.md&quot;);</span><br><span class="line"></span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;https://api.github.com/markdown/raw&quot;)</span><br><span class="line">        .post(RequestBody.create(MEDIA_TYPE_MARKDOWN, file))</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
-<p>提交流：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">RequestBody requestBody = new RequestBody() &#123;</span><br><span class="line">       @Override</span><br><span class="line">        public MediaType contentType() &#123;</span><br><span class="line">             return MEDIA_TYPE_MARKDOWN;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">         public void writeTo(BufferedSink sink) throws IOException &#123;</span><br><span class="line">              sink.writeUtf8(&quot;Numbers\n&quot;);</span><br><span class="line">              sink.writeUtf8(&quot;-------\n&quot;);</span><br><span class="line">              for (int i = 2; i &lt;= 997; i++) &#123;</span><br><span class="line">                     sink.writeUtf8(String.format(&quot; * %s = %s\n&quot;, i, factor(i)));</span><br><span class="line">               &#125;</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">          private String factor(int n) &#123;</span><br><span class="line">                for (int i = 2; i &lt; n; i++) &#123;</span><br><span class="line">                     int x = n / i;</span><br><span class="line">                     if (x * i == n) return factor(x) + &quot; × &quot; + i;</span><br><span class="line">                 &#125;</span><br><span class="line">                return Integer.toString(n);</span><br><span class="line">                &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;https://api.github.com/markdown/raw&quot;)</span><br><span class="line">        .post(requestBody)</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
-<p>对于提交表单和分块请求，OkHttp提供了两个RequestBody的子类，<strong>FormBody</strong>和<strong>MultipartBody</strong></p>
-<h3 id="2-1-1-表单FormBody"><a href="#2-1-1-表单FormBody" class="headerlink" title="2.1.1 表单FormBody"></a>2.1.1 表单FormBody</h3><p>FormBody也是采用建造者模式， 这个很简单，添加key-value形式的键值对即可。<br>添加键值对有两个方法：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//采用OkHttp默认的编码</span><br><span class="line">public Builder add(String name, String value) </span><br><span class="line"></span><br><span class="line">//采用用户要求的编码</span><br><span class="line">public Builder addEncoded(String name, String value)</span><br></pre></td></tr></table></figure>
-<p>例如：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">RequestBody formBody = new FormBody.Builder()</span><br><span class="line">                      .add(&quot;search&quot;, &quot;Jurassic Park&quot;)</span><br><span class="line">                      .build();</span><br><span class="line">Request request = new Request.Builder()</span><br><span class="line">                      .url(&quot;https://en.wikipedia.org/w/index.php&quot;)</span><br><span class="line">                      .post(formBody)</span><br><span class="line">                      .build();</span><br></pre></td></tr></table></figure>
-<h3 id="2-1-2-分块MultipartBody"><a href="#2-1-2-分块MultipartBody" class="headerlink" title="2.1.2 分块MultipartBody"></a>2.1.2 分块MultipartBody</h3><p>MultipartBody也是采用建造者模式，MultipartBody.Builder可以构建兼容Html文件上传表单的复杂请求体。每一部分的多块请求体都是它自身的请求体，并且可以定义它自己的请求头。如果存在的话，这些请求头用来描述这部分的请求体。例如Content-Disposition、Content-Length 和 Content-Type如果可用就会被自动添加到头。</p>
-<p>MIME类型有：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public static final MediaType MIXED = MediaType.parse(&quot;multipart/mixed&quot;);</span><br><span class="line"></span><br><span class="line">public static final MediaType ALTERNATIVE = MediaType.parse(&quot;multipart/alternative&quot;);</span><br><span class="line"></span><br><span class="line">public static final MediaType DIGEST = MediaType.parse(&quot;multipart/digest&quot;);</span><br><span class="line"></span><br><span class="line">public static final MediaType PARALLEL = MediaType.parse(&quot;multipart/parallel&quot;);</span><br></pre></td></tr></table></figure>
-<p>有几个主要的方法：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">//设置MIME类型，如MIXED（默认的）</span><br><span class="line">  public Builder setType(MediaType type) &#123;&#125;</span><br><span class="line"></span><br><span class="line">//添加请求体</span><br><span class="line">  public Builder addPart(RequestBody body) &#123;</span><br><span class="line">    return addPart(Part.create(body));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">//添加包含header的请求体</span><br><span class="line">  public Builder addPart(Headers headers, RequestBody body) &#123;</span><br><span class="line">    return addPart(Part.create(headers, body));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //请求体添加表单</span><br><span class="line">  public Builder addFormDataPart(String name, String value) &#123;</span><br><span class="line">    return addPart(Part.createFormData(name, value));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //请求体中包含文件</span><br><span class="line">  public Builder addFormDataPart(String name, String filename, RequestBody body) &#123;</span><br><span class="line">    return addPart(Part.createFormData(name, filename, body));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //添加自己定义的part</span><br><span class="line">  public Builder addPart(Part part) &#123;</span><br><span class="line">    if (part == null) throw new NullPointerException(&quot;part == null&quot;);</span><br><span class="line">    parts.add(part);</span><br><span class="line">    return this;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>例如提交一个图片文件：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">RequestBody requestBody = new MultipartBody.Builder()</span><br><span class="line">         .setType(MultipartBody.FORM)</span><br><span class="line">        .addFormDataPart(&quot;title&quot;, &quot;Square Logo&quot;)</span><br><span class="line">        .addFormDataPart(&quot;image&quot;, &quot;logo-square.png&quot;,</span><br><span class="line">         RequestBody.create(MEDIA_TYPE_PNG, new File(&quot;website/static/logo-square.png&quot;)))</span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line"> Request request = new Request.Builder()</span><br><span class="line">         .header(&quot;Authorization&quot;, &quot;Client-ID &quot; + IMGUR_CLIENT_ID)</span><br><span class="line">         .url(&quot;https://api.imgur.com/3/image&quot;)</span><br><span class="line">         .post(requestBody)</span><br><span class="line">         .build();</span><br></pre></td></tr></table></figure>
-<h1 id="2-2-客户端OkHttpClient"><a href="#2-2-客户端OkHttpClient" class="headerlink" title="2.2 客户端OkHttpClient"></a>2.2 客户端OkHttpClient</h1><p>OkHttpClient采用建造者模式，通过Builder可以配置连接超时时间、读写时间，是否缓存、是否重连，还可以设置各种拦截器interceptor等。<br>建议在一个App中，OkHttpClient保持一个实例。一个OkHttpClient支持一定数量的并发，请求同一个主机最大并发是5，所有的并发最大是64。这个与OkHttp中的调度器Dispatcher有关，可以设置并发数。本文不对Dispatcher进行讨论。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient okHttpClient=new OkHttpClient.Builder().build();</span><br><span class="line"></span><br><span class="line">//如果不需要我们额外配置，可以使用默认的配置</span><br><span class="line">OkHttpClient okHttpClient1 = new OkHttpClient();</span><br></pre></td></tr></table></figure>
-<p>一个例子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">int cacheSize = 10 * 1024 * 1024; // 10 MiB</span><br><span class="line">File cacheDirectory = new File(getCacheDir(), &quot;OkHttpCache&quot;);</span><br><span class="line">Cache cache = new Cache(cacheDirectory, cacheSize);</span><br><span class="line"></span><br><span class="line">OkHttpClient client = new OkHttpClient.Builder()</span><br><span class="line">        .connectTimeout(60, TimeUnit.SECONDS)//连接超时时间</span><br><span class="line">        .readTimeout(60, TimeUnit.SECONDS)//读的时间</span><br><span class="line">        .writeTimeout(60, TimeUnit.SECONDS)//写的时间</span><br><span class="line">        .cache(cache)//配置缓存</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
-<p>OkHttpClient支持单独配置，例如原来设置不同的请求时间，可以通过OkHttpClient的newBuilder()方法来重新构造一个OkHttpClient。例如：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient client = new OkHttpClient();</span><br><span class="line"></span><br><span class="line">//读的时间设置为500ms</span><br><span class="line">OkHttpClient copy = client.newBuilder()</span><br><span class="line">                          .readTimeout(500, TimeUnit.MILLISECONDS)</span><br><span class="line">                          .build();</span><br><span class="line"></span><br><span class="line">//读的时间设置为3000ms</span><br><span class="line">OkHttpClient copy = client.newBuilder()</span><br><span class="line">                          .readTimeout(3000, TimeUnit.MILLISECONDS)</span><br><span class="line">                          .build();</span><br></pre></td></tr></table></figure>
-<h1 id="3-同步请求和异步请求"><a href="#3-同步请求和异步请求" class="headerlink" title="3 同步请求和异步请求"></a>3 同步请求和异步请求</h1><p>上面已经讲了如何创建Request和OkHttpClient，剩下的就是发送请求并得到服务器的响应了。OkHttp发送请求可分为同步和异步。OkHttpClient首先通过Request构建一个Call，通过这个Call去执行同步或者异步请求。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#OkHttpClient</span><br><span class="line">public Call newCall(Request request)</span><br></pre></td></tr></table></figure>
-<p>同步方式，调用Call的execute()方法，返回Response，会阻塞当前线程：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response = client.newCall(request).execute();</span><br></pre></td></tr></table></figure>
-<p>异步方式，调用Call的enqueue(CallBack callBack)方法，会在另一个线程中返回结果。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">client.newCall(request).enqueue(new Callback() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void onFailure(Call call, IOException e) &#123;</span><br><span class="line">              //处理错误的回调</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onResponse(Call call, Response response) throws IOException &#123;</span><br><span class="line">              //处理正确的回调</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
-<h1 id="4-其他"><a href="#4-其他" class="headerlink" title="4 其他"></a>4 其他</h1><h2 id="4-1-配置响应缓存"><a href="#4-1-配置响应缓存" class="headerlink" title="4.1 配置响应缓存"></a>4.1 配置响应缓存</h2><p>为了缓存响应，需要一个可读写并且设置大小Size的缓存目录。缓存目录需要私有，其它不信任的应用不能访问这个文件。<br>如果同时有多个缓存访问同一个缓存目录会报错。所以最好只在App中初始化一次OkHttpClient，给这个实例配置缓存，在整个App生命周期内都用这一个缓存。否则几个缓存会相互影响，导致缓存出错，引起程序崩溃。<br>响应缓存采用Http头来配置，你可以添加这样的请求头<strong>Cache-Control: max-stale=3600</strong>。 <strong>max-age</strong>指的是客户端可以接收生存期不大于指定时间（以<strong>秒</strong>为单位）的响应。<br>为了防止响应使用缓存，可以用<strong>CacheControl.FORCE_NETWORK</strong>。为了防止使用网络，采用 <strong>CacheControl.FORCE_CACHE</strong>。</p>
-<blockquote>
-<p>注意:如果使用FORCE_CACHE禁止使用网络，而响应又没有缓存存在，OkHttp会报<strong>504 Unsatisfiable Request </strong>响应错误。</p>
-</blockquote>
-<h2 id="4-2-取消请求"><a href="#4-2-取消请求" class="headerlink" title="4.2 取消请求"></a>4.2 取消请求</h2><p>调用Call.cancel()方法可以立即取消一个网络请求。如果当前线程正在写request或者读response会报IO异常。如果不再需要网络请求，采用这种方法是比较方便的。例如在App中返回了上一页。无论是同步还是异步的请求都可以被取消。</p>
-<h2 id="4-3-Response读取响应结果"><a href="#4-3-Response读取响应结果" class="headerlink" title="4.3 Response读取响应结果"></a>4.3 Response读取响应结果</h2><p>可以通过Response的code来判断请求是否成功，如果服务器返回的有数据，可以通过Response的body得到一个ResponseBody读取。<br>如果采用ResponseBody的string()方法会一次性把数据读取到内存中，如果数据超过1MB可能会报内存溢出，所以对于超过1MB的数据，建议采用流的方式去读取，如ResponseBody的byteStream()方法。</p>
-<p><strong>需要说明的是：</strong></p>
-<ul>
-<li>如果ResponseBody的内容不读取的话，不会触发IO流的读取操作</li>
-<li>内容读取之后，这个body需要关闭。</li>
-</ul>
-<h1 id="5-总结"><a href="#5-总结" class="headerlink" title="5 总结"></a>5 总结</h1><p>OkHttp中的很多类都用到了建造者模式，可以根据需要灵活配置。采用建造者模式的有：</p>
-<ul>
-<li>OkHttpClient.Builder</li>
-<li>Request.Builder</li>
-<li>FormBody.Builder</li>
-<li>MultipartBody.Builder</li>
-<li>Response.Builder</li>
-</ul>
-<p>如果单独使用OkHttp进行网络请求，通常需要开发者自己再封装一下，如果不想重复造轮子，Github上面的有一些优秀开源库可以拿来使用（本文只列出star较多的几个）：</p>
-<ul>
-<li><a href="https://github.com/hongyangAndroid" target="_blank" rel="noopener">hongyangAndroid</a>/<strong><a href="https://github.com/hongyangAndroid/okhttputils" target="_blank" rel="noopener">okhttputils</a></strong>（曾经在项目中用过）</li>
-<li><a href="https://github.com/jeasonlzy" target="_blank" rel="noopener">jeasonlzy</a>/<strong><a href="https://github.com/jeasonlzy/okhttp-OkGo" target="_blank" rel="noopener">okhttp-OkGo</a></strong></li>
-<li><a href="https://github.com/yanzhenjie" target="_blank" rel="noopener">yanzhenjie</a>/<strong><a href="https://github.com/yanzhenjie/NoHttp" target="_blank" rel="noopener">NoHttp</a></strong></li>
-</ul>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://github.com/square/okhttp/wiki" target="_blank" rel="noopener">OkHttp官方Wiki文档</a></p>
-
           
+本文的分析基于OkHttp3.4，不展示完整的代码示例，具体可以查看这个官方例子或者项目中的samples。
+
+OkHttp作为square公司出品的一个网络请求框架，应该算是目前Android端最火爆的网络框架了。我公司目前的项目中采用的都是Rxjava结合Retrofit进行网络请求的处理，对
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/11/14/重识OkHttp——更深入了解如何使用/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -993,13 +828,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/10/30/都是套路——Dagger2没有想象的那么难/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -1061,213 +896,19 @@
       
         
           
-            <blockquote>
-<p>本文的分析基于<a href="https://github.com/google/dagger" target="_blank" rel="noopener">dagger2的2.7版本</a>。</p>
-</blockquote>
-<p>谷歌开发维护的Dagger2出来有很长时间了，目前在很多开源项目上也能看到它的身影。看了一些文章和项目，发现Dagger2的入门虽然有些难，但还是有一些规律可循的。</p>
-<p><strong>对于开源的第三方项目，我认为都是有套路可循的，找到这个套路，入门就不会难了，难的是如何更好的在实际开发项目中灵活运用。而灵活运用必然是建立在对这些开源框架深刻理解的基础之上。</strong></p>
-<p>关于Dagger2这种依赖注入框架的好处在这只简单的提一下</p>
-<ul>
-<li>依赖的注入和配置独立于组件之外</li>
-<li>依赖对象是在一个独立、不耦合的地方初始化。当初始化方式改变的时候修改的代码少。</li>
-<li>依赖注入使得单元测试更加简单。</li>
-</ul>
-<p>那么Dagger2相对于其他的依赖注入框架，有哪些有点和缺点呢？</p>
-<p><strong>优点：</strong></p>
-<ul>
-<li>编译期生成代码，生成的代码像手写的一样。而且如果有错误会在编译期报出。</li>
-<li>错误可追踪</li>
-<li>易于调试。</li>
-</ul>
-<p><strong>缺点：</strong></p>
-<ul>
-<li>缺少灵活性，很多代码要按照既定的规则写</li>
-<li>没有动态机制。</li>
-</ul>
-<p>下面会展开对Dagger2的介绍，看看Dagger2都有哪些套路。文中的代码都是从自己写的一个Demo中提取，文末会给出项目地址。</p>
-<h1 id="1-Dagger2的注解"><a href="#1-Dagger2的注解" class="headerlink" title="1 Dagger2的注解"></a>1 Dagger2的注解</h1><p>想要理解Dagger2，首先要理解Dagger2中的注解，至少先了解一下，否则理解Dagger2会有障碍。Dagger2的注解比较多，但主要的会有下面7种。</p>
-<ul>
-<li><p><strong>@Inject：</strong>@Inject注解有两个作用，1是在需要依赖的类（下面这样的类都会称为目标类）中标记成员变量告诉Dagger这个类型的变量需要一个实例对象。2是标记类中的构造方法，告诉Dagger我可以提供这种类型的依赖实例。</p>
-</li>
-<li><p><strong>@Provide:</strong> 对方法进行注解，都是有返回类型的。用来告诉Dagger我们想如何创建并提供该类型的依赖实例（一般会在方法中new出实例）。用@Provide标记的方法，谷歌推荐采用provide为前缀。</p>
-</li>
-<li><p><strong>@Module:</strong> @Module这个注解用来标记类（一般类名以Module结尾）。Module主要的作用是用来集中管理@Provide标记的方法。我们定义一个被@Module注解的类，Dagger就会知道在哪里找到依赖来满足创建类的实例。<strong>modules的一个重要特征是被设计成区块并可以组合在一起。</strong>（例如可以在App中看到多个组合在一起的modules）</p>
-</li>
-<li><p><strong>@Component:</strong>Components是组件，也可以称为注入器。是<strong>@Inject</strong>和<strong>@Module</strong>之间的桥梁，主要职责是把二者组合在一起。@Component注解用来标记接口或者抽象类。所有的components都可以通过它的modules知道它所提供的依赖范围。一个Component可以依赖一个或多个Component，并拿到被依赖Component暴露出来的实例，Component的<strong>dependencies</strong>属性就是确定依赖关系的实现。<br><img src="http://upload-images.jianshu.io/upload_images/2083810-33f9ffeb9c6436a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="基本原理.png"></p>
-</li>
-<li><p><strong>@Scope:</strong> 作用域。Scopes非常有用，Dagger2通过自定义注解来限定作用域。这是一个非常强大的功能，所有的对象都不再需要知道怎么管理它自己的实例。Dagger2中有一个默认的作用域注解@Singleton，通常在Android中用来标记在App整个生命周期内存活的实例。也可以自定义一个@PerActivity注解，用来表明生命周期与Activity一致。<strong>换句话说，我们可以自定义作用域的粒度（比如@PerFragment, @PerUser等等）。</strong></p>
-</li>
-<li><p><strong>@Qualifier:</strong> 限定符，也是很有用。<strong>当一个类的类型不足以标示一个依赖的时候，我们就可以用这个注解。</strong>例如，在Android中，我们需要不同类型的Context，我们可以自定义标识符注解<strong>“@ForApplication”</strong>和<strong>“@ForActivity”</strong>。这样的话，当注解一个Context的时候，我们可以用这个标识符来告诉Dagger我们想提供哪一种Context。Dagger2里面已经存在一个限定符@Named注解。</p>
-</li>
-<li><p><strong> @SubComponent:</strong>如果我们需要父组件全部的提供对象，这时我们可以用包含方式而不是用依赖方式，相比于依赖方式，包含方式不需要父组件显式显露对象，就可以拿到父组件全部对象。且SubComponent只需要在父Component接口中声明就可以了。</p>
-</li>
-</ul>
-<h1 id="2-Dagger2的套路"><a href="#2-Dagger2的套路" class="headerlink" title="2 Dagger2的套路"></a>2 Dagger2的套路</h1><h2 id="2-1-最简单的运用"><a href="#2-1-最简单的运用" class="headerlink" title="2.1 最简单的运用"></a>2.1 最简单的运用</h2><p>最简单的Dagger2运用只采用两个注解@Inject和@Component即可。因为本身@Inject就自带两个作用。<br>如一个User类：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public class User &#123;</span><br><span class="line">    public String name;</span><br><span class="line">    //用这个@Inject表示来表示我可以提供User类型的依赖</span><br><span class="line">    @Inject</span><br><span class="line">    public User() &#123;</span><br><span class="line">        name = &quot;sososeen09&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    public String getName() &#123;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在需要依赖的的目标类中标记成员变量，在这里我们这个目标类是OnlyInjectTestActivity。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">@Inject //在目标类中@Inject标记表示我需要这个类型的依赖      </span><br><span class="line">User mUser;</span><br></pre></td></tr></table></figure>
-<p>在Component中，Component内有一个方法是inject(OnlyInjectTestActivity onlyInjectTestActivity)，参数OnlyInjectTestActivity表示目标类，也就是把依赖实例注入该类中，必须精确，不能用父类代替。查看了一下编译后生成的代码，最后给变量赋值按照<strong>“类名.变量”</strong>来的。比如我们需要给mUser赋值，那么调用inject方法后，是按照<strong>“OnlyInjectTestActivity.mUser=xxx”</strong>来的。至于inject这个方法名是可以改的，但是谷歌推荐用inject。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 没有modules和dependencies的情况下，纯粹用@Inject来提供依赖</span><br><span class="line"> */</span><br><span class="line">@Component()</span><br><span class="line">public interface OnlyInjectComponent &#123;</span><br><span class="line">    /**</span><br><span class="line">     * 必须有个目标让Component知道需要往哪个类中注入</span><br><span class="line">     * 这个方法名可以是其它的，但是推荐用inject</span><br><span class="line">     * 目标类OnlyInjectTestActivity必须精确，不能用它的父类</span><br><span class="line">     * 这是Dagger2的机制决定的</span><br><span class="line">     */</span><br><span class="line">    void inject(OnlyInjectTestActivity onlyInjectTestActivity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码就写好了，此时Make Project就会在build文件夹内生成对应的代码。我们的OnlyInjectComponent接口会生成一个<strong>以Dagger为前缀</strong>的DaggerOnlyInjectComponent类。<br>采用这个DaggerOnlyInjectComponent就能完成依赖对象的注入。可以在Activity的onCreate方法中调用如下代码，初始化注入。这样的话OnlyInjectTestActivity 中的成员变量mUser就完成了注入过程（也就是变量赋值过程）。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DaggerOnlyInjectComponent.builder().build().inject(this);</span><br></pre></td></tr></table></figure>
-<p>整个依赖注入过程就结束了，是不是很简单。<br>@Inject提供依赖虽然很简单，但是它也有缺陷：</p>
-<ul>
-<li>只能标记一个构造方法，如果我们标记两个构造方法，编译的时候就会报错。因为不知道到底要用哪一个构造提供实例。</li>
-<li>不能标记其它我们自己不能修改的类，如第三方库，因为我们没办法用@Inject标记它们的构造函数。</li>
-</ul>
-<p>举个例子，还是User类，有一个带参的构造方法，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">public class User &#123;</span><br><span class="line">    public String name;</span><br><span class="line">    /**</span><br><span class="line">     * 用@Inject标记的构造函数如果有参数，那么这个参数也需要其它地方提供依赖。</span><br><span class="line">     * 但是@Inject有一个缺陷，就是对于第三方的类无能为力。因为我们不能修改第三方的构造函数，</span><br><span class="line">     * 所以对于String还有其他的一些我们不能修改的类，只能用@Module中的@Provides来提供实例了</span><br><span class="line">     */</span><br><span class="line">    @Inject</span><br><span class="line">    public User(String name) &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getName() &#123;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码中的注释写的很清楚了，如果用@Inject标记带参的构造方法，如String类型。那么这个String类参数也需要依赖，也就是说需要其它地方告诉Dagger可以提供一个String类型的对象。这个时候@Inject就无能为力了，你没办法修改String类给它的构造方法加上@Inject标记啊。所以必须要用我们另一个强大的标记@Module了。</p>
-<h2 id="2-2-采用-Module提供依赖"><a href="#2-2-采用-Module提供依赖" class="headerlink" title="2.2 采用@Module提供依赖"></a>2.2 采用@Module提供依赖</h2><p>采用@Module标记的类提供依赖是一个常规套路，我们在项目中运用最多的也是这种方式。前面已经提到，@Module标记的类主要起到一个管理作用，真正提供依赖实例靠的是@Provides标记的带返回类型的方法。</p>
-<p>这次以一个Person类为例，Person类如下，构造方法没有用@Inject标记：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public class Person &#123;</span><br><span class="line">    private String sex;</span><br><span class="line"></span><br><span class="line">    public Person(String sex) &#123;</span><br><span class="line">        this.sex = sex;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Person() &#123;</span><br><span class="line">        sex = &quot;太监&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getSex() &#123;</span><br><span class="line">        return sex;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们用Module提供Person实例，Module代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">@Module</span><br><span class="line">public class DataModule &#123;</span><br><span class="line"></span><br><span class="line">    @Provides</span><br><span class="line">    Person providePerson() &#123;</span><br><span class="line">        return new Person();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>上面的代码也算是一个固定套路了，用@Module标记类，用@Provides标记方法。如果想用Module提供实例，还要有一个Component，如我们下面的PersonComponent 。这个PersonComponent 与纯粹用@Inject方式提供依赖不同，还需要有一个modules指向DataModule 。这是告诉Component我们用DataModule 提供你想要的类型的实例。其它的方式相同。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Component(modules = DataModule.class)</span><br><span class="line">public interface PersonComponent &#123;</span><br><span class="line">    void inject(ModuleTestActivity moduleTestActivity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>ModuleTestActivity 中需要一个Person类型的依赖：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">@Inject</span><br><span class="line">Person mPerson;</span><br></pre></td></tr></table></figure>
-<p>编译之后，我们就可以在目标类ModuleTestActivity 中进行初始化注入了。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DaggerPersonComponent.builder().dataModule(new DataModule()).build().inject(this);</span><br></pre></td></tr></table></figure>
-<p>与纯粹用@Inject提供实例不同。新增加了一个dataModule方法，参数是DataModule类型的。因为PersonComponent需要依赖DataModule提供实例，当然也需要一个DataModule对象了。在这里，需要说明一点：<strong>如果DataModule只有一个默认的无参构造方法，我们是可以不用调用dataModule方法的</strong>，而且此时我们还可以用一个更简单的方式来替代，采用create()方法。之前讲的纯粹用@Inject提供依赖实例的方式也可以这样。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//如果DataModule有一个无参构造方法</span><br><span class="line">DaggerPersonComponent.create().inject(this);</span><br></pre></td></tr></table></figure>
-<p>这样的话，依赖注入过程结束。mPerson已经被赋值。<br><strong>完成上面两步之后我们会不会有这样的思考：</strong>如果同时有@Module和@Inject构造方法来提供同一类型的实例，Dagger会调用哪个呢？这就牵涉到@Module和@Inject的优先级问题了。</p>
-<h2 id="2-3-Module和-Inject的优先级问题"><a href="#2-3-Module和-Inject的优先级问题" class="headerlink" title="2.3 @Module和@Inject的优先级问题"></a>2.3 @Module和@Inject的优先级问题</h2><p>虽然优先级的问题，我们可以直接说出来，但还是亲手做一个实验好了，这样印象必定会更深刻。而且当你告诉别人这个结论的时候，你就可以挺直腰板的说就是这样，不然心里总虚啊。<br>新建一个实体类PriorityTestEntity，用@Inject标记构造方法，代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public class PriorityTestEntity &#123;</span><br><span class="line"></span><br><span class="line">    private String name;</span><br><span class="line"></span><br><span class="line">    @Inject</span><br><span class="line">    public PriorityTestEntity() &#123;</span><br><span class="line">        name = &quot;我是@Inject注解提供的对象&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public PriorityTestEntity(String name) &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getName() &#123;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在DataModule中有一个方法，返回值类型是PriorityTestEntity：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">@Module</span><br><span class="line">public class DataModule &#123;</span><br><span class="line">    @Provides</span><br><span class="line">    PriorityTestEntity providePriorityTestEntity() &#123;</span><br><span class="line">        return new PriorityTestEntity(&quot;我是module提供的对象&quot;);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>新建Component，PriorityTestComponent，有一个inject()方法，注入目标类<br>PriorityTestActivity。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@Component(modules = &#123;DataModule.class&#125;)</span><br><span class="line">public interface PriorityTestComponent &#123;</span><br><span class="line">    //注入目标类PriorityTestActivity </span><br><span class="line">    void inject(PriorityTestActivity priorityTestActivity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>剩下的就是在PriorityTestActivity 中进行初始化注入了，步骤都是跟之前讲的一样，真真的是套路啊，没什么难度。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">在PriorityTestActivity 中</span><br><span class="line">//@Inject标记成员变量</span><br><span class="line">@Inject</span><br><span class="line">PriorityTestEntity mPriorityTestEntity;</span><br><span class="line"></span><br><span class="line">//初始化注入</span><br><span class="line">DaggerPriorityTestComponent.create().inject(this);</span><br><span class="line"></span><br><span class="line">//调用代码验证</span><br><span class="line">mTvShowUser.setText(mPriorityTestEntity.getName());</span><br><span class="line"></span><br><span class="line">//最后TextView上会显示&quot;我是module提供的对象&quot;</span><br></pre></td></tr></table></figure>
-<p>总结一句话就是：<strong>在提供依赖对象这一层面上，@Module级别高于@Inject。</strong></p>
-<h2 id="2-4-初始化依赖实例的步骤"><a href="#2-4-初始化依赖实例的步骤" class="headerlink" title="2.4 初始化依赖实例的步骤"></a>2.4 初始化依赖实例的步骤</h2><p>讲完了@Mudule和@Inject的优先级问题，我们可以总结一下Dagger是如何查找所需的依赖实例进行注入了。</p>
-<p><strong>步骤如下：</strong></p>
-<ol>
-<li><p>查找Module中是否存在创建该类型的方法（前提是@Conponent标记的接口中包含了@Module标记的Module类，如果没有则直接找@Inject对应的构造方法）</p>
-</li>
-<li><p>若存在方法，查看该方法是否有参数</p>
-<ul>
-<li>若不存在参数，直接初始化该类的实例，一次依赖注入到此结束。</li>
-<li>若存在参数，则从<strong>步骤1</strong>开始初始化每个参数</li>
-</ul>
-</li>
-</ol>
-<ol>
-<li>若不存在创建类方法，则查找该类型的类中有@Inject标记的构造方法，查看构造方法中是否有参数<ul>
-<li>若构造方法中无参数，则直接初始化该类实例，一次依赖注入到此结束。</li>
-<li>若构造方法中有参数，从<strong>步骤1</strong>依次开始初始化每个参数。</li>
-</ul>
-</li>
-</ol>
-<p>如果你要问：<strong>我既没有@Module提供的实例，也没有@Inject标记的构造方法会怎样？很简单，编译期就会报错。</strong></p>
-<p><strong>Dagger2的报错提醒还是很好的，能帮你快速的查找出问题所在。</strong></p>
-<h2 id="2-5-Qualifier限定符有什么神奇的作用"><a href="#2-5-Qualifier限定符有什么神奇的作用" class="headerlink" title="2.5 @Qualifier限定符有什么神奇的作用"></a>2.5 @Qualifier限定符有什么神奇的作用</h2><p>@Qualifier这个限定符在项目中也会比较有用，比如之前讲的在Android中同样的Context，有ApplicationContext还有Activity的Context，就可以用自定义的<strong>“@ForApplication”</strong>和<strong>“@ForActivity”</strong>限定符来表示。Dagger2中已经有一个定义好的限定符@Named，长的是这个样子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@Qualifier</span><br><span class="line">@Documented</span><br><span class="line">@Retention(RUNTIME)</span><br><span class="line">public @interface Named &#123;</span><br><span class="line"></span><br><span class="line">    /** The name. */</span><br><span class="line">    String value() default &quot;&quot;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>下面还是以Person为例，并且我们自定义一个限定符来看看这个东西具体如何使用。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public class Person &#123;</span><br><span class="line">    private String sex;</span><br><span class="line"></span><br><span class="line">    public Person(String sex) &#123;</span><br><span class="line">        this.sex = sex;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Person() &#123;</span><br><span class="line">        sex = &quot;太监&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getSex() &#123;</span><br><span class="line">        return sex;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到，默认的Person对象是一个太监，那么我想要一个<strong>“妹子”</strong>和<strong>“汉子”</strong>，还想自定义一个，如何区分呢？</p>
-<p>我们先自定义一个限定符@PersonQualifier：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Qualifier</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">public @interface PersonQualifier &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在DataModule，我们额外提供“汉子”、“妹子”和”qualifier sex”，代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">@Module</span><br><span class="line">public class DataModule &#123;</span><br><span class="line"></span><br><span class="line">//一个默认的</span><br><span class="line">    @Provides</span><br><span class="line">    Person providePerson() &#123;</span><br><span class="line">        return new Person();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">//采用@Qualifier注解，表示我可以提供这种标识符的Person</span><br><span class="line">    @Provides</span><br><span class="line">    @Named(&quot;male&quot;)</span><br><span class="line">    Person providePersonMale() &#123;</span><br><span class="line">        return new Person(&quot;汉子&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Provides</span><br><span class="line">    @Named(&quot;female&quot;)</span><br><span class="line">    Person providePersonFemale() &#123;</span><br><span class="line">        return new Person(&quot;妹子&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Provides</span><br><span class="line">    @PersonQualifier</span><br><span class="line">    Person providePersonByQualifier() &#123;</span><br><span class="line">        return new Person(&quot;qualifier sex&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Component长这个样子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Component(modules = DataModule.class)</span><br><span class="line">public interface PersonComponent &#123;</span><br><span class="line">    void inject(ModuleTestActivity moduleTestActivity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在需要依赖的类中</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">//在ModuleTestActivity中成员变量这样标记。</span><br><span class="line">    @Inject</span><br><span class="line">    Person mPerson;</span><br><span class="line"></span><br><span class="line">    //这么多对象，如果需要特定的对象，用@Qualifier标识符注解，@Named是自定义的一个标识符注解</span><br><span class="line">    @Inject</span><br><span class="line">    @Named(&quot;male&quot;)</span><br><span class="line">    Person mPersonMale;</span><br><span class="line"></span><br><span class="line">    @Inject</span><br><span class="line">    @Named(&quot;female&quot;)</span><br><span class="line">    Person mPersonFemale;</span><br><span class="line"></span><br><span class="line">    @Inject</span><br><span class="line">    @PersonQualifier</span><br><span class="line">    Person mPersonQualifier;</span><br></pre></td></tr></table></figure>
-<p>然后注入，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DaggerPersonComponent.builder().dataModule(new DataModule()).build().inject(this);</span><br></pre></td></tr></table></figure>
-<p>查看Person对象的性别：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">mTvShowUser.setText(mPerson.getSex());</span><br><span class="line">...</span><br><span class="line">mTvShowUser.setText(mPersonMale.getSex());</span><br><span class="line">...</span><br><span class="line">mTvShowUser.setText(mPersonFemale.getSex());</span><br><span class="line">...</span><br><span class="line">mTvShowUser.setText(mPersonQualifier.getSex());</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p>就可以看到，我们拿到了我们想要的对象。</p>
-<h2 id="2-6-Scope作用域怎么用"><a href="#2-6-Scope作用域怎么用" class="headerlink" title="2.6 @Scope作用域怎么用"></a>2.6 @Scope作用域怎么用</h2><p>个人觉得，@Scope的作用主要是在组织Component和Module的时候起到一个提醒和管理的作用。<br>Dagger2中有一个默认的作用域@Singleton，是这么写的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Scope</span><br><span class="line">@Documented</span><br><span class="line">@Retention(RUNTIME)</span><br><span class="line">public @interface Singleton &#123;&#125;</span><br></pre></td></tr></table></figure>
-<p>乍一看到Singleton，都会觉得Dagger2这么吊，标记一下就能创建单例了？后来研究了一下发现，这个@Singleton并没有创建单例的能力，或者也可以说不是我们常规用的那种单例，直接用AClass.getInstance()就能获取一个AClass的一个全局单例了。</p>
-<p>下面我们看看，这个@Singleton怎么用，又是如何获取单例的。<br>我们有一个实体SingletonTestEntity，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public class SingletonTestEntity &#123;</span><br><span class="line">    private String desc;</span><br><span class="line"></span><br><span class="line">    @Inject</span><br><span class="line">    public SingletonTestEntity(String desc) &#123;</span><br><span class="line">        this.desc = desc;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getDesc() &#123;</span><br><span class="line">        return desc;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在DataModule中，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@Module</span><br><span class="line">public class DataModule &#123;</span><br><span class="line">    @Provides</span><br><span class="line">    @Singleton</span><br><span class="line">    SingletonTestEntity provideSingletonTestEntity() &#123;</span><br><span class="line">        return new SingletonTestEntity(&quot;测试单例&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>有一个SingletonTestComponent ，我们之前说过@Component可以标注接口，也可以标注抽象类，我们就把这个SingletonTestComponent 改成了抽象类。<br><strong>需要说明的是：</strong>DataModule中的SingletonTestEntity 使用@Singleton标注了，那么对应的Component也必须采用@Singleton标注，表明它们的作用域一致，否则编译的时候会报作用域不同的错误。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">@Component(modules = &#123;DataModule.class&#125;)</span><br><span class="line">@Singleton//这个Component的@Scope要和对应的Module的@Scope一致</span><br><span class="line">public abstract class SingletonTestComponent &#123;</span><br><span class="line">    /**</span><br><span class="line">     * /@Component不仅可以注解接口也可以注解抽象类，为了方便测试单例，把Component改为抽象类，</span><br><span class="line">     * 实际开发中可以在Application中创建单例。</span><br><span class="line">     */</span><br><span class="line">    public abstract void inject(SingletonTestActivity singletonTestActivity);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * SingletonTestComponent必须是单例的，</span><br><span class="line">     * 否则怎么能保证不同的Component对象提供同一个依赖实例呢？</span><br><span class="line">     */</span><br><span class="line">    private static SingletonTestComponent sComponent;</span><br><span class="line"></span><br><span class="line">    public static SingletonTestComponent getInstance() &#123;</span><br><span class="line">        if (sComponent == null) &#123;</span><br><span class="line">            sComponent = DaggerSingletonTestComponent.builder().build();</span><br><span class="line">        &#125;</span><br><span class="line">        return sComponent;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们新建一个SingletonTestActivity，显示mSingletonTestEntity这个对象，有一个Button用于启动一个新的SingletonTestActivity，这样我们就可以看每次这个mSingletonTestEntity是不是同一个，是的话当然就能说明我们创建的这个实体对象是单例了。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//成员变量</span><br><span class="line">@Inject</span><br><span class="line">SingletonTestEntity mSingletonTestEntity;</span><br><span class="line"></span><br><span class="line">//展示mSingletonTestEntity这个对象</span><br><span class="line">mTvShowUser.setText(mSingletonTestEntity.getDesc() + &quot;: &quot; + mSingletonTestEntity);</span><br></pre></td></tr></table></figure>
-<p>上面少了一步，就是初始化注入，我一开始是这么初始化的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DaggerSingletonTestComponent.builder().build().inject(this);</span><br></pre></td></tr></table></figure>
-<p>然后我发现每次启动新的Activity，拿到的SingletonTestEntity不是同一个，让我很困惑，还以为是用的姿势不对。后来研究了一下生成的代码，也查了一些文章，发现真的是我用的姿势不对。初始化依赖注入应该这么写：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SingletonTestComponent.getInstance().inject(this);</span><br></pre></td></tr></table></figure>
-<p>这样的话，我们的这个注入器SingletonTestComponent就首先实实在在地变成一个单例了，用这个Component去注入的依赖才是单例的。</p>
-<p>说到这大家可能也看到了，这怎么能是单例呢？我们常规理解的单例是类在虚拟机中只有一个对象。而我们这个依赖实例其实只是每次都由同一个Component注入器对象提供，重新生成一个Component对象的话注入的依赖实例就不再是同一个。</p>
-<p>我们还可以仿造@Singleton自定义一个作用域，如@PerActivity，用来表示跟Activity的生命周期一致：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Scope</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">public @interface PerActivity &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>具体的用法就不再介绍了，跟@Singleton用法一样，项目中可以看。</p>
-<p><strong>总结一下：想要用Component只提供同一个实例对象，就必须保证Component只初始化一次。</strong></p>
-<h2 id="2-7-重点和难点——组织Component"><a href="#2-7-重点和难点——组织Component" class="headerlink" title="2.7 重点和难点——组织Component"></a>2.7 重点和难点——组织Component</h2><p>通过上述的讲解可以发现，Dagger2也没有想象的那么难啊。但是不得不说，Dagger2入门并不难，想要灵活运用就不容易了。主要的原因就是在实际开发中我们要好好的组织Component，那么多页面，那么多类，我们怎么写Component就有学问了。Component有3种组织方式：</p>
-<ul>
-<li>依赖方式——一个Component可以依赖一个或多个Component，采用的是@Component的<strong>dependencies</strong>属性。</li>
-<li>包含方式——这里就用到了我们<strong>@SubComponent</strong>注解，用@SubComponent标记接口或者抽象类，表示它可以被包含。一个Component可以包含一个或多个Component，而且被包含的Component还可以继续包含其他的Component。说起来跟Activity包含Fragment方式很像。</li>
-<li>继承方式——用一个Component继承另外一个Component。</li>
-</ul>
-<p>下面这张图，是<strong><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="noopener">Android-CleanArchitecture</a></strong>项目Component组织方式：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2083810-049a5487c6769ba9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="组织方式.png"></p>
-<p>可以看到这么划分的思想是：</p>
-<ul>
-<li>我们需要一个ApplicationComponent，管理在App的全局实例，保证在App生命周期内，对象只有一个。例如网络请求的全局HttpClient。</li>
-<li>ActivityComponent: 负责管理生命周期跟Activity一样的组件。</li>
-<li>UserComponent: 继承于ActivityComponent的组件，通常会在Activity内部的Fragment中使用。</li>
-</ul>
-<p>说到这，我想提一下上面为了演示@Singleton的用法，我们并没有在Application中进行初始化。个人觉得，实际开发中用@Singleton标记来表示在App生命周期内全局的对象，然后用自定义的@PerActivity、@PerFragment等来表示跟Activity、Fragment生命周期一致比较好。</p>
-<p>现在我们采用依赖、包含、继承的方式来演示Component的组织方式。就提供一个全局的ApplicationContext好了，只是演示，没必要那么复杂。</p>
-<p>Module类是这样的，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@Module</span><br><span class="line">public class AppModule &#123;</span><br><span class="line"></span><br><span class="line">    private final Application application;</span><br><span class="line"></span><br><span class="line">    public AppModule(Application application) &#123;</span><br><span class="line">        this.application = application;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Provides</span><br><span class="line">    @Singleton</span><br><span class="line">    Context getAppContext() &#123;</span><br><span class="line">        return application;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>AppComponent是这样的，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@Singleton</span><br><span class="line">@Component(modules = &#123;AppModule.class&#125;)</span><br><span class="line">public interface AppComponent &#123;</span><br><span class="line">    /**</span><br><span class="line">     * Exposed to sub-graphs.</span><br><span class="line">     * 其他的依赖想要用这个Context，必须显式的暴露。</span><br><span class="line">     * 因为，其它依赖这个的Component需要Context，然后这个Context会去AppModule中找对应的Context</span><br><span class="line">     * 与方法名无关，只与返回类型有关</span><br><span class="line">     * 举个例子：小弟B依赖大哥A,A有一把杀猪刀。哪天小弟碰上事了，找大哥借一把刀，</span><br><span class="line">     * 如果大哥把刀藏起来不给小弟用，小弟会因为找不到刀用很崩溃的。（程序编译报错），</span><br><span class="line">     * 所以必须是大哥把刀拿出来给小弟用，小弟才能拿出去用啊。（代码正常）</span><br><span class="line">     *</span><br><span class="line">     */</span><br><span class="line">    Context context();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>想要其它依赖这个AppComponent的Component并使用使用全局的Appliation Context，我们必须显式地暴露出去。</p>
-<p>这个AppComponent接口内没有inject方法，因为具体地注入哪个类，是由依赖它的Component决定的。</p>
-<p>我们自定义Appliation ，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public class App extends Application &#123;</span><br><span class="line">    private static AppComponent sAppComponent = null;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onCreate() &#123;</span><br><span class="line">        super.onCreate();</span><br><span class="line">        if (sAppComponent == null) &#123;</span><br><span class="line">            sAppComponent = DaggerAppComponent.builder()</span><br><span class="line">                                              .appModule(new AppModule(this))</span><br><span class="line">                                              .build();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public AppComponent getAppComponent() &#123;</span><br><span class="line">        //向外界的依赖提供这个AppComponent</span><br><span class="line">        return sAppComponent;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>再次强调：这个AppConponent只能初始化一次</strong></p>
-<h3 id="2-7-1-依赖"><a href="#2-7-1-依赖" class="headerlink" title="2.7.1 依赖"></a>2.7.1 依赖</h3><p>现在我们有一个ActivityComponent，需要依赖这个AppComponent ，那么写出来是这个样子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@PerActivity</span><br><span class="line">//@Singleton //不能与依赖的AppComponent的作用域相同，否则会报错</span><br><span class="line">@Component(dependencies = AppComponent.class, modules = ActModule.class)</span><br><span class="line">public interface ActivityComponent &#123;</span><br><span class="line"></span><br><span class="line">    void inject(DependenceTestActivity DependenceTestActivity);</span><br><span class="line"></span><br><span class="line">    void inject(SubComponentTestActivity subComponentTestActivity);</span><br><span class="line"></span><br><span class="line">    //包含SubComponent,这样的话该SubComponent也可以拿到ActivityComponent中能提供的依赖。</span><br><span class="line">    ActSubComponent getActSubComponent();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>Component依赖另一个Component，它们的作用域不能相同</strong>。所以我们自定义了一个@PerActivity作用域。<br>我们的这个ActivityComponent本身也可以需要Module提供依赖实例，如ActModule，这个ActModule没有作用域。至于ActEntity的代码，我们就不贴出来了。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">@Module</span><br><span class="line">public class ActModule &#123;</span><br><span class="line">    @Provides</span><br><span class="line">    ActEntity getActEntity() &#123;</span><br><span class="line">        return new ActEntity(&quot;我是ActEntity&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>初始化注入是这个样子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">DaggerActivityComponent.builder()</span><br><span class="line">                       .appComponent(((App) getApplication()).getAppComponent())</span><br><span class="line">                       .build()</span><br><span class="line">                       .inject(this);</span><br></pre></td></tr></table></figure>
-<h3 id="2-7-2-包含"><a href="#2-7-2-包含" class="headerlink" title="2.7.2 包含"></a>2.7.2 包含</h3><p>上面的ActSubComponent 是被包含，它需要有个@Subcomponent注解，如果是包含的方式，作用域可以与包含它的Component一致。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@Subcomponent</span><br><span class="line">@PerActivity //如果是包含的方式，作用域与上一层的Component相同也没关系。采用依赖的方式就不行。</span><br><span class="line">public interface ActSubComponent &#123;</span><br><span class="line">    void inject(SubFragment subFragment);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>初始化注入是这个样子：<br>在Activity中</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mActivityComponent = DaggerActivityComponent</span><br><span class="line">                    .builder()</span><br><span class="line">                    .appComponent(((App) getApplication()).getAppComponent())</span><br><span class="line">                    .actModule(new ActModule())</span><br><span class="line">                    .build();</span><br></pre></td></tr></table></figure>
-<p>然后在Fragment中拿到这个mActivityComponent :</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">((SubComponentTestActivity) getActivity()).getActivityComponent()</span><br><span class="line">                                          .getActSubComponent()</span><br><span class="line">                                          .inject(this);</span><br></pre></td></tr></table></figure>
-<h3 id="2-7-3-继承"><a href="#2-7-3-继承" class="headerlink" title="2.7.3 继承"></a>2.7.3 继承</h3><p>我们的ExtendTestComponent继承了ActivityComponent，那么ActivityComponent中需要的Module我们就必须提供。有的人可能会问ActivityComponent并没有AppModule啊，那是因为ActivityComponent依赖了AppComponent，由AppComponent提供了AppModule。</p>
-<p>ExtendTestComponent有@Singleton标记，这是因为AppModule中有@Singleton作用域。如果ActModule中有一个@PerActivity作用域的话，这个Component必须要再加上@PerActivity。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * ExtendTestComponent继承了ActivityComponent，</span><br><span class="line"> * 如果ActivityComponent中的modules定义了创建实例的方法，</span><br><span class="line"> * ExtendTestComponent中也必须提供相应的modules。</span><br><span class="line"> */</span><br><span class="line">@Singleton</span><br><span class="line">@Component(modules = &#123;ActModule.class, AppModule.class&#125;)</span><br><span class="line">public interface ExtendTestComponent extends ActivityComponent &#123;</span><br><span class="line">    void inject(ExtendTestActivity extendTestActivity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>初始化注入是这个样子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">DaggerExtendTestComponent.builder()</span><br><span class="line">                         .appModule(new AppModule(getApplication()))</span><br><span class="line">                         .actModule(new ActModule())</span><br><span class="line">                         .build()</span><br><span class="line">                         .inject(this);</span><br></pre></td></tr></table></figure>
-<p>哦了，先到这吧。</p>
-<h1 id="3-总结"><a href="#3-总结" class="headerlink" title="3 总结"></a>3 总结</h1><p>通过上面的内容，至少可以了解Dagger2中常用的一些注解以及组织方式，在这里做一下简单的总结：</p>
-<ul>
-<li>@Module提供依赖的优先级高于@Inject</li>
-<li>@Singleton并不是真的能创建单例，但我们依然可以保证在App的生命周期内一个类只存在一个对象。@Singleton更重要的作用是通过标记提醒我们自己来达到更好的管理实例的目的。</li>
-<li>Component的作用域必须与对应的Module作用域一致，如果@Module没有标记作用域，就不影响。</li>
-<li>Component和依赖的Component作用域范围不能一样，否则会报错。一般来讲，我们应该对每个Component都定义不同的作用域。</li>
-<li>由于@Inject，@Module和@Provides注解是分别验证的，所有绑定关系的有效性是在@Component层级验证。（在这里提一下，本文没有讲这个具体过程）</li>
-</ul>
-<p>本文内容都是个人理解与实践，难免有错误和遗漏之处，欢迎指正，共同学习。<br><a href="https://github.com/sososeen09/ThirdPartDemo/tree/dagger2_study1/dagger2" target="_blank" rel="noopener">项目地址</a></p>
-<p><strong>参考文章：</strong></p>
-<ul>
-<li><a href="http://google.github.io/dagger/" target="_blank" rel="noopener">dagger谷歌官方文档</a></li>
-<li><a href="http://fernandocejas.com/2015/04/11/tasting-dagger-2-on-android/" target="_blank" rel="noopener">Tasting Dagger 2 on Android</a>    —— <a href="http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0519/2892.html" target="_blank" rel="noopener">对应翻译</a></li>
-<li><a href="http://www.jianshu.com/p/cd2c1c9f68d4" target="_blank" rel="noopener">Android：dagger2让你爱不释手-基础依赖注入框架篇</a></li>
-<li><a href="http://www.jianshu.com/p/1d42d2e6f4a5" target="_blank" rel="noopener">Android：dagger2让你爱不释手-重点概念讲解、融合篇</a></li>
-<li><a href="http://www.jianshu.com/p/65737ac39c44" target="_blank" rel="noopener">Android：dagger2让你爱不释手-终结篇</a></li>
-<li><a href="https://dreamerhome.github.io/2016/07/07/dagger/" target="_blank" rel="noopener">依赖注入神器：Dagger2详解系列</a></li>
-<li><a href="http://zpayh.xyz/2016/07/07/Dagger2%E4%BD%BF%E7%94%A8%E8%AF%A6%E8%A7%A3/" target="_blank" rel="noopener">Dagger2使用详解</a></li>
-<li><a href="http://blog.zhaiyifan.cn/2016/03/27/android-new-project-from-0-p4/" target="_blank" rel="noopener">从零开始的Android新项目4 - Dagger2篇</a></li>
-<li><a href="https://github.com/luxiaoming/dagger2Demo" target="_blank" rel="noopener">Dagger2图文完全教程</a></li>
-<li><a href="http://blog.csdn.net/u012943767/article/details/51954939" target="_blank" rel="noopener">Dagger2 彻底了解如何构建依赖关系</a></li>
-</ul>
-
           
+本文的分析基于dagger2的2.7版本。
+
+谷歌开发维护的Dagger2出来有很长时间了，目前在很多开源项目上也能看到它的身影。看了一些文章和项目，发现Dagger2的入门虽然有些难，但还是有一些规律可循的。
+对于开源的第三方项目，我认为都是有套路可循的，找到这个套路，入门就不会难了，难的是如何
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/10/30/都是套路——Dagger2没有想象的那么难/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1317,13 +958,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/06/23/Android源码分析之消息机制Handler/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -1385,64 +1026,19 @@
       
         
           
-            <h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1 前言"></a>1 前言</h1><p>Handler在Android开发中使用的比较多，通常Handler是在主线程中创建，子线程拿到这个Handler向主线程中发送消息。</p>
-<blockquote>
-<p>那么如果需要主线程中向子线程中发送消息呢？</p>
-</blockquote>
-<p>本文只是提出这个问题，并不在此提供实现这种场景的例子，写这篇文章的目的主要是理解Handler的运行原理，以便更好、更灵活的运用Handler。</p>
-<h1 id="2-Android消息机制简介"><a href="#2-Android消息机制简介" class="headerlink" title="2 Android消息机制简介"></a>2 Android消息机制简介</h1><ol>
-<li>Android的消息机制主要是指Handler的运行机制，Handler的运行依赖于MessageQueue和Looper，当然，既然是消息机制，通常也需要用到Message。</li>
-<li>Handler、Looper、MessageQueue和Message的工作原理就像是生产线，Looper是发动机，MessageQueue就是传送带，Handler是工人，Message就是待处理的产品</li>
-</ol>
-<h1 id="3-Handler的工作流程"><a href="#3-Handler的工作流程" class="headerlink" title="3 Handler的工作流程"></a>3 Handler的工作流程</h1><p>一个应用的启动需要有main方法作为启动的入口，在Android中这个main方法在ActivityThread类中，查看这个类的main方法可以看到：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">public static final void main(String[] args) &#123;</span><br><span class="line">        //省略无关代码</span><br><span class="line">        ...</span><br><span class="line">        //主线程中调用Looper.prepareMainLooper()方法创建Looper</span><br><span class="line">        Looper.prepareMainLooper();</span><br><span class="line">        if (sMainThreadHandler == null) &#123;</span><br><span class="line">            sMainThreadHandler = new Handler();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ActivityThread thread = new ActivityThread();</span><br><span class="line">        thread.attach(false);</span><br><span class="line"></span><br><span class="line">        if (false) &#123;</span><br><span class="line">            Looper.myLooper().setMessageLogging(new</span><br><span class="line">                    LogPrinter(Log.DEBUG, &quot;ActivityThread&quot;));</span><br><span class="line">        &#125;</span><br><span class="line">    //主线程中调用Looper.loop()，开始轮询，取消息</span><br><span class="line">        Looper.loop();</span><br><span class="line"></span><br><span class="line">        if (Process.supportsProcesses()) &#123;</span><br><span class="line">            throw new RuntimeException(&quot;Main thread loop unexpectedly exited&quot;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">       ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="3-1-Looper轮询器"><a href="#3-1-Looper轮询器" class="headerlink" title="3.1 Looper轮询器"></a>3.1 Looper轮询器</h2><p>在ActivityThread的main方法中首先调用Looper.prepareMainLooper()方法，我们来看一下，这个方法中做了哪些工作：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">在Looper类中</span><br><span class="line">public static final void prepareMainLooper() &#123;</span><br><span class="line">     prepare();</span><br><span class="line">     setMainLooper(myLooper());</span><br><span class="line">     if (Process.supportsProcesses()) &#123;</span><br><span class="line">        myLooper().mQueue.mQuitAllowed = false;</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>该方法中首先调用本类中的prepare()方法，这个方法的主要作用是创建Looper对象，并且把该对象绑定到当前线程中，在这里既然是主线程调用的，那么该Looper对象也就是在主线程当中</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">在Looper类中</span><br><span class="line">public static final void prepare() &#123;</span><br><span class="line">    if (sThreadLocal.get() != null) &#123;</span><br><span class="line">        throw new RuntimeException(&quot;Only one Looper may be created per thread&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    //把Looper绑定到当前线程</span><br><span class="line">    sThreadLocal.set(new Looper());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在Looper的构造方法中，我们可以看到：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">private Looper() &#123;</span><br><span class="line">    //创建消息队列</span><br><span class="line">    mQueue = new MessageQueue();</span><br><span class="line">    mRun = true;</span><br><span class="line">    mThread = Thread.currentThread();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>首先，Looper这个类的构造方法是私有的，也就是说不允许外界直接new出来Looper对象。在创建Looper的时候，同时创建了一个消息队列MessageQueue。</p>
-<blockquote>
-<p>所以请注意，消息队列MessageQueue是在Looper创建的时候，同时创建的</p>
-</blockquote>
-<p>通过调用Looper.loop()方法，开始轮询消息：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public static final void loop() &#123;</span><br><span class="line">     Looper me = myLooper();</span><br><span class="line">     //通过拿到Looper对象，取获取与之对应的消息队列MessageQueue</span><br><span class="line">     MessageQueue queue = me.mQueue;</span><br><span class="line">    ...</span><br><span class="line">     //通过死循环方式去取消息</span><br><span class="line">     while (true) &#123;</span><br><span class="line">         //调用MessageQueue的next()方法取消息，这个过程也是死循环</span><br><span class="line">         Message msg = queue.next(); // might block</span><br><span class="line">         </span><br><span class="line">         if (msg != null) &#123;</span><br><span class="line">             ...</span><br><span class="line">             //取到消息之后，交给发送该消息的Handler取处理消息</span><br><span class="line">             msg.target.dispatchMessage(msg);</span><br><span class="line">            ...</span><br><span class="line">             //回收消息，在Message中维护的有一个消息池</span><br><span class="line">             msg.recycle();</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-<p>通过上述简单的叙述，我们可以明白，在Activity启动的时候创建的一个与主线程相关的Looper和对应的消息队列MessageQueue，并且通过消息队列通过阻塞的方式去取消息。</p>
-<h2 id="3-2-Handler的工作过程"><a href="#3-2-Handler的工作过程" class="headerlink" title="3.2 Handler的工作过程"></a>3.2 Handler的工作过程</h2><p>Handler的工作过程主要包含发送消息和处理消息。Handler的构造方法有多个，他们的共同点是均会获取当前线程的Looper对象和消息队列MessageQueue对象</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">//Handler的构造方法1</span><br><span class="line">public Handler() &#123;</span><br><span class="line">    ...</span><br><span class="line">    //获取当前线程的Looper对象</span><br><span class="line">    mLooper = Looper.myLooper();</span><br><span class="line">    if (mLooper == null) &#123;</span><br><span class="line">        throw new RuntimeException(</span><br><span class="line">            &quot;Can&apos;t create handler inside thread that has not called Looper.prepare()&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    //获取消息队列对象</span><br><span class="line">    mQueue = mLooper.mQueue;</span><br><span class="line">    mCallback = null;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//Handler的构造方法2</span><br><span class="line">public Handler(Callback callback) &#123;</span><br><span class="line">   ...</span><br><span class="line">    mLooper = Looper.myLooper();</span><br><span class="line">    if (mLooper == null) &#123;</span><br><span class="line">        throw new RuntimeException(</span><br><span class="line">            &quot;Can&apos;t create handler inside thread that has not called Looper.prepare()&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    mQueue = mLooper.mQueue;</span><br><span class="line">    mCallback = callback;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//Handler的构造方法3</span><br><span class="line">public Handler(Looper looper) &#123;</span><br><span class="line">    mLooper = looper;</span><br><span class="line">    mQueue = looper.mQueue;</span><br><span class="line">    mCallback = null;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//Handler的构造方法4</span><br><span class="line">public Handler(Looper looper, Callback callback) &#123;</span><br><span class="line">    mLooper = looper;</span><br><span class="line">    mQueue = looper.mQueue;</span><br><span class="line">    mCallback = callback;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>发送消息可以通过一系列send方法，也可以通过一系列post方法，不过post方法最终还是通过send方法去实现。<br>用send方法，最终也会调用一个方法如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">//在Handler中</span><br><span class="line">public boolean sendMessageAtTime(Message msg, long uptimeMillis)</span><br><span class="line">&#123;</span><br><span class="line">    boolean sent = false;</span><br><span class="line">    MessageQueue queue = mQueue;</span><br><span class="line">    if (queue != null) &#123;</span><br><span class="line">        //调用msg.target的方法把Message和发送它的Handler绑定，所以Looper能够把正确的Message交给发送它的Handler处理</span><br><span class="line">        msg.target = this;</span><br><span class="line">        //调用MessageQueue的enqueueMessage方法把消息加入消息队列</span><br><span class="line">        sent = queue.enqueueMessage(msg, uptimeMillis);</span><br><span class="line">    &#125;</span><br><span class="line">    else &#123;</span><br><span class="line">        RuntimeException e = new RuntimeException(</span><br><span class="line">            this + &quot; sendMessageAtTime() called with no mQueue&quot;);</span><br><span class="line">        Log.w(&quot;Looper&quot;, e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">    return sent;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到，Handler发送消息的过程就是向消息队列中插入一条消息。前面已经讲到，MessageQueue调用next方法去轮询消息，那么当MessageQueue拿到消息之后，把消息传递给Looper，最终交给Handler去处理，即dispatchMessage方法会被调用。此时，Handler开始处理消息。值得一提的是，在消息队列中可能有不同Handler发送的多个消息，通过在发送消息的时候把Message和发送它的Handler绑定，Looper就会把消息正确的交给发送它的Handler来处理。dispatchMessage方法如下:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">//Handler中</span><br><span class="line">public void dispatchMessage(Message msg) &#123;</span><br><span class="line">    if (msg.callback != null) &#123;</span><br><span class="line">        handleCallback(msg);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        if (mCallback != null) &#123;</span><br><span class="line">            if (mCallback.handleMessage(msg)) &#123;</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        handleMessage(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Handler处理消息的过程如下：</p>
-<ol>
-<li><p>查看Message的callback是否为null，不为null的话就通过handleCallback(msg)方法处理消息。这里的callback实际上就是一个Runnable对象，如果以post方式去发送消息，最终就会调用handleCallback(msg)方法去处理，这个方法内容为：</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">private final void handleCallback(Message message) &#123;</span><br><span class="line">    message.callback.run();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>检查mCallBack是否为null，如果不为null就调用mCallBack的handleMessage(msg)方法。这个mCallBack是CallBack接口的子类对象，前面已经说过Handler的构造方法中有两个可以用到这个CallBack。</p>
-</li>
-<li>如果mCallBack为null，最终就会调用Handler的handleMessage(msg)方法，这个方法通常是在创建Handler时被使用者重写的方法。</li>
-</ol>
-<p><strong>需要说明的是：在主线程当前我们创建Handler时并没有自己创建Looper对象，这是因为主线程已经为我们创建好了；如果要在子线程当前创建Handler，一定要在之前创建Looper对象，即调用Looper.prepare()方法。</strong></p>
-<h2 id="3-3-MessageQueue消息队列"><a href="#3-3-MessageQueue消息队列" class="headerlink" title="3.3 MessageQueue消息队列"></a>3.3 MessageQueue消息队列</h2><p>前面的内容已经讲了很多关于MessageQueue的东西，这里也就不再赘述，MessageQueue主要包含两个操作：插入消息（enqueueMessage方法）和读取消息（next方法）。读取的过程也伴随着删除操作。MessageQueue的的内部实际上是通过一个单链表的数据结构来维护消息列表，这主要也是因为单链表在插入和删除上比较有优势。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">   final boolean enqueueMessage(Message msg, long when) &#123;</span><br><span class="line">    ...</span><br><span class="line">        Message p = mMessages;</span><br><span class="line">        if (p == null || when == 0 || when &lt; p.when) &#123;</span><br><span class="line">            // 当前发送的message需要马上被处理调，needWake唤醒状态置true</span><br><span class="line">            msg.next = p;</span><br><span class="line">            mMessages = msg;</span><br><span class="line">            needWake = mBlocked; // new head, might need to wake up</span><br><span class="line">         &#125; else &#123;</span><br><span class="line">              // 当前发送的message被排队到其他message的后面，needWake唤醒状态置为false</span><br><span class="line">                Message prev = null;</span><br><span class="line">                while (p != null &amp;&amp; p.when &lt;= when) &#123;</span><br><span class="line">                    prev = p;</span><br><span class="line">                    p = p.next;</span><br><span class="line">                &#125;</span><br><span class="line">                msg.next = prev.next;</span><br><span class="line">                prev.next = msg;</span><br><span class="line">                needWake = false; // still waiting on head, no need to wake up</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    // 是否唤醒主线程</span><br><span class="line">    if (needWake) &#123;</span><br><span class="line">        nativeWake(mPtr);</span><br><span class="line">    &#125;</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>enqueueMessage的主要操作其实就是单链表的插入操作，根据时间看当前发送的Message是否需要马上处理。这个enqueueMessage方法是Handler发送消息的时候调用。</p>
-<p>下面来看next方法：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">final Message next() &#123;</span><br><span class="line">    int pendingIdleHandlerCount = -1; // -1 only during first iteration</span><br><span class="line">    int nextPollTimeoutMillis = 0;</span><br><span class="line"></span><br><span class="line">    for (;;) &#123;</span><br><span class="line">        if (nextPollTimeoutMillis != 0) &#123;</span><br><span class="line">            Binder.flushPendingCommands();</span><br><span class="line">        &#125;</span><br><span class="line">        nativePollOnce(mPtr, nextPollTimeoutMillis);</span><br><span class="line"></span><br><span class="line">        synchronized (this) &#123;</span><br><span class="line">            // Try to retrieve the next message.  Return if found.</span><br><span class="line">            final long now = SystemClock.uptimeMillis();</span><br><span class="line">            final Message msg = mMessages;</span><br><span class="line">            if (msg != null) &#123;</span><br><span class="line">                final long when = msg.when;</span><br><span class="line">                if (now &gt;= when) &#123;</span><br><span class="line">                    mBlocked = false;</span><br><span class="line">                    mMessages = msg.next;</span><br><span class="line">                    msg.next = null;</span><br><span class="line">                    if (Config.LOGV) Log.v(&quot;MessageQueue&quot;, &quot;Returning message: &quot; + msg);</span><br><span class="line">                    return msg;</span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    nextPollTimeoutMillis = (int) Math.min(when - now, Integer.MAX_VALUE);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                nextPollTimeoutMillis = -1;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到，next方法返回一个Message对象。next方法中也是采用阻塞的方式去获取消息队列中的消息，一旦有消息立即返回并且将它从单链表中移除。如果没有消息就一直阻塞。前面已经提到，这个取消息的next方法是在Looper的loop()方法中调用。</p>
-<h2 id="3-4-Message消息载体"><a href="#3-4-Message消息载体" class="headerlink" title="3.4 Message消息载体"></a>3.4 Message消息载体</h2><p>Message只有一个无参构造方法，但是Message有多个obtain静态方法来返回Message对象。</p>
-<p>采用哪种方式创建Message对象都可以，但是建议采用obtain方法来创建。这是因为Message通过在内部构建一个链表来维护一个被回收的Message对象池。当用户调用obtain方法时会优先从池中获取，如果池中没有则创建新的Message对象。同时在使用完毕之后，进入池中以便于复用。这个在Looper.loop()方法可以看到一点端倪，在使用完毕时候调用了Message的recycle()方法。<br>下面是obtain方法创建Message对象的流程：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public static Message obtain() &#123;</span><br><span class="line">    synchronized (sPoolSync) &#123;</span><br><span class="line">        if (sPool != null) &#123;</span><br><span class="line">            Message m = sPool;</span><br><span class="line">            sPool = m.next;</span><br><span class="line">            m.next = null;</span><br><span class="line">            sPoolSize--;</span><br><span class="line">            return m;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return new Message();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="4-小结"><a href="#4-小结" class="headerlink" title="4 小结"></a>4 小结</h1><ul>
-<li>在应用启动时，会开启一个主线程（即UI线程）,会创建一个Looper对象，并把该对象绑定到主线程中。Looper对象被封装在ThreadLocal中，使得不同线程间的Looper不能共享</li>
-<li>创建Looper时同时创建了MessageQueue消息队列对象</li>
-<li>Handler通过send方法或者post方法，把消息加入消息队列MessageQueue中</li>
-<li>主线程中调用Looper的loop()方法，会开启消息循环，不断的从消息队列中取出消息</li>
-<li>Looper拿到消息之后调用Handler的dispatchMessage方法来处理消息</li>
-</ul>
+          1 前言Handler在Android开发中使用的比较多，通常Handler是在主线程中创建，子线程拿到这个Handler向主线程中发送消息。
 
-          
+那么如果需要主线程中向子线程中发送消息呢？
+
+本文只是提出这个问题，并不在此提供实现这种场景的例子，写这篇文章的目的主要是理解Handler的运行原理，以
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/06/23/Android源码分析之消息机制Handler/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1515,8 +1111,12 @@
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">John Doe</p>
-              <p class="site-description motion-element" itemprop="description"></p>
+              <img class="site-author-image" itemprop="image"
+                src="/images/ic_avatar.jpeg"
+                alt="sososeen09" />
+            
+              <p class="site-author-name" itemprop="name">sososeen09</p>
+              <p class="site-description motion-element" itemprop="description">未来的不可知是前进的原动力</p>
           </div>
 
           <nav class="site-state motion-element">
@@ -1533,15 +1133,24 @@
             
 
             
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
 
             
               
               
               <div class="site-state-item site-state-tags">
-                
-                  <span class="site-state-item-count">1</span>
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">标签</span>
-                
+                </a>
               </div>
             
 
@@ -1549,6 +1158,22 @@
 
           
 
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/sososeen09" target="_blank" title="Github">
+                      
+                        <i class="fa fa-fw fa-globe"></i>Github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.jianshu.com/u/16925b46816d" target="_blank" title="简书">
+                      
+                        <i class="fa fa-fw fa-globe"></i>简书</a>
+                  </span>
+                
+            </div>
           
 
           
@@ -1576,11 +1201,11 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">John Doe</span>
+  <span class="author" itemprop="copyrightHolder">sososeen09</span>
 
   
 </div>
@@ -1594,7 +1219,7 @@
 
 
 
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
 
 
 
@@ -1693,6 +1318,13 @@
 
   
   
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
 
   
 

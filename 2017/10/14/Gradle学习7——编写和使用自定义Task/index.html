@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="zh-Hans">
+<html class="theme-next pisces use-motion" lang="zh-Hans">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -83,7 +83,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Gradle学习7——编写和使用自定义Task">
 <meta property="og:url" content="http://yoursite.com/2017/10/14/Gradle学习7——编写和使用自定义Task/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="sososeen09 的博客">
 <meta property="og:description" content="学习本系列前可以下载相关的github项目gradleLearnDemo。地址：https://github.com/sososeen09/gradleLearnDemo  自定义task包含两个组件：  自定义的task类，封装了逻辑行为，也被称作任务类型 真实的task，提供了用于配置行为的task类所暴露的属性值。Gradle把这些task称为增强的task。  可维护性是编写自定义tas">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2018-07-18T02:43:25.407Z">
@@ -97,7 +97,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Pisces',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -125,7 +125,7 @@
 
 
 
-  <title>Gradle学习7——编写和使用自定义Task | Hexo</title>
+  <title>Gradle学习7——编写和使用自定义Task | sososeen09 的博客</title>
   
 
 
@@ -155,7 +155,7 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Hexo</span>
+        <span class="site-title">sososeen09 的博客</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
@@ -265,13 +265,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/14/Gradle学习7——编写和使用自定义Task/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="sososeen09">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/ic_avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="sososeen09 的博客">
     </span>
 
     
@@ -498,8 +498,12 @@ new ProjectVersion(versionProps.major.toInteger(),versionProps.minor.toInteger()
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">John Doe</p>
-              <p class="site-description motion-element" itemprop="description"></p>
+              <img class="site-author-image" itemprop="image"
+                src="/images/ic_avatar.jpeg"
+                alt="sososeen09" />
+            
+              <p class="site-author-name" itemprop="name">sososeen09</p>
+              <p class="site-description motion-element" itemprop="description">未来的不可知是前进的原动力</p>
           </div>
 
           <nav class="site-state motion-element">
@@ -516,15 +520,24 @@ new ProjectVersion(versionProps.major.toInteger(),versionProps.minor.toInteger()
             
 
             
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
 
             
               
               
               <div class="site-state-item site-state-tags">
-                
-                  <span class="site-state-item-count">1</span>
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">标签</span>
-                
+                </a>
               </div>
             
 
@@ -532,6 +545,22 @@ new ProjectVersion(versionProps.major.toInteger(),versionProps.minor.toInteger()
 
           
 
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/sososeen09" target="_blank" title="Github">
+                      
+                        <i class="fa fa-fw fa-globe"></i>Github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.jianshu.com/u/16925b46816d" target="_blank" title="简书">
+                      
+                        <i class="fa fa-fw fa-globe"></i>简书</a>
+                  </span>
+                
+            </div>
           
 
           
@@ -575,11 +604,11 @@ new ProjectVersion(versionProps.major.toInteger(),versionProps.minor.toInteger()
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">John Doe</span>
+  <span class="author" itemprop="copyrightHolder">sososeen09</span>
 
   
 </div>
@@ -593,7 +622,7 @@ new ProjectVersion(versionProps.major.toInteger(),versionProps.minor.toInteger()
 
 
 
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
 
 
 
@@ -692,6 +721,13 @@ new ProjectVersion(versionProps.major.toInteger(),versionProps.minor.toInteger()
 
   
   
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
 
   
   <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
