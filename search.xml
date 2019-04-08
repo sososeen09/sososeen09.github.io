@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>Shell脚本使用及采坑记.md</title>
+      <link href="/2019/04/08/Shell%E8%84%9A%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E9%87%87%E5%9D%91%E8%AE%B0/"/>
+      <url>/2019/04/08/Shell%E8%84%9A%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E9%87%87%E5%9D%91%E8%AE%B0/</url>
+      
+        <content type="html"><![CDATA[<h1 id="在-Jenkins-中使用脚本"><a href="#在-Jenkins-中使用脚本" class="headerlink" title="在 Jenkins 中使用脚本"></a>在 Jenkins 中使用脚本</h1><p>在 Jenkins 中使用脚本会存在中文乱码的情况，单独执行shell脚本又是没问题。</p><p><strong>解决方法：</strong> 在shell脚本开始的时候加上命令：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export LANG=&quot;en_US.UTF-8&quot;</span><br></pre></td></tr></table></figure><p><strong>问题原因： </strong><br>此问题是因此执行定时任务时没有去获取系统的环境变量，导致了中文乱码。</p><p>在使用 360命令行加固的时候，发现在上传 apk 文件到 360 服务器的时候一直卡在 prepare upload 过程，原因就是因为有中文乱码，无法继续执行下去。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">begin jiagu task</span><br><span class="line">prepare to upload</span><br><span class="line">??????</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> Shell </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Shell 采坑 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Android Gradle Plugin打包Apk过程中的Transform API</title>
       <link href="/2018/07/12/Android%20Gradle%20Plugin%E6%89%93%E5%8C%85Apk%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84Transform%20API/"/>
       <url>/2018/07/12/Android%20Gradle%20Plugin%E6%89%93%E5%8C%85Apk%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84Transform%20API/</url>
