@@ -389,10 +389,7 @@
       
         
           
-          在 Jenkins 中使用脚本在 Jenkins 中使用脚本会存在中文乱码的情况，单独执行shell脚本又是没问题。
-解决方法： 在shell脚本开始的时候加上命令：
-1export LANG=&quot;en_US.UTF-8&quot;
-问题原因： 此问题是因此执行定时任务时没有去获取系统的环境
+          读取文本的每一行12345678array=()index=0#循环读取文本while read line || [[ -n $&#123;line&#125; ]]do    array[$index]=`echo $line | awk &apos;&#123;print $1&#125;&ap
           ...
           <!--noindex-->
           <div class="post-button text-center">
